@@ -92,14 +92,14 @@ function SearchLanding() {
   return (
     <div className="mx-auto max-w-3xl space-y-10">
       <section className="relative overflow-hidden rounded-3xl border border-border bg-background px-6 py-10 shadow-sm md:px-10 md:py-12">
-        <div className="absolute inset-x-0 top-0 h-1.5 bg-primary" aria-hidden />
+        <div className="absolute inset-x-0 top-0 h-1.5 bg-red-500" aria-hidden />
         <PokeballMark
           className="pointer-events-none absolute -right-12 -top-12 hidden size-60 opacity-[0.06] md:block"
           aria-hidden
         />
         <div className="relative">
           <h1 className="font-display text-3xl font-bold leading-tight text-foreground md:text-4xl">
-            카드 번호로 <span className="text-primary">확장 아트</span> 찾기
+            카드 번호로 <span className="text-red-500">확장 아트</span> 찾기
           </h1>
           <p className="mt-3 max-w-lg text-muted-foreground">
             가지고 있는 카드 번호만 입력하면, 그 카드에 맞는 확장 아트 도안을 모아서 보여드려요.

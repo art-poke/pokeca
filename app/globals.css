@@ -65,7 +65,8 @@
   --card-foreground: #111113;
   --popover: #ffffff;
   --popover-foreground: #111113;
-  --primary: #ee1515;
+  /* 인터랙티브 레드는 red-600(흰 글씨 대비 5.2:1, WCAG AA). 큰 브랜드 강조는 red-500(#EE1515)을 명시적으로 쓴다. */
+  --primary: #c81010;
   --primary-foreground: #ffffff;
   --secondary: #111113; /* 몬스터볼 블랙 */
   --secondary-foreground: #ffffff;
@@ -90,7 +91,7 @@
   --card-foreground: #f8f9fa;
   --popover: #1a1b1e;
   --popover-foreground: #f8f9fa;
-  --primary: #ee1515;
+  --primary: #c81010;
   --primary-foreground: #ffffff;
   --secondary: #2e2f33;
   --secondary-foreground: #f8f9fa;
