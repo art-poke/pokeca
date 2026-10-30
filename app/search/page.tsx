@@ -122,7 +122,7 @@ function SearchLanding() {
         </div>
       </section>
 
-      <Suspense fallback={null}>
+      <Suspense fallback={<RecentCardsSkeleton />}>
         <RecentCards />
       </Suspense>
     </div>
@@ -170,6 +170,21 @@ async function RecentCards() {
     </section>
   );
 }
+
+const RecentCardsSkeleton = () => (
+  <section aria-hidden>
+    <div className="h-7 w-48 animate-pulse rounded-lg bg-gray-200" />
+    <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <li key={i} className="rounded-2xl border border-border bg-background p-2.5">
+          <div className="aspect-[63/88] animate-pulse rounded-xl bg-gray-100" />
+          <div className="mt-2.5 h-4 w-20 animate-pulse rounded bg-gray-100" />
+          <div className="mt-1.5 h-4 w-24 animate-pulse rounded bg-gray-100" />
+        </li>
+      ))}
+    </ul>
+  </section>
+);
 
 // 카드당 한 줄. 도안 많은 순, 같으면 최신 확장팩 순(DB가 정렬).
 function CandidateList({ hits }: { hits: CardHit[] }) {
