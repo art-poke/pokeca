@@ -9,6 +9,7 @@ export const POST = adminRoute(async (request, _ctx, admin) => {
     id: String(body.id),
     cardId: String(body.cardId),
     artistName: String(body.artistName ?? ""),
+    title: body.title ? String(body.title) : null,
     format: body.format,
     sourceUrl: body.sourceUrl || null,
     sourceVisibility: body.sourceUrl ? body.sourceVisibility : null,

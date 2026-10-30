@@ -11,6 +11,7 @@ export const POST = artistRoute(async (request, _ctx, artist) => {
     cardId: String(body.cardId),
     artistName: artist.displayName,
     artistId: artist.userId,
+    title: body.title ? String(body.title) : null,
     format: body.format,
     sourceUrl: body.sourceUrl || null,
     sourceVisibility: body.sourceUrl ? body.sourceVisibility : null,

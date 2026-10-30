@@ -77,6 +77,7 @@ export function NewArtworkForm({ mode = "admin" }: { mode?: "admin" | "artist" }
           id,
           cardId: card.cardId,
           artistName: form.get("artistName"),
+          title: form.get("title"),
           format: form.get("format"),
           sourceUrl: sourceUrl || null,
           sourceVisibility: sourceUrl ? form.get("sourceVisibility") : null,
@@ -151,6 +152,12 @@ export function NewArtworkForm({ mode = "admin" }: { mode?: "admin" | "artist" }
           <input name="artistName" required maxLength={80} className={styles.input} />
         </label>
       )}
+
+      <label className={styles.field}>
+        <span>도안 제목 (선택)</span>
+        <span>비워 두면 “{"{작가}"}님의 도안”으로 보여요.</span>
+        <input name="title" maxLength={120} className={styles.input} placeholder="예: 리자몽 9포켓 풀아트" />
+      </label>
 
       <fieldset className={styles.fieldset}>
         <legend>2. 규격</legend>

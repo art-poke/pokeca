@@ -1,10 +1,13 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { FormatResults } from "@/components/FormatResults";
+import { RequestArtButton } from "@/components/request-art-button";
 import { Badge } from "@/components/ui/badge";
 import { PokeballMark } from "@/components/ui/logo";
+import { hasRequested } from "@/lib/art-requests";
 import { listPublicArtworks } from "@/lib/artworks";
 import { getCard } from "@/lib/cards";
+import { currentMember } from "@/lib/members";
 import { numberFromPath, safeDecode } from "@/lib/search";
 
 const LANG_LABEL = { ja: "일본", en: "영문" } as const;
@@ -28,8 +31,13 @@ async function Card({
   const card = await getCard(setCode, collectorNumber);
   if (!card) notFound();
 
-  const [artworks, query] = await Promise.all([listPublicArtworks(card.cardId), searchParams]);
+  const [artworks, query, member] = await Promise.all([
+    listPublicArtworks(card.cardId),
+    searchParams,
+    currentMember(),
+  ]);
   const from = aliasFrom(query.from);
+  const requested = member ? await hasRequested(member.userId, card.cardId) : false;
 
   return (
     <article className="space-y-8">
@@ -69,6 +77,9 @@ async function Card({
               {LANG_LABEL[from.lang]}판)과 같은 그림의 한글판 카드예요. 도안은 한글판 기준이에요.
             </p>
           )}
+          <div className="mt-4">
+            <RequestArtButton cardId={card.cardId} isMember={!!member} requested={requested} />
+          </div>
         </div>
       </header>
 
