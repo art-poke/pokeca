@@ -1,0 +1,1114 @@
+{
+  "title": "당신 근처의 당근",
+  "fontFamily": [
+    {
+      "v": "-apple-system",
+      "count": 526
+    }
+  ],
+  "fontSize": [
+    {
+      "v": "16px",
+      "count": 310
+    },
+    {
+      "v": "14px",
+      "count": 192
+    },
+    {
+      "v": "20px",
+      "count": 8
+    },
+    {
+      "v": "13px",
+      "count": 6
+    },
+    {
+      "v": "18px",
+      "count": 5
+    },
+    {
+      "v": "0px",
+      "count": 5
+    }
+  ],
+  "fontWeight": [
+    {
+      "v": "400",
+      "count": 359
+    },
+    {
+      "v": "700",
+      "count": 125
+    },
+    {
+      "v": "500",
+      "count": 42
+    }
+  ],
+  "lineHeight": [
+    {
+      "v": "24px",
+      "count": 299
+    },
+    {
+      "v": "19px",
+      "count": 182
+    },
+    {
+      "v": "27px",
+      "count": 18
+    },
+    {
+      "v": "22px",
+      "count": 11
+    },
+    {
+      "v": "0px",
+      "count": 9
+    },
+    {
+      "v": "18px",
+      "count": 6
+    },
+    {
+      "v": "normal",
+      "count": 1
+    }
+  ],
+  "color": [
+    {
+      "v": "rgb(243, 244, 245)",
+      "count": 192
+    },
+    {
+      "v": "rgb(220, 222, 227)",
+      "count": 63
+    },
+    {
+      "v": "rgb(176, 179, 186)",
+      "count": 32
+    },
+    {
+      "v": "rgb(134, 139, 148)",
+      "count": 5
+    },
+    {
+      "v": "rgb(255, 255, 255)",
+      "count": 1
+    }
+  ],
+  "bg": [
+    {
+      "v": "rgb(43, 46, 53)",
+      "count": 19
+    },
+    {
+      "v": "rgb(22, 23, 27)",
+      "count": 10
+    },
+    {
+      "v": "rgb(29, 32, 37)",
+      "count": 6
+    },
+    {
+      "v": "rgba(255, 255, 255, 0.125)",
+      "count": 2
+    },
+    {
+      "v": "rgb(0, 0, 0)",
+      "count": 1
+    },
+    {
+      "v": "rgb(255, 102, 0)",
+      "count": 1
+    },
+    {
+      "v": "rgba(255, 255, 255, 0)",
+      "count": 1
+    },
+    {
+      "v": "rgb(255, 255, 255)",
+      "count": 1
+    },
+    {
+      "v": "rgb(59, 59, 59)",
+      "count": 1
+    },
+    {
+      "v": "color(srgb 0.113725 0.12549 0.145098 / 0.7)",
+      "count": 1
+    }
+  ],
+  "borderColor": [
+    {
+      "v": "rgb(57, 61, 70)",
+      "count": 2
+    },
+    {
+      "v": "rgba(255, 255, 255, 0.05)",
+      "count": 1
+    },
+    {
+      "v": "rgba(255, 255, 255, 0.09)",
+      "count": 1
+    }
+  ],
+  "radius": [
+    {
+      "v": "4px",
+      "count": 35
+    },
+    {
+      "v": "8px",
+      "count": 19
+    },
+    {
+      "v": "9999px",
+      "count": 15
+    },
+    {
+      "v": "16px",
+      "count": 6
+    },
+    {
+      "v": "6px",
+      "count": 6
+    },
+    {
+      "v": "12px",
+      "count": 6
+    },
+    {
+      "v": "9999px 0px 0px 9999px",
+      "count": 1
+    },
+    {
+      "v": "0px 9999px 9999px 0px",
+      "count": 1
+    },
+    {
+      "v": "0px 0px 16px 16px",
+      "count": 1
+    },
+    {
+      "v": "16px 14px 14px",
+      "count": 1
+    }
+  ],
+  "shadow": [
+    {
+      "v": "rgba(0, 0, 0, 0.05) 0px 1px 0.5px 0px",
+      "count": 8
+    },
+    {
+      "v": "rgba(0, 0, 0, 0.5) 0px 1px 4px 0px",
+      "count": 3
+    },
+    {
+      "v": "rgba(0, 0, 0, 0.05) 0px 1px 1px 0px",
+      "count": 2
+    },
+    {
+      "v": "rgb(57, 61, 70) 0px 0px 0px 1px inset",
+      "count": 1
+    },
+    {
+      "v": "rgba(255, 255, 255, 0.35) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.5) 0px 1px 4px 0px",
+      "count": 1
+    }
+  ],
+  "gap": [
+    {
+      "v": "8px",
+      "count": 25
+    },
+    {
+      "v": "4px",
+      "count": 21
+    },
+    {
+      "v": "2px",
+      "count": 18
+    },
+    {
+      "v": "12px",
+      "count": 15
+    },
+    {
+      "v": "6px",
+      "count": 7
+    },
+    {
+      "v": "10px",
+      "count": 7
+    },
+    {
+      "v": "16px",
+      "count": 3
+    },
+    {
+      "v": "24px",
+      "count": 3
+    },
+    {
+      "v": "32px",
+      "count": 1
+    },
+    {
+      "v": "16px 12px",
+      "count": 1
+    },
+    {
+      "v": "8px 12px",
+      "count": 1
+    }
+  ],
+  "padding": [
+    {
+      "v": "0px",
+      "count": 480
+    },
+    {
+      "v": "0px 6px",
+      "count": 8
+    },
+    {
+      "v": "0px 10px",
+      "count": 7
+    },
+    {
+      "v": "12px",
+      "count": 5
+    },
+    {
+      "v": "16px",
+      "count": 4
+    },
+    {
+      "v": "16px 6px",
+      "count": 3
+    },
+    {
+      "v": "0px 8px",
+      "count": 2
+    },
+    {
+      "v": "6px 14px",
+      "count": 2
+    },
+    {
+      "v": "0px 16px",
+      "count": 1
+    },
+    {
+      "v": "24px 0px 10px",
+      "count": 1
+    },
+    {
+      "v": "8px 14px",
+      "count": 1
+    },
+    {
+      "v": "12px 14px 12px 20px",
+      "count": 1
+    },
+    {
+      "v": "6px",
+      "count": 1
+    },
+    {
+      "v": "2px 0px",
+      "count": 1
+    },
+    {
+      "v": "0px 0px 0px 10px",
+      "count": 1
+    }
+  ],
+  "rootVarsCount": 566,
+  "rootVars": {
+    "--carotene-color-palette-static-black": "#000000",
+    "--carotene-color-palette-static-black-alpha-500": "#00000080",
+    "--carotene-color-palette-static-white": "#ffffff",
+    "--carotene-color-palette-static-white-alpha-200": "#ffffff33",
+    "--carotene-spacing-0.5": ".125rem",
+    "--carotene-spacing-1": ".25rem",
+    "--carotene-spacing-1.5": ".375rem",
+    "--carotene-spacing-2": ".5rem",
+    "--carotene-spacing-2.5": ".625rem",
+    "--carotene-spacing-3": ".75rem",
+    "--carotene-spacing-3.5": ".875rem",
+    "--carotene-spacing-4": "1rem",
+    "--carotene-spacing-5": "1.25rem",
+    "--carotene-spacing-6": "1.5rem",
+    "--carotene-spacing-7": "1.75rem",
+    "--carotene-spacing-8": "2rem",
+    "--carotene-spacing-10": "2.5rem",
+    "--carotene-spacing-11": "2.75rem",
+    "--carotene-spacing-12": "3rem",
+    "--carotene-spacing-16": "4rem",
+    "--carotene-spacing-20": "5rem",
+    "--carotene-spacing-24": "6rem",
+    "--carotene-spacing-32": "8rem",
+    "--carotene-size-0.5": ".125rem",
+    "--carotene-size-1": ".25rem",
+    "--carotene-size-1.5": ".375rem",
+    "--carotene-size-2": ".5rem",
+    "--carotene-size-2.5": ".625rem",
+    "--carotene-size-3": ".75rem",
+    "--carotene-size-3.5": ".875rem",
+    "--carotene-size-4": "1rem",
+    "--carotene-size-5": "1.25rem",
+    "--carotene-size-6": "1.5rem",
+    "--carotene-size-7": "1.75rem",
+    "--carotene-size-8": "2rem",
+    "--carotene-size-10": "2.5rem",
+    "--carotene-size-12": "3rem",
+    "--carotene-size-16": "4rem",
+    "--carotene-size-20": "5rem",
+    "--carotene-size-24": "6rem",
+    "--carotene-size-32": "8rem",
+    "--carotene-radius-0.5": ".125rem",
+    "--carotene-radius-1": ".25rem",
+    "--carotene-radius-1.5": ".375rem",
+    "--carotene-radius-2": ".5rem",
+    "--carotene-radius-2.5": ".625rem",
+    "--carotene-radius-3": ".75rem",
+    "--carotene-radius-3.5": ".875rem",
+    "--carotene-radius-4": "1rem",
+    "--carotene-radius-5": "1.25rem",
+    "--carotene-radius-6": "1.5rem",
+    "--carotene-radius-7": "1.75rem",
+    "--carotene-radius-8": "2rem",
+    "--carotene-radius-10": "2.5rem",
+    "--carotene-radius-12": "3rem",
+    "--carotene-radius-16": "4rem",
+    "--carotene-radius-20": "5rem",
+    "--carotene-radius-24": "6rem",
+    "--carotene-radius-32": "8rem",
+    "--carotene-radius-full": "9999px",
+    "--carotene-border-width-1": "1px",
+    "--carotene-heading-line-height-xsmall": "1.125rem",
+    "--carotene-heading-line-height-small": "1.375rem",
+    "--carotene-heading-line-height-medium": "1.75rem",
+    "--carotene-heading-line-height-large": "2rem",
+    "--carotene-heading-line-height-xlarge": "2.275rem",
+    "--carotene-body-line-height-xxsmall": "1rem",
+    "--carotene-body-line-height-xsmall": "1.125rem",
+    "--carotene-body-line-height-small": "1.25rem",
+    "--carotene-body-line-height-medium": "1.5rem",
+    "--carotene-body-line-height-large": "1.875rem",
+    "--carotene-font-weight-regular": "400",
+    "--carotene-font-weight-semibold": "600",
+    "--carotene-font-weight-bold": "700",
+    "--carotene-font-size-50": ".688rem",
+    "--carotene-font-size-75": ".75rem",
+    "--carotene-font-size-100": ".875rem",
+    "--carotene-font-size-200": "1rem",
+    "--carotene-font-size-300": "1.25rem",
+    "--carotene-font-size-400": "1.5rem",
+    "--carotene-font-size-500": "1.75rem",
+    "--carotene-uniform-height-small": "1.5rem",
+    "--carotene-uniform-height-medium": "2rem",
+    "--carotene-uniform-height-large": "2.5rem",
+    "--carotene-timing-function-linear": "cubic-bezier(0, 0, 1, 1)",
+    "--carotene-timing-function-standard": "cubic-bezier(.35, 0, .35, 1)",
+    "--carotene-timing-function-enter": "cubic-bezier(.03, .4, .1, 1)",
+    "--carotene-timing-function-exit": "cubic-bezier(.35, 0, .95, .55)",
+    "--carotene-duration-1": "50ms",
+    "--carotene-duration-2": ".1s",
+    "--carotene-duration-3": ".15s",
+    "--carotene-duration-4": ".2s",
+    "--carotene-duration-5": ".25s",
+    "--carotene-duration-6": ".3s",
+    "--carotene-duration-7": ".35s",
+    "--carotene-duration-8": ".4s",
+    "--carotene-duration-9": ".45s",
+    "--carotene-duration-10": ".5s",
+    "--carotene-z-index-sticky": "200",
+    "--carotene-z-index-modal": "300",
+    "--carotene-z-index-notification": "400",
+    "--carotene-color-bg-brand-solid-hover": "var( --seed-color-bg-brand-solid-pressed )",
+    "--carotene-color-bg-brand-solid-pressed": "var( --seed-color-bg-brand-solid-pressed )",
+    "--carotene-color-bg-brand-solid": "var(--seed-color-bg-brand-solid)",
+    "--carotene-color-bg-brand-weak-hover": "var(--seed-color-bg-brand-weak-pressed)",
+    "--carotene-color-bg-brand-weak-pressed": "var( --seed-color-bg-brand-weak-pressed )",
+    "--carotene-color-bg-brand-weak": "var(--seed-color-bg-brand-weak)",
+    "--carotene-color-bg-disabled": "var(--seed-color-bg-disabled)",
+    "--carotene-color-bg-layer-default-hover": "var( --seed-color-bg-layer-default-pressed )",
+    "--carotene-color-bg-layer-default-pressed": "var( --seed-color-bg-layer-default-pressed )",
+    "--carotene-color-bg-layer-default": "var(--seed-color-bg-layer-default)",
+    "--carotene-color-bg-layer-elevated-hover": "var( --seed-color-bg-layer-floating-pressed )",
+    "--carotene-color-bg-layer-elevated-pressed": "var( --seed-color-bg-layer-floating-pressed )",
+    "--carotene-color-bg-layer-elevated": "var(--seed-color-bg-layer-floating)",
+    "--carotene-color-bg-negative-solid": "var(--seed-color-bg-critical-solid)",
+    "--carotene-color-bg-negative-weak": "var(--seed-color-bg-critical-weak)",
+    "--carotene-color-bg-neutral-hover": "var(--seed-color-bg-neutral-weak-pressed)",
+    "--carotene-color-bg-neutral-inverted-hover": "var( --seed-color-bg-neutral-inverted-pressed )",
+    "--carotene-color-bg-neutral-inverted": "var(--seed-color-bg-neutral-inverted)",
+    "--carotene-color-bg-neutral-pressed": "var( --seed-color-bg-neutral-weak-pressed )",
+    "--carotene-color-bg-neutral": "var(--seed-color-bg-neutral-weak)",
+    "--carotene-color-bg-overlay-muted": "var(--seed-color-bg-overlay-muted)",
+    "--carotene-color-bg-overlay": "var(--seed-color-bg-overlay)",
+    "--carotene-color-bg-positive-solid": "var(--seed-color-bg-positive-solid)",
+    "--carotene-color-bg-positive-weak": "var(--seed-color-bg-positive-weak)",
+    "--carotene-color-bg-warmth-l1": "#aeb2b81f",
+    "--carotene-color-bg-warmth-l2": "#2f9afc1f",
+    "--carotene-color-bg-warmth-l3": "#51cbff1f",
+    "--carotene-color-bg-warmth-l4": "#2af3e71f",
+    "--carotene-color-bg-warmth-l5": "#ffb84d1f",
+    "--carotene-color-bg-warmth-l6": "#ff6e1d1f",
+    "--carotene-color-bg-warning-solid": "var(--seed-color-bg-warning-solid)",
+    "--carotene-color-bg-warning-weak": "var(--seed-color-bg-warning-weak)",
+    "--carotene-color-fg-brand-hover": "var(--seed-color-fg-brand)",
+    "--carotene-color-fg-brand-pressed": "var(--seed-color-fg-brand)",
+    "--carotene-color-fg-brand": "var(--seed-color-fg-brand)",
+    "--carotene-color-fg-disabled": "var(--seed-color-fg-disabled)",
+    "--carotene-color-fg-negative": "var(--seed-color-fg-critical)",
+    "--carotene-color-fg-neutral-hover": "var(--seed-color-fg-neutral)",
+    "--carotene-color-fg-neutral-inverted": "var(--seed-color-fg-neutral-inverted)",
+    "--carotene-color-fg-neutral-muted": "var(--seed-color-fg-neutral-muted)",
+    "--carotene-color-fg-neutral-pressed": "var(--seed-color-fg-neutral)",
+    "--carotene-color-fg-neutral-subtle": "var(--seed-color-fg-neutral-subtle)",
+    "--carotene-color-fg-neutral": "var(--seed-color-fg-neutral)",
+    "--carotene-color-fg-on-solid": "var(--seed-color-palette-static-white)",
+    "--carotene-color-fg-placeholder": "var(--seed-color-fg-placeholder)",
+    "--carotene-color-fg-positive": "var(--seed-color-fg-positive)",
+    "--carotene-color-fg-warmth-l1": "#aeb2b8",
+    "--carotene-color-fg-warmth-l2": "#2f9afc",
+    "--carotene-color-fg-warmth-l3": "#51cbff",
+    "--carotene-color-fg-warmth-l4": "#2af3e7",
+    "--carotene-color-fg-warmth-l5": "#ffb84d",
+    "--carotene-color-fg-warmth-l6": "#ff6e1d",
+    "--carotene-color-fg-warning": "var(--seed-color-fg-warning)",
+    "--carotene-color-palette-blue-1000": "var(--seed-color-palette-blue-1000)",
+    "--carotene-color-palette-blue-100": "var(--seed-color-palette-blue-100)",
+    "--carotene-color-palette-blue-200": "var(--seed-color-palette-blue-200)",
+    "--carotene-color-palette-blue-300": "var(--seed-color-palette-blue-300)",
+    "--carotene-color-palette-blue-400": "var(--seed-color-palette-blue-400)",
+    "--carotene-color-palette-blue-500": "var(--seed-color-palette-blue-500)",
+    "--carotene-color-palette-blue-600": "var(--seed-color-palette-blue-600)",
+    "--carotene-color-palette-blue-700": "var(--seed-color-palette-blue-700)",
+    "--carotene-color-palette-blue-800": "var(--seed-color-palette-blue-800)",
+    "--carotene-color-palette-blue-900": "var(--seed-color-palette-blue-900)",
+    "--carotene-color-palette-carrot-1000": "var(--seed-color-palette-carrot-1000)",
+    "--carotene-color-palette-carrot-100": "var(--seed-color-palette-carrot-100)",
+    "--carotene-color-palette-carrot-200": "var(--seed-color-palette-carrot-200)",
+    "--carotene-color-palette-carrot-300": "var(--seed-color-palette-carrot-300)",
+    "--carotene-color-palette-carrot-400": "var(--seed-color-palette-carrot-400)",
+    "--carotene-color-palette-carrot-500": "var(--seed-color-palette-carrot-500)",
+    "--carotene-color-palette-carrot-600": "var(--seed-color-palette-carrot-600)",
+    "--carotene-color-palette-carrot-700": "var(--seed-color-palette-carrot-700)",
+    "--carotene-color-palette-carrot-800": "var(--seed-color-palette-carrot-800)",
+    "--carotene-color-palette-carrot-900": "var(--seed-color-palette-carrot-900)",
+    "--carotene-color-palette-gray-00": "var(--seed-color-palette-gray-00)",
+    "--carotene-color-palette-gray-100": "var(--seed-color-palette-gray-100)",
+    "--carotene-color-palette-gray-200": "var(--seed-color-palette-gray-200)",
+    "--carotene-color-palette-gray-300": "var(--seed-color-palette-gray-300)",
+    "--carotene-color-palette-gray-400": "var(--seed-color-palette-gray-400)",
+    "--carotene-color-palette-gray-500": "var(--seed-color-palette-gray-500)",
+    "--carotene-color-palette-gray-600": "var(--seed-color-palette-gray-600)",
+    "--carotene-color-palette-gray-700": "var(--seed-color-palette-gray-700)",
+    "--carotene-color-palette-gray-800": "var(--seed-color-palette-gray-800)",
+    "--carotene-color-palette-gray-900": "var(--seed-color-palette-gray-900)",
+    "--carotene-color-palette-green-1000": "var(--seed-color-palette-green-1000)",
+    "--carotene-color-palette-green-100": "var(--seed-color-palette-green-100)",
+    "--carotene-color-palette-green-200": "var(--seed-color-palette-green-200)",
+    "--carotene-color-palette-green-300": "var(--seed-color-palette-green-300)",
+    "--carotene-color-palette-green-400": "var(--seed-color-palette-green-400)",
+    "--carotene-color-palette-green-500": "var(--seed-color-palette-green-500)",
+    "--carotene-color-palette-green-600": "var(--seed-color-palette-green-600)",
+    "--carotene-color-palette-green-700": "var(--seed-color-palette-green-700)",
+    "--carotene-color-palette-green-800": "var(--seed-color-palette-green-800)",
+    "--carotene-color-palette-green-900": "var(--seed-color-palette-green-900)",
+    "--carotene-color-palette-purple-1000": "var(--seed-color-palette-purple-1000)",
+    "--carotene-color-palette-purple-100": "var(--seed-color-palette-purple-100)",
+    "--carotene-color-palette-purple-200": "var(--seed-color-palette-purple-200)",
+    "--carotene-color-palette-purple-300": "var(--seed-color-palette-purple-300)",
+    "--carotene-color-palette-purple-400": "var(--seed-color-palette-purple-400)",
+    "--carotene-color-palette-purple-500": "var(--seed-color-palette-purple-500)",
+    "--carotene-color-palette-purple-600": "var(--seed-color-palette-purple-600)",
+    "--carotene-color-palette-purple-700": "var(--seed-color-palette-purple-700)",
+    "--carotene-color-palette-purple-800": "var(--seed-color-palette-purple-800)",
+    "--carotene-color-palette-purple-900": "var(--seed-color-palette-purple-900)",
+    "--carotene-color-palette-red-1000": "var(--seed-color-palette-red-1000)",
+    "--carotene-color-palette-red-100": "var(--seed-color-palette-red-100)",
+    "--carotene-color-palette-red-200": "var(--seed-color-palette-red-200)",
+    "--carotene-color-palette-red-300": "var(--seed-color-palette-red-300)",
+    "--carotene-color-palette-red-400": "var(--seed-color-palette-red-400)",
+    "--carotene-color-palette-red-500": "var(--seed-color-palette-red-500)",
+    "--carotene-color-palette-red-600": "var(--seed-color-palette-red-600)",
+    "--carotene-color-palette-red-700": "var(--seed-color-palette-red-700)",
+    "--carotene-color-palette-red-800": "var(--seed-color-palette-red-800)",
+    "--carotene-color-palette-red-900": "var(--seed-color-palette-red-900)",
+    "--carotene-color-palette-static-black-alpha-200": "#00000033",
+    "--carotene-color-palette-static-black-alpha-50": "#0000000d",
+    "--carotene-color-palette-static-white-alpha-50": "#ffffff0d",
+    "--carotene-color-palette-yellow-1000": "var(--seed-color-palette-yellow-1000)",
+    "--carotene-color-palette-yellow-100": "var(--seed-color-palette-yellow-100)",
+    "--carotene-color-palette-yellow-200": "var(--seed-color-palette-yellow-200)",
+    "--carotene-color-palette-yellow-300": "var(--seed-color-palette-yellow-300)",
+    "--carotene-color-palette-yellow-400": "var(--seed-color-palette-yellow-400)",
+    "--carotene-color-palette-yellow-500": "var(--seed-color-palette-yellow-500)",
+    "--carotene-color-palette-yellow-600": "var(--seed-color-palette-yellow-600)",
+    "--carotene-color-palette-yellow-700": "var(--seed-color-palette-yellow-700)",
+    "--carotene-color-palette-yellow-800": "var(--seed-color-palette-yellow-800)",
+    "--carotene-color-palette-yellow-900": "var(--seed-color-palette-yellow-900)",
+    "--carotene-color-stroke-brand": "var(--seed-color-stroke-brand-solid)",
+    "--carotene-color-stroke-control": "var(--seed-color-stroke-neutral-subtle)",
+    "--carotene-color-stroke-decorative": "var(--seed-color-stroke-neutral-weak)",
+    "--carotene-color-stroke-field-focused": "var(--seed-color-stroke-focus-ring)",
+    "--carotene-color-stroke-field": "var(--seed-color-stroke-neutral-muted)",
+    "--carotene-color-stroke-negative": "var(--seed-color-stroke-critical-solid)",
+    "--seed-safe-area-top": "0px",
+    "--seed-safe-area-bottom": "0px",
+    "--seed-font-size-multiplier": "1",
+    "--seed-font-size-limit-min": ".8",
+    "--seed-font-size-limit-max": "1.5",
+    "--seed-line-height-limit-min": ".8",
+    "--seed-line-height-limit-max": "1.5",
+    "--lightningcss-light": "initial",
+    "--lightningcss-dark": "",
+    "--seed-dimension-x0_5": "2px",
+    "--seed-dimension-x1": "4px",
+    "--seed-dimension-x1_5": "6px",
+    "--seed-dimension-x2": "8px",
+    "--seed-dimension-x2_5": "10px",
+    "--seed-dimension-x3": "12px",
+    "--seed-dimension-x3_5": "14px",
+    "--seed-dimension-x4": "16px",
+    "--seed-dimension-x4_5": "18px",
+    "--seed-dimension-x5": "20px",
+    "--seed-dimension-x6": "24px",
+    "--seed-dimension-x7": "28px",
+    "--seed-dimension-x8": "32px",
+    "--seed-dimension-x9": "36px",
+    "--seed-dimension-x10": "40px",
+    "--seed-dimension-x12": "48px",
+    "--seed-dimension-x13": "52px",
+    "--seed-dimension-x14": "56px",
+    "--seed-dimension-x16": "64px",
+    "--seed-dimension-spacing-x-between-chips": "var(--seed-dimension-x2)",
+    "--seed-dimension-spacing-x-global-gutter": "var(--seed-dimension-x4)",
+    "--seed-dimension-spacing-y-component-default": "var(--seed-dimension-x3)",
+    "--seed-dimension-spacing-y-nav-to-title": "var(--seed-dimension-x5)",
+    "--seed-dimension-spacing-y-screen-bottom": "var(--seed-dimension-x14)",
+    "--seed-dimension-spacing-y-between-text": "var(--seed-dimension-x1_5)",
+    "--seed-duration-d1": "50ms",
+    "--seed-duration-d2": ".1s",
+    "--seed-duration-d3": ".15s",
+    "--seed-duration-d4": ".2s",
+    "--seed-duration-d5": ".25s",
+    "--seed-duration-d6": ".3s",
+    "--seed-duration-color-transition": "var(--seed-duration-d3)",
+    "--seed-duration-pressed-scale": "var(--seed-duration-d3)",
+    "--seed-font-size-t1": "clamp(calc(var(--seed-font-size-t1-static) * var(--seed-font-size-limit-min, .8)), calc(.6875rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-font-size-t1-static) * var(--seed-font-size-limit-max, 1.5)))",
+    "--seed-font-size-t2": "clamp(calc(var(--seed-font-size-t2-static) * var(--seed-font-size-limit-min, .8)), calc(.75rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-font-size-t2-static) * var(--seed-font-size-limit-max, 1.5)))",
+    "--seed-font-size-t3": "clamp(calc(var(--seed-font-size-t3-static) * var(--seed-font-size-limit-min, .8)), calc(.8125rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-font-size-t3-static) * var(--seed-font-size-limit-max, 1.5)))",
+    "--seed-font-size-t4": "clamp(calc(var(--seed-font-size-t4-static) * var(--seed-font-size-limit-min, .8)), calc(.875rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-font-size-t4-static) * var(--seed-font-size-limit-max, 1.5)))",
+    "--seed-font-size-t5": "clamp(calc(var(--seed-font-size-t5-static) * var(--seed-font-size-limit-min, .8)), calc(1rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-font-size-t5-static) * var(--seed-font-size-limit-max, 1.5)))",
+    "--seed-font-size-t6": "clamp(calc(var(--seed-font-size-t6-static) * var(--seed-font-size-limit-min, .8)), calc(1.125rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-font-size-t6-static) * var(--seed-font-size-limit-max, 1.5)))",
+    "--seed-font-size-t7": "clamp(calc(var(--seed-font-size-t7-static) * var(--seed-font-size-limit-min, .8)), calc(1.25rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-font-size-t7-static) * var(--seed-font-size-limit-max, 1.5)))",
+    "--seed-font-size-t8": "clamp(calc(var(--seed-font-size-t8-static) * var(--seed-font-size-limit-min, .8)), calc(1.375rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-font-size-t8-static) * var(--seed-font-size-limit-max, 1.5)))",
+    "--seed-font-size-t9": "clamp(calc(var(--seed-font-size-t9-static) * var(--seed-font-size-limit-min, .8)), calc(1.5rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-font-size-t9-static) * var(--seed-font-size-limit-max, 1.5)))",
+    "--seed-font-size-t10": "clamp(calc(var(--seed-font-size-t10-static) * var(--seed-font-size-limit-min, .8)), calc(1.625rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-font-size-t10-static) * var(--seed-font-size-limit-max, 1.5)))",
+    "--seed-font-size-t11": "clamp(calc(var(--seed-font-size-t11-static) * var(--seed-font-size-limit-min, .8)), calc(1.75rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-font-size-t11-static) * var(--seed-font-size-limit-max, 1.5)))",
+    "--seed-font-size-t12": "clamp(calc(var(--seed-font-size-t12-static) * var(--seed-font-size-limit-min, .8)), calc(2rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-font-size-t12-static) * var(--seed-font-size-limit-max, 1.5)))",
+    "--seed-font-size-t13": "clamp(calc(var(--seed-font-size-t13-static) * var(--seed-font-size-limit-min, .8)), calc(2.5rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-font-size-t13-static) * var(--seed-font-size-limit-max, 1.5)))",
+    "--seed-font-size-t14": "clamp(calc(var(--seed-font-size-t14-static) * var(--seed-font-size-limit-min, .8)), calc(3rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-font-size-t14-static) * var(--seed-font-size-limit-max, 1.5)))",
+    "--seed-font-size-t1-static": "11px",
+    "--seed-font-size-t2-static": "12px",
+    "--seed-font-size-t3-static": "13px",
+    "--seed-font-size-t4-static": "14px",
+    "--seed-font-size-t5-static": "16px",
+    "--seed-font-size-t6-static": "18px",
+    "--seed-font-size-t7-static": "20px",
+    "--seed-font-size-t8-static": "22px",
+    "--seed-font-size-t9-static": "24px",
+    "--seed-font-size-t10-static": "26px",
+    "--seed-font-size-t11-static": "28px",
+    "--seed-font-size-t12-static": "32px",
+    "--seed-font-size-t13-static": "40px",
+    "--seed-font-size-t14-static": "48px",
+    "--seed-font-weight-regular": "400",
+    "--seed-font-weight-medium": "500",
+    "--seed-font-weight-bold": "700",
+    "--seed-line-height-t1": "clamp(calc(var(--seed-line-height-t1-static) * var(--seed-line-height-limit-min, .8)), calc(.9375rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-line-height-t1-static) * var(--seed-line-height-limit-max, 1.5)))",
+    "--seed-line-height-t2": "clamp(calc(var(--seed-line-height-t2-static) * var(--seed-line-height-limit-min, .8)), calc(1rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-line-height-t2-static) * var(--seed-line-height-limit-max, 1.5)))",
+    "--seed-line-height-t3": "clamp(calc(var(--seed-line-height-t3-static) * var(--seed-line-height-limit-min, .8)), calc(1.125rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-line-height-t3-static) * var(--seed-line-height-limit-max, 1.5)))",
+    "--seed-line-height-t4": "clamp(calc(var(--seed-line-height-t4-static) * var(--seed-line-height-limit-min, .8)), calc(1.1875rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-line-height-t4-static) * var(--seed-line-height-limit-max, 1.5)))",
+    "--seed-line-height-t5": "clamp(calc(var(--seed-line-height-t5-static) * var(--seed-line-height-limit-min, .8)), calc(1.375rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-line-height-t5-static) * var(--seed-line-height-limit-max, 1.5)))",
+    "--seed-line-height-t6": "clamp(calc(var(--seed-line-height-t6-static) * var(--seed-line-height-limit-min, .8)), calc(1.5rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-line-height-t6-static) * var(--seed-line-height-limit-max, 1.5)))",
+    "--seed-line-height-t7": "clamp(calc(var(--seed-line-height-t7-static) * var(--seed-line-height-limit-min, .8)), calc(1.6875rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-line-height-t7-static) * var(--seed-line-height-limit-max, 1.5)))",
+    "--seed-line-height-t8": "clamp(calc(var(--seed-line-height-t8-static) * var(--seed-line-height-limit-min, .8)), calc(1.875rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-line-height-t8-static) * var(--seed-line-height-limit-max, 1.5)))",
+    "--seed-line-height-t9": "clamp(calc(var(--seed-line-height-t9-static) * var(--seed-line-height-limit-min, .8)), calc(2rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-line-height-t9-static) * var(--seed-line-height-limit-max, 1.5)))",
+    "--seed-line-height-t10": "clamp(calc(var(--seed-line-height-t10-static) * var(--seed-line-height-limit-min, .8)), calc(2.1875rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-line-height-t10-static) * var(--seed-line-height-limit-max, 1.5)))",
+    "--seed-line-height-t11": "clamp(calc(var(--seed-line-height-t11-static) * var(--seed-line-height-limit-min, .8)), calc(2.375rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-line-height-t11-static) * var(--seed-line-height-limit-max, 1.5)))",
+    "--seed-line-height-t12": "clamp(calc(var(--seed-line-height-t12-static) * var(--seed-line-height-limit-min, .8)), calc(2.625rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-line-height-t12-static) * var(--seed-line-height-limit-max, 1.5)))",
+    "--seed-line-height-t13": "clamp(calc(var(--seed-line-height-t13-static) * var(--seed-line-height-limit-min, .8)), calc(3.25rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-line-height-t13-static) * var(--seed-line-height-limit-max, 1.5)))",
+    "--seed-line-height-t14": "clamp(calc(var(--seed-line-height-t14-static) * var(--seed-line-height-limit-min, .8)), calc(3.75rem * var(--seed-font-size-multiplier, 1)), calc(var(--seed-line-height-t14-static) * var(--seed-line-height-limit-max, 1.5)))",
+    "--seed-line-height-t1-static": "15px",
+    "--seed-line-height-t2-static": "16px",
+    "--seed-line-height-t3-static": "18px",
+    "--seed-line-height-t4-static": "19px",
+    "--seed-line-height-t5-static": "22px",
+    "--seed-line-height-t6-static": "24px",
+    "--seed-line-height-t7-static": "27px",
+    "--seed-line-height-t8-static": "30px",
+    "--seed-line-height-t9-static": "32px",
+    "--seed-line-height-t10-static": "35px",
+    "--seed-line-height-t11-static": "38px",
+    "--seed-line-height-t12-static": "42px",
+    "--seed-line-height-t13-static": "52px",
+    "--seed-line-height-t14-static": "60px",
+    "--seed-radius-r0_5": "2px",
+    "--seed-radius-r1": "4px",
+    "--seed-radius-r1_5": "6px",
+    "--seed-radius-r2": "8px",
+    "--seed-radius-r2_5": "10px",
+    "--seed-radius-r3": "12px",
+    "--seed-radius-r3_5": "14px",
+    "--seed-radius-r4": "16px",
+    "--seed-radius-r5": "20px",
+    "--seed-radius-r6": "24px",
+    "--seed-radius-full": "9999px",
+    "--seed-timing-function-linear": "cubic-bezier(0, 0, 1, 1)",
+    "--seed-timing-function-easing": "cubic-bezier(.35, 0, .35, 1)",
+    "--seed-timing-function-enter": "cubic-bezier(0, 0, .15, 1)",
+    "--seed-timing-function-exit": "cubic-bezier(.35, 0, 1, 1)",
+    "--seed-timing-function-enter-expressive": "cubic-bezier(.03, .4, .1, 1)",
+    "--seed-timing-function-exit-expressive": "cubic-bezier(.35, 0, .95, .55)",
+    "--seed-timing-function-pressed-scale": "cubic-bezier(0, 0, .15, 1)",
+    "--seed-color-palette-gray-00": "#000",
+    "--seed-color-palette-gray-100": "#16171b",
+    "--seed-color-palette-gray-200": "#1d2025",
+    "--seed-color-palette-gray-300": "#2b2e35",
+    "--seed-color-palette-gray-400": "#393d46",
+    "--seed-color-palette-gray-500": "#5b606a",
+    "--seed-color-palette-gray-600": "#868b94",
+    "--seed-color-palette-gray-700": "#b0b3ba",
+    "--seed-color-palette-gray-800": "#dcdee3",
+    "--seed-color-palette-gray-900": "#e9eaec",
+    "--seed-color-palette-gray-1000": "#f3f4f5",
+    "--seed-color-palette-carrot-100": "#31241f",
+    "--seed-color-palette-carrot-200": "#4b291c",
+    "--seed-color-palette-carrot-300": "#6b311c",
+    "--seed-color-palette-carrot-400": "#923600",
+    "--seed-color-palette-carrot-500": "#bd4201",
+    "--seed-color-palette-carrot-600": "#e65200",
+    "--seed-color-palette-carrot-700": "#f60",
+    "--seed-color-palette-carrot-800": "#ff9e65",
+    "--seed-color-palette-carrot-900": "#eecebc",
+    "--seed-color-palette-carrot-1000": "#f4eeea",
+    "--seed-color-palette-blue-100": "#202742",
+    "--seed-color-palette-blue-200": "#1e3352",
+    "--seed-color-palette-blue-300": "#1a4275",
+    "--seed-color-palette-blue-400": "#0f559e",
+    "--seed-color-palette-blue-500": "#1964d8",
+    "--seed-color-palette-blue-600": "#1e82eb",
+    "--seed-color-palette-blue-700": "#41a2f9",
+    "--seed-color-palette-blue-800": "#83bcf9",
+    "--seed-color-palette-blue-900": "#b9d7fb",
+    "--seed-color-palette-blue-1000": "#e5f0fe",
+    "--seed-color-palette-red-100": "#322323",
+    "--seed-color-palette-red-200": "#4f2624",
+    "--seed-color-palette-red-300": "#742826",
+    "--seed-color-palette-red-400": "#a12621",
+    "--seed-color-palette-red-500": "#ca2319",
+    "--seed-color-palette-red-600": "#f73526",
+    "--seed-color-palette-red-700": "#ff6e60",
+    "--seed-color-palette-red-800": "#ffa299",
+    "--seed-color-palette-red-900": "#f8c5c3",
+    "--seed-color-palette-red-1000": "#fdf2f2",
+    "--seed-color-palette-green-100": "#202926",
+    "--seed-color-palette-green-200": "#20362e",
+    "--seed-color-palette-green-300": "#20493b",
+    "--seed-color-palette-green-400": "#19604c",
+    "--seed-color-palette-green-500": "#117956",
+    "--seed-color-palette-green-600": "#1b946d",
+    "--seed-color-palette-green-700": "#22b27f",
+    "--seed-color-palette-green-800": "#35ce9a",
+    "--seed-color-palette-green-900": "#93e5c0",
+    "--seed-color-palette-green-1000": "#d4f6ef",
+    "--seed-color-palette-yellow-100": "#302819",
+    "--seed-color-palette-yellow-200": "#413218",
+    "--seed-color-palette-yellow-300": "#543e15",
+    "--seed-color-palette-yellow-400": "#714e15",
+    "--seed-color-palette-yellow-500": "#91601b",
+    "--seed-color-palette-yellow-600": "#b6720d",
+    "--seed-color-palette-yellow-700": "#ca901c",
+    "--seed-color-palette-yellow-800": "#dab156",
+    "--seed-color-palette-yellow-900": "#e5d49b",
+    "--seed-color-palette-yellow-1000": "#f7f0cd",
+    "--seed-color-palette-purple-100": "#28213b",
+    "--seed-color-palette-purple-200": "#3b2873",
+    "--seed-color-palette-purple-300": "#443081",
+    "--seed-color-palette-purple-400": "#5a3bb1",
+    "--seed-color-palette-purple-500": "#764fd9",
+    "--seed-color-palette-purple-600": "#8e6bee",
+    "--seed-color-palette-purple-700": "#a78df0",
+    "--seed-color-palette-purple-800": "#beadf2",
+    "--seed-color-palette-purple-900": "#d9cefa",
+    "--seed-color-palette-purple-1000": "#f0edfc",
+    "--seed-color-palette-static-black": "#000",
+    "--seed-color-palette-static-black-alpha-100": "#00000007",
+    "--seed-color-palette-static-black-alpha-200": "#0000000c",
+    "--seed-color-palette-static-black-alpha-300": "#00000010",
+    "--seed-color-palette-static-black-alpha-400": "#00000021",
+    "--seed-color-palette-static-black-alpha-500": "#0000002c",
+    "--seed-color-palette-static-black-alpha-600": "#0000004c",
+    "--seed-color-palette-static-black-alpha-700": "#00000074",
+    "--seed-color-palette-static-black-alpha-800": "#000000a2",
+    "--seed-color-palette-static-black-alpha-900": "#000000d0",
+    "--seed-color-palette-static-black-alpha-1000": "#000000e3",
+    "--seed-color-palette-static-white": "#fff",
+    "--seed-color-palette-static-white-alpha-50": "#ffffff0d",
+    "--seed-color-palette-static-white-alpha-100": "#ffffff17",
+    "--seed-color-palette-static-white-alpha-200": "#ffffff20",
+    "--seed-color-palette-static-white-alpha-300": "#ffffff2e",
+    "--seed-color-palette-static-white-alpha-400": "#ffffff3d",
+    "--seed-color-palette-static-white-alpha-500": "#ffffff60",
+    "--seed-color-palette-static-white-alpha-600": "#ffffff8b",
+    "--seed-color-palette-static-white-alpha-700": "#ffffffb3",
+    "--seed-color-palette-static-white-alpha-800": "#ffffffde",
+    "--seed-color-palette-static-white-alpha-900": "#ffffffea",
+    "--seed-color-palette-static-white-alpha-1000": "#fffffff4",
+    "--seed-color-fg-brand": "var(--seed-color-palette-carrot-700)",
+    "--seed-color-fg-brand-contrast": "var(--seed-color-palette-carrot-700)",
+    "--seed-color-fg-critical": "var(--seed-color-palette-red-700)",
+    "--seed-color-fg-critical-contrast": "var(--seed-color-palette-red-900)",
+    "--seed-color-fg-disabled": "var(--seed-color-palette-gray-500)",
+    "--seed-color-fg-informative": "var(--seed-color-palette-blue-700)",
+    "--seed-color-fg-informative-contrast": "var(--seed-color-palette-blue-900)",
+    "--seed-color-fg-neutral": "var(--seed-color-palette-gray-1000)",
+    "--seed-color-fg-neutral-inverted": "var(--seed-color-palette-gray-100)",
+    "--seed-color-fg-neutral-muted": "var(--seed-color-palette-gray-800)",
+    "--seed-color-fg-neutral-subtle": "var(--seed-color-palette-gray-700)",
+    "--seed-color-fg-placeholder": "var(--seed-color-palette-gray-600)",
+    "--seed-color-fg-positive": "var(--seed-color-palette-green-700)",
+    "--seed-color-fg-positive-contrast": "var(--seed-color-palette-green-900)",
+    "--seed-color-fg-warning": "var(--seed-color-palette-yellow-700)",
+    "--seed-color-fg-warning-contrast": "var(--seed-color-palette-yellow-900)",
+    "--seed-color-bg-brand-solid": "var(--seed-color-palette-carrot-700)",
+    "--seed-color-bg-brand-solid-pressed": "var(--seed-color-palette-carrot-800)",
+    "--seed-color-bg-brand-weak": "var(--seed-color-palette-carrot-100)",
+    "--seed-color-bg-brand-weak-pressed": "var(--seed-color-palette-carrot-200)",
+    "--seed-color-bg-critical-solid": "var(--seed-color-palette-red-600)",
+    "--seed-color-bg-critical-solid-pressed": "var(--seed-color-palette-red-700)",
+    "--seed-color-bg-critical-weak": "var(--seed-color-palette-red-100)",
+    "--seed-color-bg-critical-weak-pressed": "var(--seed-color-palette-red-200)",
+    "--seed-color-bg-disabled": "var(--seed-color-palette-gray-300)",
+    "--seed-color-bg-informative-solid": "var(--seed-color-palette-blue-600)",
+    "--seed-color-bg-informative-solid-pressed": "var(--seed-color-palette-blue-700)",
+    "--seed-color-bg-informative-weak": "var(--seed-color-palette-blue-100)",
+    "--seed-color-bg-informative-weak-pressed": "var(--seed-color-palette-blue-200)",
+    "--seed-color-bg-layer-basement": "var(--seed-color-palette-gray-00)",
+    "--seed-color-bg-layer-default": "var(--seed-color-palette-gray-100)",
+    "--seed-color-bg-layer-default-pressed": "var(--seed-color-palette-gray-300)",
+    "--seed-color-bg-layer-fill": "var(--seed-color-palette-gray-200)",
+    "--seed-color-bg-layer-floating": "var(--seed-color-palette-gray-200)",
+    "--seed-color-bg-layer-floating-pressed": "var(--seed-color-palette-gray-300)",
+    "--seed-color-bg-magic-weak": "#201f1f",
+    "--seed-color-bg-neutral-inverted": "var(--seed-color-palette-gray-1000)",
+    "--seed-color-bg-neutral-inverted-pressed": "var(--seed-color-palette-gray-800)",
+    "--seed-color-bg-neutral-solid": "var(--seed-color-palette-gray-300)",
+    "--seed-color-bg-neutral-solid-muted": "var(--seed-color-palette-gray-400)",
+    "--seed-color-bg-neutral-solid-muted-pressed": "var(--seed-color-palette-gray-500)",
+    "--seed-color-bg-neutral-weak": "var(--seed-color-palette-gray-300)",
+    "--seed-color-bg-neutral-weak-alpha": "var(--seed-color-palette-static-white-alpha-200)",
+    "--seed-color-bg-neutral-weak-alpha-pressed": "var(--seed-color-palette-static-white-alpha-300)",
+    "--seed-color-bg-neutral-weak-pressed": "var(--seed-color-palette-gray-400)",
+    "--seed-color-bg-overlay": "var(--seed-color-palette-static-black-alpha-700)",
+    "--seed-color-bg-overlay-muted": "var(--seed-color-palette-static-black-alpha-500)",
+    "--seed-color-bg-positive-solid": "var(--seed-color-palette-green-500)",
+    "--seed-color-bg-positive-solid-pressed": "var(--seed-color-palette-green-600)",
+    "--seed-color-bg-positive-weak": "var(--seed-color-palette-green-100)",
+    "--seed-color-bg-positive-weak-pressed": "var(--seed-color-palette-green-200)",
+    "--seed-color-bg-transparent": "#fff0",
+    "--seed-color-bg-transparent-pressed": "var(--seed-color-palette-static-white-alpha-50)",
+    "--seed-color-bg-transparent-selected": "var(--seed-color-palette-static-white-alpha-100)",
+    "--seed-color-bg-transparent-selected-pressed": "var(--seed-color-palette-static-white-alpha-200)",
+    "--seed-color-bg-warning-solid": "var(--seed-color-palette-yellow-800)",
+    "--seed-color-bg-warning-solid-pressed": "var(--seed-color-palette-yellow-900)",
+    "--seed-color-bg-warning-weak": "var(--seed-color-palette-yellow-100)",
+    "--seed-color-bg-warning-weak-pressed": "var(--seed-color-palette-yellow-200)",
+    "--seed-color-stroke-brand-solid": "var(--seed-color-palette-carrot-700)",
+    "--seed-color-stroke-brand-weak": "var(--seed-color-palette-carrot-300)",
+    "--seed-color-stroke-critical-solid": "var(--seed-color-palette-red-700)",
+    "--seed-color-stroke-critical-weak": "var(--seed-color-palette-red-300)",
+    "--seed-color-stroke-focus-ring": "var(--seed-color-palette-blue-600)",
+    "--seed-color-stroke-informative-solid": "var(--seed-color-palette-blue-700)",
+    "--seed-color-stroke-informative-weak": "var(--seed-color-palette-blue-300)",
+    "--seed-color-stroke-neutral-contrast": "var(--seed-color-palette-gray-1000)",
+    "--seed-color-stroke-neutral-muted": "var(--seed-color-palette-static-white-alpha-100)",
+    "--seed-color-stroke-neutral-solid": "var(--seed-color-palette-gray-800)",
+    "--seed-color-stroke-neutral-subtle": "var(--seed-color-palette-static-white-alpha-50)",
+    "--seed-color-stroke-neutral-weak": "var(--seed-color-palette-gray-400)",
+    "--seed-color-stroke-positive-solid": "var(--seed-color-palette-green-700)",
+    "--seed-color-stroke-positive-weak": "var(--seed-color-palette-green-300)",
+    "--seed-color-stroke-warning-solid": "var(--seed-color-palette-yellow-700)",
+    "--seed-color-stroke-warning-weak": "var(--seed-color-palette-yellow-300)",
+    "--seed-color-manner-temp-l1-bg": "#292929",
+    "--seed-color-manner-temp-l1-text": "#b8b8b9",
+    "--seed-color-manner-temp-l10-bg": "#34040a",
+    "--seed-color-manner-temp-l10-text": "#fb6f82",
+    "--seed-color-manner-temp-l2-bg": "#332605",
+    "--seed-color-manner-temp-l2-text": "#f5db97",
+    "--seed-color-manner-temp-l3-bg": "#372b01",
+    "--seed-color-manner-temp-l3-text": "#fdda65",
+    "--seed-color-manner-temp-l4-bg": "#372301",
+    "--seed-color-manner-temp-l4-text": "#fbbe55",
+    "--seed-color-manner-temp-l5-bg": "#371f01",
+    "--seed-color-manner-temp-l5-text": "#faac4b",
+    "--seed-color-manner-temp-l6-bg": "#351b03",
+    "--seed-color-manner-temp-l6-text": "#fc9855",
+    "--seed-color-manner-temp-l7-bg": "#371701",
+    "--seed-color-manner-temp-l7-text": "#f97a25",
+    "--seed-color-manner-temp-l8-bg": "#380f00",
+    "--seed-color-manner-temp-l8-text": "#fe6a34",
+    "--seed-color-manner-temp-l9-bg": "#380500",
+    "--seed-color-manner-temp-l9-text": "#fe6a5d",
+    "--seed-color-banner-blue": "#0d2a3a",
+    "--seed-color-banner-cool-gray": "#242c33",
+    "--seed-color-banner-green": "#1e361c",
+    "--seed-color-banner-orange": "#42230a",
+    "--seed-color-banner-pink": "#3b172c",
+    "--seed-color-banner-purple": "#2e1e45",
+    "--seed-color-banner-red": "#3a0f15",
+    "--seed-color-banner-teal": "#143633",
+    "--seed-color-banner-warm-gray": "#2f2b27",
+    "--seed-color-banner-yellow": "#3e2b00",
+    "--seed-gradient-glow-magic": "#2d252d 0%, #3a312b 80%, #333232 100%",
+    "--seed-gradient-glow-magic-pressed": "#3e333e 0%, #51453e 80%, #434242 100%",
+    "--seed-gradient-highlight-magic": "#f60 20%, #d25aca 100%",
+    "--seed-gradient-highlight-magic-pressed": "#ff9e65 20%, #e89bee 100%",
+    "--seed-gradient-shimmer-magic": "#fff9f500 0%, #fff9f51a 46%, #fff9f51a 54%, #fff9f500 100%",
+    "--seed-gradient-shimmer-neutral": "#fff0 0%, #ffffff1a 46%, #ffffff1a 54%, #fff0 100%",
+    "--seed-shadow-s1": "0px 1px 4px 0px #00000080",
+    "--seed-shadow-s2": "0px 2px 10px 0px #000000ad",
+    "--seed-shadow-s3": "0px 4px 16px 0px #000c",
+    "--seed-scale-s95": ".95",
+    "--seed-scale-s97": ".97",
+    "--seed-scale-s98": ".98",
+    "--carotene-gradient-solid": "var(--carotene-color-bg-layer-default) 0%, rgba(18, 18, 18, .98) 4.7%, rgba(18, 18, 18, .96) 8.9%, rgba(18, 18, 18, .93) 12.8%, rgba(18, 18, 18, .9) 16.56%, rgba(18, 18, 18, .86) 20.37%, rgba(18, 18, 18, .82) 24.4%, rgba(18, 18, 18, .77) 28.83%, rgba(18, 18, 18, .71) 33.84%, rgba(18, 18, 18, .65) 39.6%, rgba(18, 18, 18, .57) 46.3%, rgba(18, 18, 18, .48) 54.1%, rgba(18, 18, 18, .38) 63.2%, rgba(18, 18, 18, .27) 73.76%, rgba(18, 18, 18, .14) 85.97%, rgba(18, 18, 18, 0) 100%",
+    "--carotene-shadow-default": "0px 2px 12px 0px rgba(0, 0, 0, .1)",
+    "--carotene-color-palette-gray-1000": "var(--seed-color-palette-gray-1000)"
+  },
+  "breakpoints": [
+    98,
+    480,
+    767,
+    768,
+    800,
+    987,
+    988,
+    992,
+    1200,
+    1280,
+    1440
+  ],
+  "buttons": [
+    {
+      "text": "앱 다운로드",
+      "h": 36,
+      "padding": "8px 14px",
+      "radius": "8px",
+      "bg": "rgb(255, 102, 0)",
+      "color": "rgb(255, 255, 255)",
+      "fontSize": "14px",
+      "fontWeight": "700",
+      "border": "0px none rgb(255, 255, 255)"
+    },
+    {
+      "text": "",
+      "h": 32,
+      "padding": "6px",
+      "radius": "9999px",
+      "bg": "rgba(255, 255, 255, 0)",
+      "color": "rgb(243, 244, 245)",
+      "fontSize": "16px",
+      "fontWeight": "700",
+      "border": "0px none rgb(243, 244, 245)"
+    },
+    {
+      "text": "",
+      "h": 40,
+      "padding": "0px 6px 0px 0px",
+      "radius": "0px 9999px 9999px 0px",
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(243, 244, 245)",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "border": "0px none rgb(243, 244, 245)"
+    },
+    {
+      "text": "",
+      "h": 40,
+      "padding": "12px",
+      "radius": "9999px",
+      "bg": "rgb(29, 32, 37)",
+      "color": "rgb(243, 244, 245)",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "border": "1px solid rgb(57, 61, 70)"
+    },
+    {
+      "text": "지금 뜨는아이폰 듀오아이폰",
+      "h": 22,
+      "padding": "0px 8px",
+      "radius": "9999px",
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(243, 244, 245)",
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "border": "0px none rgb(243, 244, 245)"
+    },
+    {
+      "text": "더보기",
+      "h": 55,
+      "padding": "16px",
+      "radius": "0px 0px 16px 16px",
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(176, 179, 186)",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "border": ""
+    },
+    {
+      "text": "둘러보기",
+      "h": 32,
+      "padding": "6px 14px",
+      "radius": "9999px",
+      "bg": "rgba(255, 255, 255, 0.125)",
+      "color": "rgb(243, 244, 245)",
+      "fontSize": "13px",
+      "fontWeight": "700",
+      "border": "0px none rgb(243, 244, 245)"
+    },
+    {
+      "text": "당근 앱 다운로드",
+      "h": 32,
+      "padding": "6px 14px",
+      "radius": "9999px",
+      "bg": "rgba(255, 255, 255, 0.125)",
+      "color": "rgb(243, 244, 245)",
+      "fontSize": "13px",
+      "fontWeight": "700",
+      "border": "0px none rgb(243, 244, 245)"
+    },
+    {
+      "text": "더보기",
+      "h": 19,
+      "padding": "0px",
+      "radius": "4px",
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(243, 244, 245)",
+      "fontSize": "14px",
+      "fontWeight": "500",
+      "border": "0px solid rgb(243, 244, 245)"
+    },
+    {
+      "text": "내 주변 중고거래",
+      "h": 0,
+      "padding": "10px 14px",
+      "radius": "9999px",
+      "bg": "rgb(29, 32, 37)",
+      "color": "rgb(243, 244, 245)",
+      "fontSize": "14px",
+      "fontWeight": "700",
+      "border": "0px none rgb(243, 244, 245)"
+    },
+    {
+      "text": "둘러보기",
+      "h": 0,
+      "padding": "6px 14px",
+      "radius": "9999px",
+      "bg": "rgba(255, 255, 255, 0.125)",
+      "color": "rgb(243, 244, 245)",
+      "fontSize": "13px",
+      "fontWeight": "700",
+      "border": "0px none rgb(243, 244, 245)"
+    },
+    {
+      "text": "",
+      "h": 33,
+      "padding": "14px",
+      "radius": "9999px",
+      "bg": "color(srgb 0.113725 0.12549 0.145098 / 0.7)",
+      "color": "rgb(243, 244, 245)",
+      "fontSize": "16px",
+      "fontWeight": "700",
+      "border": "1px solid rgba(255, 255, 255, 0.09)"
+    }
+  ],
+  "inputs": [
+    {
+      "type": "search",
+      "h": 24,
+      "padding": "0px",
+      "radius": "0px",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "0px none rgb(243, 244, 245)",
+      "fontSize": "18px"
+    },
+    {
+      "type": "text",
+      "h": 40,
+      "padding": "0px",
+      "radius": "0px",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "0px none rgb(243, 244, 245)",
+      "fontSize": "16px"
+    },
+    {
+      "type": "select-one",
+      "h": 38,
+      "padding": "0px",
+      "radius": "0px",
+      "bg": "rgb(59, 59, 59)",
+      "border": "0px solid rgb(220, 222, 227)",
+      "fontSize": "16px"
+    },
+    {
+      "type": "text",
+      "h": 0,
+      "padding": "0px",
+      "radius": "0px",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "0px none rgb(243, 244, 245)",
+      "fontSize": "16px"
+    }
+  ],
+  "containers": [
+    {
+      "w": 390,
+      "maxWidth": "none",
+      "px": "0px"
+    },
+    {
+      "w": 358,
+      "maxWidth": "600px",
+      "px": "0px"
+    },
+    {
+      "w": 358,
+      "maxWidth": "none",
+      "px": "0px"
+    },
+    {
+      "w": 358,
+      "maxWidth": "none",
+      "px": "0px"
+    },
+    {
+      "w": 358,
+      "maxWidth": "none",
+      "px": "0px"
+    }
+  ],
+  "viewport": {
+    "w": 390,
+    "h": 844
+  }
+}

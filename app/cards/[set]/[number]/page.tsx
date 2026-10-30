@@ -1,11 +1,11 @@
-import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { AliasNote } from "@/components/AliasNote";
+import { Suspense } from "react";
 import { FormatResults } from "@/components/FormatResults";
+import { Badge } from "@/components/ui/badge";
+import { PokeballMark } from "@/components/ui/logo";
 import { listPublicArtworks } from "@/lib/artworks";
 import { getCard } from "@/lib/cards";
 import { numberFromPath, safeDecode } from "@/lib/search";
-import styles from "./page.module.css";
 
 const LANG_LABEL = { ja: "일본", en: "영문" } as const;
 
@@ -31,35 +31,47 @@ async function Card({
   const [artworks, query] = await Promise.all([listPublicArtworks(card.cardId), searchParams]);
   const from = aliasFrom(query.from);
 
-  // design 2A: 번호 블록이 기준점. 상자 없이 글자 크기·간격·구분선으로 위계를 만든다.
   return (
-    <article className={styles.card}>
-      {/* 모바일에서는 번호 줄이 위에 고정된다 (design 9A). sticky가 페이지 끝까지 유지되도록 article 바로 아래에 둔다. */}
-      <div className={styles.sticky}>
-        <h1 className={styles.number}>
-          <span>{card.setCode}</span> <span>{card.collectorNumber}</span>
-        </h1>
-        <p className={styles.stickyName} aria-hidden="true">
-          {card.nameKo}
-        </p>
-      </div>
-      <header className={styles.identity}>
-        <p className={styles.meta}>
-          <strong className={styles.name}>{card.nameKo}</strong>
-          {[card.rarity, card.setName, card.illustrator && `일러스트 ${card.illustrator}`]
-            .filter(Boolean)
-            .map((part) => (
-              <span key={part as string}> · {part}</span>
-            ))}
-        </p>
-        {from && (
-          <AliasNote>
-            입력한 {from.number}({LANG_LABEL[from.lang]}판)과 같은 그림의 한글판 카드예요. 도안은 한글판 기준이에요.
-          </AliasNote>
-        )}
+    <article className="space-y-8">
+      <header className="flex items-stretch gap-4 rounded-2xl border border-border bg-background p-4 md:gap-6 md:p-6">
+        {/* 공식 카드 이미지는 쓰지 않는다. 중립 실루엣만 둔다. */}
+        <div
+          className="relative hidden aspect-[63/88] w-28 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-gradient-to-br from-gray-50 to-gray-200 sm:flex md:w-32"
+          aria-hidden
+        >
+          <PokeballMark className="absolute -bottom-4 -right-4 size-20 opacity-[0.1]" />
+          <span className="tabular px-2 text-center text-sm font-bold leading-snug text-ink-600">
+            {card.setCode}
+            <br />
+            {card.collectorNumber}
+          </span>
+        </div>
+        <div className="min-w-0 flex-1">
+          <h1 className="tabular font-display text-2xl font-bold tracking-tight text-foreground md:text-4xl">
+            {card.setCode} {card.collectorNumber}
+          </h1>
+          <p className="mt-1 text-lg font-semibold text-foreground md:text-xl">{card.nameKo}</p>
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            {card.rarity && <Badge variant="outline">{card.rarity}</Badge>}
+            <span>{card.setName}</span>
+            {card.illustrator && (
+              <>
+                <span aria-hidden className="text-gray-300">
+                  ·
+                </span>
+                <span>일러스트 {card.illustrator}</span>
+              </>
+            )}
+          </div>
+          {from && (
+            <p className="mt-3 rounded-xl bg-accent px-3.5 py-2.5 text-sm text-accent-foreground">
+              입력한 <span className="tabular font-semibold">{from.number}</span>(
+              {LANG_LABEL[from.lang]}판)과 같은 그림의 한글판 카드예요. 도안은 한글판 기준이에요.
+            </p>
+          )}
+        </div>
       </header>
-      {/* 공식 카드 이미지는 쓰지 않는다. 번호 블록 옆의 보조 요소로 중립 실루엣만 둔다 (design 2A). */}
-      <div className={styles.silhouette} aria-hidden="true" />
+
       <FormatResults cardId={card.cardId} artworks={artworks} />
     </article>
   );

@@ -47,3 +47,6 @@ next-env.d.ts
 
 # 카드 수집 캐시
 /.cache/
+
+*storybook.log
+storybook-static

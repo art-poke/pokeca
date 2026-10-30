@@ -1,0 +1,576 @@
+{
+  "title": "## CONNECTING HEARTS! 디시인사이드입니다. ##",
+  "fontFamily": [
+    {
+      "v": "-apple-system",
+      "count": 1090
+    },
+    {
+      "v": "tahoma",
+      "count": 41
+    },
+    {
+      "v": "Tahoma",
+      "count": 10
+    }
+  ],
+  "fontSize": [
+    {
+      "v": "12px",
+      "count": 668
+    },
+    {
+      "v": "0px",
+      "count": 207
+    },
+    {
+      "v": "11px",
+      "count": 99
+    },
+    {
+      "v": "14px",
+      "count": 86
+    },
+    {
+      "v": "9px",
+      "count": 40
+    },
+    {
+      "v": "13px",
+      "count": 36
+    },
+    {
+      "v": "14.04px",
+      "count": 3
+    },
+    {
+      "v": "24px",
+      "count": 2
+    }
+  ],
+  "fontWeight": [
+    {
+      "v": "400",
+      "count": 1004
+    },
+    {
+      "v": "700",
+      "count": 137
+    }
+  ],
+  "lineHeight": [
+    {
+      "v": "normal",
+      "count": 487
+    },
+    {
+      "v": "38px",
+      "count": 232
+    },
+    {
+      "v": "12px",
+      "count": 126
+    },
+    {
+      "v": "44px",
+      "count": 105
+    },
+    {
+      "v": "15px",
+      "count": 49
+    },
+    {
+      "v": "13px",
+      "count": 40
+    },
+    {
+      "v": "20px",
+      "count": 25
+    },
+    {
+      "v": "14px",
+      "count": 24
+    },
+    {
+      "v": "18px",
+      "count": 16
+    },
+    {
+      "v": "19px",
+      "count": 10
+    },
+    {
+      "v": "17px",
+      "count": 9
+    },
+    {
+      "v": "0px",
+      "count": 5
+    }
+  ],
+  "color": [
+    {
+      "v": "rgb(51, 51, 51)",
+      "count": 305
+    },
+    {
+      "v": "rgb(0, 0, 0)",
+      "count": 243
+    },
+    {
+      "v": "rgb(85, 85, 85)",
+      "count": 186
+    },
+    {
+      "v": "rgb(68, 68, 68)",
+      "count": 103
+    },
+    {
+      "v": "rgb(255, 255, 255)",
+      "count": 60
+    },
+    {
+      "v": "rgb(211, 25, 0)",
+      "count": 30
+    },
+    {
+      "v": "rgb(153, 153, 153)",
+      "count": 22
+    },
+    {
+      "v": "rgb(59, 72, 144)",
+      "count": 7
+    },
+    {
+      "v": "rgb(41, 54, 124)",
+      "count": 6
+    },
+    {
+      "v": "rgba(0, 0, 0, 0)",
+      "count": 5
+    },
+    {
+      "v": "rgb(134, 225, 240)",
+      "count": 1
+    },
+    {
+      "v": "rgb(255, 187, 238)",
+      "count": 1
+    },
+    {
+      "v": "rgb(255, 255, 153)",
+      "count": 1
+    },
+    {
+      "v": "rgb(255, 153, 0)",
+      "count": 1
+    },
+    {
+      "v": "rgb(0, 102, 51)",
+      "count": 1
+    },
+    {
+      "v": "rgb(47, 164, 14)",
+      "count": 1
+    },
+    {
+      "v": "rgb(111, 109, 217)",
+      "count": 1
+    },
+    {
+      "v": "rgb(255, 102, 0)",
+      "count": 1
+    }
+  ],
+  "bg": [
+    {
+      "v": "rgb(79, 190, 23)",
+      "count": 10
+    },
+    {
+      "v": "rgb(111, 109, 217)",
+      "count": 10
+    },
+    {
+      "v": "rgb(243, 243, 243)",
+      "count": 6
+    },
+    {
+      "v": "rgba(0, 0, 0, 0.7)",
+      "count": 4
+    },
+    {
+      "v": "rgb(65, 101, 208)",
+      "count": 3
+    },
+    {
+      "v": "rgb(59, 72, 144)",
+      "count": 3
+    },
+    {
+      "v": "rgb(255, 255, 255)",
+      "count": 1
+    }
+  ],
+  "borderColor": [
+    {
+      "v": "rgb(228, 228, 228)",
+      "count": 30
+    },
+    {
+      "v": "rgb(47, 164, 14)",
+      "count": 10
+    },
+    {
+      "v": "rgb(79, 77, 198)",
+      "count": 10
+    },
+    {
+      "v": "rgb(170, 170, 170)",
+      "count": 5
+    },
+    {
+      "v": "rgb(204, 204, 204)",
+      "count": 5
+    },
+    {
+      "v": "rgb(52, 79, 137)",
+      "count": 3
+    },
+    {
+      "v": "rgb(41, 54, 124)",
+      "count": 3
+    },
+    {
+      "v": "rgb(238, 238, 238)",
+      "count": 2
+    },
+    {
+      "v": "rgb(59, 72, 144)",
+      "count": 1
+    },
+    {
+      "v": "rgb(0, 102, 51)",
+      "count": 1
+    }
+  ],
+  "radius": [
+    {
+      "v": "30px",
+      "count": 1
+    }
+  ],
+  "shadow": [],
+  "gap": [],
+  "padding": [
+    {
+      "v": "0px",
+      "count": 989
+    },
+    {
+      "v": "5px 0px 0px",
+      "count": 38
+    },
+    {
+      "v": "2px 0px",
+      "count": 29
+    },
+    {
+      "v": "0px 0px 0px 10px",
+      "count": 24
+    },
+    {
+      "v": "1px 0px 0px",
+      "count": 6
+    },
+    {
+      "v": "7px 0px 0px",
+      "count": 6
+    },
+    {
+      "v": "0px 0px 0px 25px",
+      "count": 6
+    },
+    {
+      "v": "15px 0px 12px",
+      "count": 5
+    },
+    {
+      "v": "6px 9px",
+      "count": 4
+    },
+    {
+      "v": "0px 3px 0px 10px",
+      "count": 4
+    },
+    {
+      "v": "0px 12px 0px 0px",
+      "count": 3
+    },
+    {
+      "v": "0px 2px 0px 0px",
+      "count": 3
+    },
+    {
+      "v": "12px 0px 14px",
+      "count": 2
+    },
+    {
+      "v": "0px 5px 0px 13px",
+      "count": 2
+    },
+    {
+      "v": "11px 0px 0px",
+      "count": 2
+    }
+  ],
+  "rootVarsCount": 0,
+  "rootVars": {},
+  "breakpoints": [],
+  "buttons": [
+    {
+      "text": "검색",
+      "h": 44,
+      "padding": "0px",
+      "radius": "0px",
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(0, 0, 0)",
+      "fontSize": "12px",
+      "fontWeight": "400",
+      "border": "0px none rgb(0, 0, 0)"
+    },
+    {
+      "text": "레이어 열기",
+      "h": 15,
+      "padding": "0px",
+      "radius": "0px",
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(0, 0, 0)",
+      "fontSize": "12px",
+      "fontWeight": "400",
+      "border": "0px none rgb(0, 0, 0)"
+    },
+    {
+      "text": "이전",
+      "h": 13,
+      "padding": "0px",
+      "radius": "0px",
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(0, 0, 0)",
+      "fontSize": "12px",
+      "fontWeight": "400",
+      "border": "0px none rgb(0, 0, 0)"
+    },
+    {
+      "text": "삭제",
+      "h": 36,
+      "padding": "0px",
+      "radius": "0px",
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(0, 0, 0)",
+      "fontSize": "12px",
+      "fontWeight": "400",
+      "border": "0px none rgb(0, 0, 0)"
+    },
+    {
+      "text": "삭제",
+      "h": 36,
+      "padding": "0px",
+      "radius": "0px",
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(0, 0, 0)",
+      "fontSize": "12px",
+      "fontWeight": "400",
+      "border": "0px none rgb(0, 0, 0)"
+    },
+    {
+      "text": "삭제",
+      "h": 36,
+      "padding": "0px",
+      "radius": "0px",
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(0, 0, 0)",
+      "fontSize": "12px",
+      "fontWeight": "400",
+      "border": "0px none rgb(0, 0, 0)"
+    },
+    {
+      "text": "삭제",
+      "h": 36,
+      "padding": "0px",
+      "radius": "0px",
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(0, 0, 0)",
+      "fontSize": "12px",
+      "fontWeight": "400",
+      "border": "0px none rgb(0, 0, 0)"
+    },
+    {
+      "text": "삭제",
+      "h": 36,
+      "padding": "0px",
+      "radius": "0px",
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(0, 0, 0)",
+      "fontSize": "12px",
+      "fontWeight": "400",
+      "border": "0px none rgb(0, 0, 0)"
+    },
+    {
+      "text": "삭제",
+      "h": 36,
+      "padding": "0px",
+      "radius": "0px",
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(0, 0, 0)",
+      "fontSize": "12px",
+      "fontWeight": "400",
+      "border": "0px none rgb(0, 0, 0)"
+    },
+    {
+      "text": "삭제",
+      "h": 36,
+      "padding": "0px",
+      "radius": "0px",
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(0, 0, 0)",
+      "fontSize": "12px",
+      "fontWeight": "400",
+      "border": "0px none rgb(0, 0, 0)"
+    },
+    {
+      "text": "삭제",
+      "h": 36,
+      "padding": "0px",
+      "radius": "0px",
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(0, 0, 0)",
+      "fontSize": "12px",
+      "fontWeight": "400",
+      "border": "0px none rgb(0, 0, 0)"
+    },
+    {
+      "text": "삭제",
+      "h": 36,
+      "padding": "0px",
+      "radius": "0px",
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(0, 0, 0)",
+      "fontSize": "12px",
+      "fontWeight": "400",
+      "border": "0px none rgb(0, 0, 0)"
+    }
+  ],
+  "inputs": [
+    {
+      "type": "text",
+      "h": 38,
+      "padding": "0px 9px",
+      "radius": "0px",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "0px none rgb(51, 51, 51)",
+      "fontSize": "14px"
+    },
+    {
+      "type": "hidden",
+      "h": 0,
+      "padding": "0px",
+      "radius": "0px",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "0px none rgb(0, 0, 0)",
+      "fontSize": "12px"
+    },
+    {
+      "type": "hidden",
+      "h": 0,
+      "padding": "0px",
+      "radius": "0px",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "0px none rgb(0, 0, 0)",
+      "fontSize": "12px"
+    },
+    {
+      "type": "hidden",
+      "h": 0,
+      "padding": "0px",
+      "radius": "0px",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "0px none rgb(0, 0, 0)",
+      "fontSize": "12px"
+    },
+    {
+      "type": "hidden",
+      "h": 0,
+      "padding": "0px",
+      "radius": "0px",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "0px none rgb(0, 0, 0)",
+      "fontSize": "12px"
+    },
+    {
+      "type": "text",
+      "h": 37,
+      "padding": "0px 3px 0px 10px",
+      "radius": "0px",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "0px none rgb(85, 85, 85)",
+      "fontSize": "14px"
+    }
+  ],
+  "containers": [
+    {
+      "w": 1440,
+      "maxWidth": "none",
+      "px": "0px"
+    },
+    {
+      "w": 364,
+      "maxWidth": "none",
+      "px": "0px"
+    },
+    {
+      "w": 315,
+      "maxWidth": "none",
+      "px": "0px"
+    },
+    {
+      "w": 1440,
+      "maxWidth": "none",
+      "px": "0px"
+    },
+    {
+      "w": 728,
+      "maxWidth": "none",
+      "px": "0px"
+    },
+    {
+      "w": 728,
+      "maxWidth": "none",
+      "px": "0px"
+    },
+    {
+      "w": 364,
+      "maxWidth": "none",
+      "px": "0px"
+    },
+    {
+      "w": 364,
+      "maxWidth": "none",
+      "px": "0px"
+    },
+    {
+      "w": 364,
+      "maxWidth": "none",
+      "px": "0px"
+    },
+    {
+      "w": 364,
+      "maxWidth": "none",
+      "px": "0px"
+    }
+  ],
+  "viewport": {
+    "w": 1440,
+    "h": 900
+  }
+}

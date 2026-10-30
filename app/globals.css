@@ -1,111 +1,193 @@
-/* DESIGN.md 토큰. 화면 코드는 hex를 직접 쓰지 않고 이 변수만 쓴다. */
-:root {
-  --color-page: #e9edf1;
-  --color-surface: #f7f9fb;
-  --color-ink: #1c2430;
-  --color-muted: #5b6675;
-  --color-rule: #c9d1da;
-  --color-action: #2445a8;
-  --color-action-tint: rgb(36 69 168 / 0.2);
-  --color-on-action: #ffffff;
-  --color-demand: #f4c430;
-  --color-demand-ink: #3a2e00;
-  --color-link: #4f6d8a;
-  --color-link-visited: #6b4f8a;
-  --color-disabled: #8a939e;
-  --color-backdrop: rgb(28 36 48 / 0.4);
-  /* 소셜 로그인 버튼은 각 공급자의 버튼 규칙 색을 그대로 쓴다. */
-  --color-kakao: #fee500;
-  --color-kakao-ink: rgb(0 0 0 / 0.85);
-  --color-google: #ffffff;
-  --color-google-ink: #1f1f1f;
-  --color-google-rule: #747775;
+@import "tailwindcss";
+@import "tw-animate-css";
 
-  --font-body: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui,
+/* ===========================================================================
+   art-poke 디자인시스템 — 몬스터볼 테마 (레드 · 화이트 · 블랙)
+   토큰 전문: docs/design-research/SYNTHESIS.md
+   =========================================================================== */
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* --- 폰트 (이미 설치됨: Pretendard Variable / Wanted Sans Variable) --- */
+  --font-sans:
+    "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui,
     "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-  --font-display: "Wanted Sans Variable", "Wanted Sans", var(--font-body);
+  --font-display: "Wanted Sans Variable", "Wanted Sans", var(--font-sans);
 
-  --text-sm: 14px;
-  --text-md: 16px;
-  --text-lg: 20px;
-  --text-xl: 28px;
-  --text-2xl: 40px;
+  /* --- Pokéball Red (primary) --- */
+  --color-red-50: #fff2f0;
+  --color-red-100: #ffddd6;
+  --color-red-200: #ffbbad;
+  --color-red-300: #ff8e78;
+  --color-red-400: #fa5338;
+  --color-red-500: #ee1515; /* 시그니처 몬스터볼 레드 */
+  --color-red-600: #c81010;
+  --color-red-700: #a20d0d;
+  --color-red-800: #7c0b0b;
+  --color-red-900: #5a0909;
 
-  --space: 8px;
-  --gutter: 32px;
-  --max-width: 1200px;
-  --radius: 4px;
-  --shadow-hover: 0 2px 8px rgb(28 36 48 / 0.1);
-  --touch: 44px;
+  /* --- Ink / Black (몬스터볼 밴드 & 텍스트) --- */
+  --color-ink-900: #111113;
+  --color-ink-800: #1d1d1f;
+  --color-ink-700: #2e2f33;
+  --color-ink-600: #4b4d52;
+  --color-ink-500: #6b6e76;
+  --color-ink-400: #9398a1;
+
+  /* --- Neutral / Surface --- */
+  --color-gray-50: #f8f9fa;
+  --color-gray-100: #f1f3f5;
+  --color-gray-200: #e7eaee;
+  --color-gray-300: #d3d8df;
+  --color-gray-400: #aeb4bd;
+
+  /* --- radius 스케일 --- */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+
+  /* --- 그림자 (아주 연하게) --- */
+  --shadow-xs: 0 1px 2px rgb(17 17 19 / 0.06);
+  --shadow-sm: 0 2px 8px rgb(17 17 19 / 0.08);
+  --shadow-md: 0 8px 24px rgb(17 17 19 / 0.1);
+
+  /* breakpoints: Tailwind 기본(640/768/1024/1280)을 그대로 쓴다 */
 }
 
-@media (max-width: 639px) {
-  :root {
-    --gutter: 16px;
+/* --- 시맨틱 토큰 (shadcn 패턴) --- */
+:root {
+  --background: #ffffff;
+  --foreground: #111113;
+  --card: #ffffff;
+  --card-foreground: #111113;
+  --popover: #ffffff;
+  --popover-foreground: #111113;
+  --primary: #ee1515;
+  --primary-foreground: #ffffff;
+  --secondary: #111113; /* 몬스터볼 블랙 */
+  --secondary-foreground: #ffffff;
+  --muted: #f1f3f5;
+  --muted-foreground: #6b6e76;
+  --accent: #fff2f0;
+  --accent-foreground: #c81010;
+  --destructive: #c81010;
+  --destructive-foreground: #ffffff;
+  --success: #16a34a;
+  --warning: #f59e0b;
+  --border: #e7eaee;
+  --input: #e7eaee;
+  --ring: #ee1515;
+  --radius: 12px;
+}
+
+.dark {
+  --background: #111113;
+  --foreground: #f8f9fa;
+  --card: #1a1b1e;
+  --card-foreground: #f8f9fa;
+  --popover: #1a1b1e;
+  --popover-foreground: #f8f9fa;
+  --primary: #ee1515;
+  --primary-foreground: #ffffff;
+  --secondary: #2e2f33;
+  --secondary-foreground: #f8f9fa;
+  --muted: #26272b;
+  --muted-foreground: #9398a1;
+  --accent: #2e2f33;
+  --accent-foreground: #ff8e78;
+  --destructive: #fa5338;
+  --destructive-foreground: #111113;
+  --border: #2e2f33;
+  --input: #2e2f33;
+  --ring: #ee1515;
+}
+
+/* --- 시맨틱 토큰을 유틸리티로 노출 (bg-primary, text-foreground, border-border ...) --- */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-DEFAULT: var(--radius);
+}
+
+/* --- base 리셋 --- */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    border-color: var(--border);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.6;
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: var(--color-red-100);
+    color: var(--color-red-800);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    margin: 0;
+    line-height: 1.25;
+    font-family: var(--font-display);
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: default;
   }
 }
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-html {
-  -webkit-text-size-adjust: 100%;
-}
-
-body {
-  margin: 0;
-  background: var(--color-page);
-  color: var(--color-ink);
-  font-family: var(--font-body);
-  font-size: var(--text-md);
-  font-weight: 400;
-  line-height: 1.6;
+@utility tabular {
   font-variant-numeric: tabular-nums;
-  -webkit-font-smoothing: antialiased;
-}
-
-::selection {
-  background: var(--color-action-tint);
-}
-
-:focus-visible {
-  outline: 2px solid var(--color-action);
-  outline-offset: 2px;
-}
-
-a {
-  color: var(--color-link);
-  text-underline-offset: 3px;
-}
-
-a:visited {
-  color: var(--color-link-visited);
-}
-
-h1,
-h2,
-h3 {
-  margin: 0;
-  line-height: 1.3;
-}
-
-button,
-input,
-select,
-textarea {
-  font: inherit;
-  color: inherit;
-}
-
-button {
-  cursor: pointer;
-}
-
-button:disabled {
-  cursor: default;
 }
 
 .visually-hidden {
@@ -126,5 +208,50 @@ button:disabled {
   *::after {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
+  }
+}
+
+/* ===========================================================================
+   레거시 토큰 (DESIGN.md) — 아직 Tailwind로 이관하지 않은 CSS Modules 화면용.
+   전 화면 리디자인이 끝나면 제거한다.
+   =========================================================================== */
+:root {
+  --color-page: #e9edf1;
+  --color-surface: #f7f9fb;
+  --color-ink: #1c2430;
+  --color-muted: #5b6675;
+  --color-rule: #c9d1da;
+  --color-action: #2445a8;
+  --color-action-tint: rgb(36 69 168 / 0.2);
+  --color-on-action: #ffffff;
+  --color-demand: #f4c430;
+  --color-demand-ink: #3a2e00;
+  --color-link: #4f6d8a;
+  --color-link-visited: #6b4f8a;
+  --color-disabled: #8a939e;
+  --color-backdrop: rgb(28 36 48 / 0.4);
+  --color-kakao: #fee500;
+  --color-kakao-ink: rgb(0 0 0 / 0.85);
+  --color-google: #ffffff;
+  --color-google-ink: #1f1f1f;
+  --color-google-rule: #747775;
+  --font-body: var(--font-sans);
+  --font-display-legacy: var(--font-display);
+  --text-sm: 14px;
+  --text-md: 16px;
+  --text-lg: 20px;
+  --text-xl: 28px;
+  --text-2xl: 40px;
+  --space: 8px;
+  --gutter: 32px;
+  --max-width: 1200px;
+  --radius-legacy: 4px;
+  --shadow-hover: 0 2px 8px rgb(28 36 48 / 0.1);
+  --touch: 44px;
+}
+
+@media (max-width: 639px) {
+  :root {
+    --gutter: 16px;
   }
 }
