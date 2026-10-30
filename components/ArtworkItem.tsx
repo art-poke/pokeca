@@ -1,25 +1,21 @@
 "use client";
 
-import { Download, MoreHorizontal } from "lucide-react";
+import { Download } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import type { PublicArtwork } from "@/lib/artworks";
 import { FORMAT_INFO } from "@/lib/formats";
-import { cn } from "@/lib/utils";
 
-// 작품 하나. 미리보기(누르면 크게 보기) + 카드번호(옵션) + @작가·규격 + 다운로드 + ···(신고)
+// 그리드 아이템: 도안·제목·규격·작가명만. 클릭하면 상세 페이지(/artworks/[id])로.
+// 다운로드·추천·신고·댓글은 상세 페이지에 있다.
 export function ArtworkItem({
   artwork,
   card,
-  onView,
-  onReport,
 }: {
   artwork: PublicArtwork;
   card?: { label: string; path: string; name: string };
-  onView: (a: PublicArtwork) => void;
-  onReport: (a: PublicArtwork) => void;
 }) {
   const label = FORMAT_INFO[artwork.format].label;
   return (
@@ -27,40 +23,32 @@ export function ArtworkItem({
       className="group overflow-hidden rounded-2xl border border-border bg-background transition-shadow hover:shadow-md"
       data-testid="artwork"
     >
-      <button
-        type="button"
-        className="relative block aspect-[63/88] w-full overflow-hidden bg-gray-100"
-        onClick={() => onView(artwork)}
-        aria-label={`@${artwork.artistName}의 ${label} 도안 크게 보기`}
-      >
-        {/* 서명 URL로 리다이렉트되는 상태 확인 경로라 next/image 최적화를 쓰지 않는다. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={`/api/thumbnails/${artwork.id}`}
-          alt={`@${artwork.artistName}의 ${label} 확장 아트 도안`}
-          loading="lazy"
-          decoding="async"
-          className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-        />
-      </button>
-      <div className="p-3">
-        {card && (
-          <p className="mb-1 flex items-center gap-1.5 text-sm">
-            <Link href={card.path} className="tabular font-semibold text-foreground hover:text-primary">
-              {card.label}
-            </Link>
-            <span className="truncate text-muted-foreground">{card.name}</span>
-          </p>
-        )}
-        <p className="flex items-center gap-1.5 text-sm">
-          <ArtistName artwork={artwork} />
-          <Badge variant="muted">{label}</Badge>
-        </p>
-        <div className="mt-3 flex items-center gap-2">
-          <DownloadAction artwork={artwork} />
-          <MoreMenu artwork={artwork} onReport={onReport} />
+      <Link href={`/artworks/${artwork.id}`} className="block">
+        <div className="relative aspect-[63/88] w-full overflow-hidden bg-gray-100">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`/api/thumbnails/${artwork.id}`}
+            alt={`${artwork.title} (@${artwork.artistName})`}
+            loading="lazy"
+            decoding="async"
+            className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+          />
         </div>
-      </div>
+        <div className="p-3">
+          {card && (
+            <p className="tabular mb-1 truncate text-xs font-medium text-muted-foreground">
+              {card.label} {card.name}
+            </p>
+          )}
+          <p className="truncate font-semibold text-foreground group-hover:text-primary">
+            {artwork.title}
+          </p>
+          <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+            <span className="truncate">@{artwork.artistName}</span>
+            <Badge variant="muted">{label}</Badge>
+          </p>
+        </div>
+      </Link>
     </li>
   );
 }
@@ -79,7 +67,6 @@ export function ArtistName({ artwork }: { artwork: PublicArtwork }) {
   );
 }
 
-// 출처 표시 링크. 측정은 실패해도 이동을 막지 않는다.
 export function SourceLink({ artwork }: { artwork: PublicArtwork }) {
   if (!artwork.sourceUrl) return null;
   return (
@@ -104,9 +91,10 @@ export function SourceLink({ artwork }: { artwork: PublicArtwork }) {
   );
 }
 
-type DownloadState = "idle" | "loading" | "failed" | "gone";
+type DownloadState = "idle" | "loading" | "failed" | "gone" | "login";
 const NOTICE_KEY = "print-notice-shown";
 
+// 다운로드(회원 전용). 비회원은 401 → 로그인 안내.
 export function DownloadAction({ artwork }: { artwork: PublicArtwork }) {
   const router = useRouter();
   const [state, setState] = useState<DownloadState>("idle");
@@ -116,6 +104,10 @@ export function DownloadAction({ artwork }: { artwork: PublicArtwork }) {
     setState("loading");
     try {
       const res = await fetch(`/api/download/${artwork.id}`, { method: "POST" });
+      if (res.status === 401) {
+        setState("login");
+        return;
+      }
       if (res.status === 410 || res.status === 404) {
         setState("gone");
         router.refresh();
@@ -123,7 +115,6 @@ export function DownloadAction({ artwork }: { artwork: PublicArtwork }) {
       }
       if (!res.ok) throw new Error(String(res.status));
       const { url } = await res.json();
-      // 서명 URL은 클릭 시점에 받아 바로 쓰고 화면에 남기지 않는다.
       const a = document.createElement("a");
       a.href = url;
       a.rel = "noopener";
@@ -131,7 +122,7 @@ export function DownloadAction({ artwork }: { artwork: PublicArtwork }) {
       a.click();
       a.remove();
       setState("idle");
-      // 인쇄 안내는 같은 세션에서 한 번만.
+      router.refresh();
       let shown = false;
       try {
         shown = sessionStorage.getItem(NOTICE_KEY) === "1";
@@ -145,18 +136,25 @@ export function DownloadAction({ artwork }: { artwork: PublicArtwork }) {
 
   const printSize = FORMAT_INFO[artwork.format].printSize;
   return (
-    <>
+    <div>
       <button
         type="button"
-        className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-red-600 disabled:opacity-60"
+        className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-red-700 disabled:opacity-60"
         onClick={download}
         disabled={state === "loading" || state === "gone"}
-        aria-label={`@${artwork.artistName} ${FORMAT_INFO[artwork.format].label} 도안 다운로드`}
       >
         <Download className="size-4" aria-hidden />
         {state === "loading" ? "준비 중…" : "다운로드"}
       </button>
       <div role="status">
+        {state === "login" && (
+          <p className="mt-2 text-sm text-muted-foreground">
+            다운로드는 로그인 후 받을 수 있어요.{" "}
+            <Link href="/artist/login" className="font-semibold text-primary hover:underline">
+              로그인
+            </Link>
+          </p>
+        )}
         {state === "failed" && (
           <p className="mt-2 text-sm text-destructive">파일을 준비하지 못했어요. 다시 시도해 주세요.</p>
         )}
@@ -183,51 +181,6 @@ export function DownloadAction({ artwork }: { artwork: PublicArtwork }) {
           </div>
         )}
       </div>
-    </>
-  );
-}
-
-function MoreMenu({
-  artwork,
-  onReport,
-}: {
-  artwork: PublicArtwork;
-  onReport: (a: PublicArtwork) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const menuId = `more-${artwork.id}`;
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        className={cn(
-          "inline-flex size-9 items-center justify-center rounded-lg border border-border text-ink-600 transition-colors hover:bg-gray-50",
-          open && "bg-gray-100",
-        )}
-        aria-expanded={open}
-        aria-controls={menuId}
-        aria-label={`@${artwork.artistName} 도안 더보기`}
-        onClick={() => setOpen((v) => !v)}
-      >
-        <MoreHorizontal className="size-5" aria-hidden />
-      </button>
-      {open && (
-        <div
-          id={menuId}
-          className="absolute right-0 z-20 mt-1.5 min-w-[11rem] rounded-xl border border-border bg-popover p-1.5 shadow-md"
-        >
-          <button
-            type="button"
-            className="flex w-full items-center rounded-lg px-2.5 py-2 text-sm font-medium text-ink-700 transition-colors hover:bg-gray-100"
-            onClick={() => {
-              setOpen(false);
-              onReport(artwork);
-            }}
-          >
-            신고·내림 요청
-          </button>
-        </div>
-      )}
     </div>
   );
 }

@@ -5,8 +5,6 @@ import type { PublicArtwork } from "@/lib/artworks";
 import { FORMAT_INFO, FORMATS, type Format } from "@/lib/formats";
 import { cn } from "@/lib/utils";
 import { ArtworkItem } from "./ArtworkItem";
-import { ArtworkViewer } from "./ArtworkViewer";
-import { ReportDialog } from "./ReportDialog";
 
 // 카드 상세의 작품 영역. 규격 필터 → 미리보기 타일 그리드 / 빈 상태(찾기 요청).
 // 요청 상태는 방문자별이라 마운트 뒤 따로 불러온다(페이지 HTML은 방문자와 무관).
@@ -17,8 +15,6 @@ type Pending = { format: Format; phase: "sending" | "failed" } | null;
 
 export function FormatResults({ cardId, artworks }: { cardId: string; artworks: PublicArtwork[] }) {
   const [filter, setFilter] = useState<Filter>("all");
-  const [reporting, setReporting] = useState<PublicArtwork | null>(null);
-  const [viewing, setViewing] = useState<PublicArtwork | null>(null);
   const [requests, setRequests] = useState<Record<Format, RequestStatus> | null>(null);
   const [pending, setPending] = useState<Pending>(null);
 
@@ -123,13 +119,10 @@ export function FormatResults({ cardId, artworks }: { cardId: string; artworks: 
           aria-label="도안"
         >
           {shown.map((a) => (
-            <ArtworkItem key={a.id} artwork={a} onView={setViewing} onReport={setReporting} />
+            <ArtworkItem key={a.id} artwork={a} />
           ))}
         </ul>
       )}
-
-      <ArtworkViewer artwork={viewing} onClose={() => setViewing(null)} />
-      <ReportDialog artwork={reporting} onClose={() => setReporting(null)} />
     </section>
   );
 }

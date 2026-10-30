@@ -1,18 +1,13 @@
-import { ArrowUpRight, Crown, Minus, TrendingUp } from "lucide-react";
+import { ArrowUpRight, Crown } from "lucide-react";
 import Link from "next/link";
+import { connection } from "next/server";
+import { Suspense } from "react";
 import { HomeBanner } from "@/components/home/home-banner";
 import { Badge } from "@/components/ui/badge";
+import { artistRanking } from "@/lib/ranking";
 import { cn } from "@/lib/utils";
 
-// mock 데이터 (추후 실제 집계로 교체). 주간 작가 랭킹 · 이달의 소식.
-const WEEKLY_ARTISTS = [
-  { rank: 1, name: "별빛도안", handle: "byeolbit", works: 23, downloads: "1.2k", trend: "up" },
-  { rank: 2, name: "새벽작업실", handle: "dawn", works: 19, downloads: "980", trend: "up" },
-  { rank: 3, name: "불꽃공방", handle: "flame", works: 15, downloads: "840", trend: "same" },
-  { rank: 4, name: "리자몽러버", handle: "charlover", works: 12, downloads: "610", trend: "up" },
-  { rank: 5, name: "포켓아트", handle: "pocketart", works: 9, downloads: "420", trend: "same" },
-] as const;
-
+// 이달의 소식은 아직 mock (뉴스 시스템은 추후). 주간 작가 랭킹은 실제 engagements 집계.
 const NEWS = [
   {
     tag: "공지",
@@ -37,13 +32,11 @@ const NEWS = [
 export default function Home() {
   return (
     <div className="space-y-10 md:space-y-12">
-      {/* 애니메이션 배너 캐러셀 */}
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
         <HomeBanner />
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        {/* 이달의 소식 */}
         <section aria-labelledby="news-heading">
           <div className="flex items-end justify-between">
             <h2 id="news-heading" className="font-display text-xl font-bold text-foreground md:text-2xl">
@@ -71,39 +64,22 @@ export default function Home() {
           </ul>
         </section>
 
-        {/* 주간 작가 랭킹 */}
         <aside aria-labelledby="ranking-heading">
           <div className="rounded-2xl border border-border bg-background p-5">
             <h2 id="ranking-heading" className="flex items-center gap-2 font-display text-lg font-bold text-foreground">
               <Crown className="size-5 text-primary" aria-hidden />
               주간 작가 랭킹
             </h2>
-            <ol className="mt-4 space-y-0.5">
-              {WEEKLY_ARTISTS.map((a, i) => (
-                <li
-                  key={a.handle}
-                  className="flex animate-in items-center gap-3 rounded-xl px-2 py-2 fade-in slide-in-from-bottom-2 fill-mode-both duration-500 hover:bg-gray-50"
-                  style={{ animationDelay: `${i * 70}ms` }}
-                >
-                  <RankNum rank={a.rank} />
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-bold text-secondary-foreground">
-                    {a.name[0]}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-semibold text-foreground">{a.name}</div>
-                    <div className="truncate text-xs text-muted-foreground">
-                      도안 {a.works} · 다운로드 {a.downloads}
-                    </div>
-                  </div>
-                  <Trend trend={a.trend} />
-                </li>
-              ))}
-            </ol>
+            <Suspense
+              fallback={<div className="mt-4 h-40 animate-pulse rounded-xl bg-gray-100" />}
+            >
+              <WeeklyRanking />
+            </Suspense>
             <Link
-              href="/search"
+              href="/ranking"
               className="mt-3 flex items-center justify-center gap-1 rounded-xl bg-muted py-2.5 text-sm font-semibold text-ink-700 transition-colors hover:bg-gray-200"
             >
-              전체 작가 보기
+              전체 랭킹 보기
               <ArrowUpRight className="size-4" />
             </Link>
           </div>
@@ -113,26 +89,43 @@ export default function Home() {
   );
 }
 
-const RankNum = ({ rank }: { rank: number }) => (
-  <span
-    className={cn(
-      "flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-bold",
-      rank === 1
-        ? "bg-primary text-primary-foreground"
-        : rank === 2
-          ? "bg-ink-700 text-white"
-          : rank === 3
-            ? "bg-ink-400 text-white"
-            : "text-muted-foreground",
-    )}
-  >
-    {rank}
-  </span>
-);
-
-const Trend = ({ trend }: { trend: "up" | "same" }) =>
-  trend === "up" ? (
-    <TrendingUp className="size-4 shrink-0 text-primary" aria-label="상승" />
-  ) : (
-    <Minus className="size-4 shrink-0 text-gray-300" aria-label="유지" />
+async function WeeklyRanking() {
+  await connection();
+  const rows = await artistRanking("week", 5);
+  if (rows.length === 0) {
+    return (
+      <p className="mt-4 rounded-xl bg-muted px-3 py-6 text-center text-sm text-muted-foreground">
+        이번 주 활동이 아직 없어요.
+      </p>
+    );
+  }
+  return (
+    <ol className="mt-4 space-y-0.5">
+      {rows.map((a) => (
+        <li key={a.userId} className="flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-gray-50">
+          <span
+            className={cn(
+              "flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-bold",
+              a.rank === 1
+                ? "bg-primary text-primary-foreground"
+                : a.rank === 2
+                  ? "bg-ink-700 text-white"
+                  : a.rank === 3
+                    ? "bg-ink-400 text-white"
+                    : "text-muted-foreground",
+            )}
+          >
+            {a.rank}
+          </span>
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-bold text-secondary-foreground">
+            {a.name[0]}
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-semibold text-foreground">{a.name}</div>
+            <div className="truncate text-xs text-muted-foreground">{a.score}점</div>
+          </div>
+        </li>
+      ))}
+    </ol>
   );
+}

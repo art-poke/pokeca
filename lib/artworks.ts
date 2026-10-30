@@ -66,6 +66,7 @@ export type NewArtwork = {
   sourceVisibility: "public" | "members_only" | null;
   printSizeVerified: boolean;
   artistId?: string | null; // 작가 계정이 직접 올린 작품이면 그 계정(lib/artists)
+  title?: string | null; // 도안 제목(작가 입력). 없으면 "{작가}님의 도안"으로 표시.
 };
 
 function storageError(e: unknown): never {
@@ -123,7 +124,14 @@ export async function createArtwork(
     p_actor: actor,
   });
   if (error) rethrow(error);
-  return data as string;
+  const newId = data as string;
+  // 제목은 작가 입력(선택). rpc는 건드리지 않고 생성 직후 반영한다.
+  const title = input.title?.trim();
+  if (title) {
+    const { error: titleError } = await db().from("artworks").update({ title }).eq("id", newId);
+    if (titleError) console.error("artwork title update", titleError);
+  }
+  return newId;
 }
 
 // 상태·허락 ------------------------------------------------------------------
@@ -205,6 +213,7 @@ export async function attachFile(id: string, kind: FileKind, uploadId: string): 
 // 원본 글은 출처 표시용 링크다. 사라졌거나 볼 수 없는 글은 링크를 내보내지 않는다.
 export type PublicArtwork = {
   id: string;
+  title: string;
   artistName: string;
   format: Format;
   sourceUrl: string | null;
@@ -216,6 +225,7 @@ export type PublicArtwork = {
 
 export type ArtworkRow = {
   id: string;
+  title: string | null;
   artist_name: string;
   format: Format;
   source_url: string | null;
@@ -233,6 +243,7 @@ export function toPublic(r: ArtworkRow): PublicArtwork {
   } catch {}
   return {
     id: r.id,
+    title: r.title?.trim() || `${r.artist_name}님의 도안`,
     artistName: r.artist_name,
     format: r.format,
     sourceUrl,
@@ -248,7 +259,7 @@ export async function listPublicArtworks(cardId: string): Promise<PublicArtwork[
   const { data, error } = await db()
     .from("artworks")
     .select(
-      "id, artist_name, format, source_url, source_visibility, link_status, print_size_verified, artists(handle, status)",
+      "id, title, artist_name, format, source_url, source_visibility, link_status, print_size_verified, artists(handle, status)",
     )
     .eq("card_id", cardId)
     .eq("status", "active")
@@ -256,6 +267,47 @@ export async function listPublicArtworks(cardId: string): Promise<PublicArtwork[
     .returns<ArtworkRow[]>();
   if (error) throw error;
   return data.map(toPublic);
+}
+
+// 도안 상세 페이지 (/artworks/[id]) ---------------------------------------------
+
+export type ArtworkDetail = PublicArtwork & {
+  card: { label: string; path: string; name: string };
+  recommendCount: number;
+};
+
+export async function getArtworkDetail(id: string): Promise<ArtworkDetail | null> {
+  if (!UUID.test(id)) return null;
+  const { data, error } = await db()
+    .from("artworks")
+    .select(
+      "id, title, artist_name, format, source_url, source_visibility, link_status, print_size_verified, artists(handle, status), cards(set_code, collector_number, name_ko)",
+    )
+    .eq("id", id)
+    .eq("status", "active")
+    .maybeSingle<
+      ArtworkRow & { cards: { set_code: string; collector_number: string; name_ko: string } }
+    >();
+  if (error) throw error;
+  if (!data) return null;
+
+  // 추천수(순환참조 피하려 inline).
+  const { count, error: countError } = await db()
+    .from("engagements")
+    .select("*", { count: "exact", head: true })
+    .eq("artwork_id", id)
+    .eq("kind", "recommend");
+  if (countError) throw countError;
+
+  return {
+    ...toPublic(data),
+    card: {
+      label: `${data.cards.set_code} ${data.cards.collector_number}`,
+      path: `/cards/${encodeURIComponent(data.cards.set_code)}/${data.cards.collector_number.replace("/", "-")}`,
+      name: data.cards.name_ko,
+    },
+    recommendCount: count ?? 0,
+  };
 }
 
 // 다운로드·썸네일 ---------------------------------------------------------------

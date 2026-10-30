@@ -1,6 +1,18 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Home, Menu, Palette, Search, ShieldAlert, X } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Home,
+  Megaphone,
+  Menu,
+  MessagesSquare,
+  Palette,
+  Search,
+  ShieldAlert,
+  Trophy,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -11,6 +23,9 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { href: "/", label: "홈", icon: Home },
   { href: "/search", label: "카드 검색", icon: Search },
+  { href: "/ranking", label: "랭킹", icon: Trophy },
+  { href: "/requests", label: "도안 요청해요", icon: Megaphone },
+  { href: "/community", label: "커뮤니티", icon: MessagesSquare },
   { href: "/artist", label: "작가 스튜디오", icon: Palette },
   { href: "/takedown", label: "권리자 내림 요청", icon: ShieldAlert },
 ] as const;
