@@ -110,10 +110,10 @@ variable "enable_app_runner" {
 }
 ```
 
-- [ ] **Step 4: 포맷 검사**
+- [ ] **Step 4: 포맷**
 
-Run: `cd infra && terraform fmt -check`
-Expected: 출력 없음(이미 정렬됨) 또는 fmt가 정리. 에러 없음.
+Run: `cd infra && terraform fmt`
+Expected: fmt가 한 줄 블록 등을 정리하며 파일명 출력(정상). 에러 없음. (`-check`는 재정렬이 필요하면 비정상 종료코드를 내므로 쓰지 않는다. `terraform validate`는 provider 초기화가 필요해 Task 10 `init` 전까지 못 돌린다 — 인자명 오타는 Task 10에서 처음 잡히니, 필요하면 Task 1~9로 되돌아와 고친다.)
 
 - [ ] **Step 5: Commit**
 
@@ -234,6 +234,13 @@ resource "aws_db_instance" "main" {
 
   skip_final_snapshot = true # Phase 1 골대라 스냅샷 생략(비용·속도). 운영 전환 시 false로.
   deletion_protection = false
+  apply_immediately   = true # Phase 1: 변경 즉시 반영(유지보수 창 대기 안 함).
+
+  # auto_minor_version_upgrade(기본 true)가 마이너를 올리면 다음 plan에 허위 드리프트가
+  # 생긴다. Phase 1은 메이저만 고정하고 마이너 변화는 무시.
+  lifecycle {
+    ignore_changes = [engine_version]
+  }
 
   tags = { Name = "${var.project_name}-db" }
 }
@@ -606,6 +613,11 @@ output "apprunner_url" {
   description = "App Runner 공개 URL"
 }
 
+output "apprunner_service_arn" {
+  value       = var.enable_app_runner ? aws_apprunner_service.main[0].arn : ""
+  description = "App Runner 서비스 ARN(상태 폴링용)"
+}
+
 output "rds_endpoint" {
   value = aws_db_instance.main.address
 }
@@ -713,20 +725,39 @@ Expected: `latest: digest: sha256:...` 푸시 성공. (App Runner는 x86_64라 `
 Run: `terraform apply -var enable_app_runner=true` → `yes`
 Expected: VPC Connector + App Runner 서비스 생성. `Apply complete!`
 
-- [ ] **Step 3: 공개 URL 헬스체크 (핵심 검증)**
+- [ ] **Step 3: App Runner가 RUNNING 될 때까지 대기 (수 분)**
+
+`apply`는 서비스가 완전히 뜨기 전에 반환될 수 있다. 상태가 `RUNNING`이어야 curl이 의미 있다.
+
+```bash
+SVC_ARN=$(terraform output -raw apprunner_service_arn 2>/dev/null) || true
+# 상태 폴링(최대 ~10분)
+for i in $(seq 1 30); do
+  st=$(aws apprunner describe-service --service-arn "$SVC_ARN" \
+        --query 'Service.Status' --output text 2>/dev/null)
+  echo "status=$st"; [ "$st" = "RUNNING" ] && break; sleep 20
+done
+```
+
+Expected: 최종 `status=RUNNING`.
+
+- [ ] **Step 4: 공개 URL 헬스체크 (핵심 검증, 재시도 포함)**
 
 ```bash
 URL=$(terraform output -raw apprunner_url)
-curl -s "$URL/health"
+for i in $(seq 1 30); do
+  out=$(curl -s "$URL/health"); echo "$out"
+  [ "$out" = "DB OK" ] && break; sleep 20
+done
 ```
 
-Expected: **`DB OK`** (= App Runner → VPC Connector → RDS 배선 증명). 실패 시 `DB FAIL: ...` 메시지로 원인(보안그룹/서브넷) 파악.
+Expected: **`DB OK`** (= App Runner → VPC Connector → RDS 배선 증명). 계속 `DB FAIL: ...`면 메시지로 원인(보안그룹 5432, 서브넷 AZ, 시크릿 주입) 파악.
 
-- [ ] **Step 4: MCP(aws-api)로 교차 검증**
+- [ ] **Step 5: MCP(aws-api)로 교차 검증**
 
 App Runner 서비스 상태 `RUNNING`, RDS `available`, Cognito 풀 존재를 MCP 조회로 확인(읽기 전용).
 
-- [ ] **Step 5: DoD 체크 기록** — 설계 문서 §10 항목 전부 충족 확인.
+- [ ] **Step 6: DoD 체크 기록** — 설계 문서 §10 항목 전부 충족 확인.
 
 ---
 
