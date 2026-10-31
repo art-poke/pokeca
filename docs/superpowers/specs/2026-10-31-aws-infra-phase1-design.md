@@ -204,7 +204,7 @@ infra/
 |---|---|---|
 | RDS t4g.micro | $0 (첫 1년 프리티어) / 이후 ~$12 | **프리티어 조건: 신규 계정·단일 AZ·gp2·≤20GB.** Multi-AZ나 gp3·초과 스토리지면 과금됨 |
 | App Runner | ~$0–5 | 유휴 최소, ALB 없음 |
-| Cognito | ~$0 | MAU 5만까지 무료 |
+| Cognito | ~$0 | 빈 풀은 ~$0. MAU 과금 티어는 Phase 2 전 재확인 |
 | S3 + Secrets Manager | ~$1–3 | |
 | **합계** | **~$5–15** (프리티어 기준) | CloudFront 없음 |
 
