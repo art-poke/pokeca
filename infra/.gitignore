@@ -1,0 +1,12 @@
+# Terraform provider 바이너리/캐시 (크고 재생성됨)
+.terraform/
+# 상태파일은 S3 백엔드에 저장 (로컬에 남으면 안 됨)
+*.tfstate
+*.tfstate.*
+.terraform.tfstate.lock.info
+# 변수 오버라이드(비밀 들어갈 수 있음)
+*.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+# .terraform.lock.hcl 은 커밋한다 (provider 버전 고정)
