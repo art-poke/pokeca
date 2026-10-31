@@ -1,21 +1,11 @@
-import { Download, Megaphone, Plus, ThumbsUp, Trophy } from "lucide-react";
-import Link from "next/link";
+import { Download, Megaphone, ThumbsUp, Trophy } from "lucide-react";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { Badge } from "@/components/ui/badge";
 import { artistStats } from "@/lib/artist-stats";
-import { listOpenRequests } from "@/lib/art-requests";
 import { anyApprovedArtist, type Artist, currentArtist, listMyArtworks } from "@/lib/artists";
-import { FORMAT_INFO, type Format } from "@/lib/formats";
-import { WithdrawMine } from "./WithdrawMine";
+import { StudioArtworks } from "./StudioArtworks";
 
 export const metadata = { title: "내 스튜디오 · 확장 아트 아카이브" };
-
-const STATUS = {
-  active: { label: "공개", variant: "soft" as const },
-  hidden: { label: "숨김(검토중)", variant: "muted" as const },
-  withdrawn: { label: "내림", variant: "muted" as const },
-};
 
 export default function StudioPage(props: PageProps<"/artist">) {
   return (
@@ -42,10 +32,9 @@ async function Studio({ searchParams }: { searchParams: PageProps<"/artist">["se
 
   if (artist.status !== "approved") return <StatusCard artist={artist} />;
 
-  const [works, stats, requests] = await Promise.all([
+  const [works, stats] = await Promise.all([
     listMyArtworks(artist.userId),
     artistStats(artist.userId),
-    listOpenRequests(5),
   ]);
 
   const statCards = [
@@ -63,38 +52,28 @@ async function Studio({ searchParams }: { searchParams: PageProps<"/artist">["se
         </p>
       )}
 
-      {/* 좌: 프로필 카드(크게) · 우: 통계 4행 */}
-      <div className="flex flex-col gap-4 lg:flex-row">
-        <div className="flex flex-col items-center gap-4 rounded-2xl border border-border bg-background p-6 text-center lg:w-72 lg:shrink-0">
-          <span className="flex size-28 items-center justify-center rounded-full bg-secondary text-4xl font-bold text-secondary-foreground ring-4 ring-accent">
+      {/* 좌: 프로필(이미지+이름) · 우: 통계 2x2 */}
+      <div className="flex flex-col gap-4 sm:flex-row">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-background p-6 sm:w-64 sm:shrink-0">
+          <span className="flex size-32 items-center justify-center rounded-full bg-secondary text-5xl font-bold text-secondary-foreground ring-4 ring-accent">
             {artist.displayName[0]}
           </span>
-          <div>
-            <h1 className="font-display text-xl font-bold text-foreground">@{artist.displayName}</h1>
-            <Link
-              href={`/artists/${artist.handle}`}
-              className="text-sm text-muted-foreground hover:text-primary"
-            >
-              내 작가 페이지 보기 ↗
-            </Link>
-          </div>
-          <Link
-            href="/artist/new"
-            className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-red-700"
-          >
-            <Plus className="size-4" />
-            새 도안 올리기
-          </Link>
+          <h1 className="font-display text-xl font-bold text-foreground">@{artist.displayName}</h1>
         </div>
 
-        <div className="flex-1 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-background">
+        <div className="grid flex-1 grid-cols-2 gap-3">
           {statCards.map((s) => (
-            <div key={s.label} className="flex items-center justify-between px-5 py-4 md:py-[1.35rem]">
-              <span className="flex items-center gap-3 text-sm font-medium text-muted-foreground">
-                <s.icon className="size-5 text-primary" aria-hidden />
-                {s.label}
-              </span>
-              <span className="tabular text-2xl font-bold text-foreground">{s.value}</span>
+            <div
+              key={s.label}
+              className="flex items-center gap-3 rounded-2xl border border-border bg-background p-4"
+            >
+              <s.icon className="size-5 shrink-0 text-primary" aria-hidden />
+              <div>
+                <div className="tabular text-2xl font-bold leading-none text-foreground">
+                  {s.value}
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">{s.label}</div>
+              </div>
             </div>
           ))}
         </div>
@@ -106,81 +85,7 @@ async function Studio({ searchParams }: { searchParams: PageProps<"/artist">["se
         </p>
       )}
 
-      {/* 내 도안 */}
-      <section aria-labelledby="mine" className="space-y-4">
-        <h2 id="mine" className="font-display text-xl font-bold text-foreground">
-          내 도안 {works.length}개
-        </h2>
-        {works.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border bg-background p-10 text-center">
-            <p className="text-sm text-muted-foreground">아직 올린 도안이 없어요.</p>
-            <Link
-              href="/artist/new"
-              className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-red-700"
-            >
-              <Plus className="size-4" /> 첫 도안 올리기
-            </Link>
-          </div>
-        ) : (
-          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {works.map((a) => (
-              <li
-                key={a.id}
-                className="overflow-hidden rounded-2xl border border-border bg-background"
-              >
-                <Link href={`/artworks/${a.id}`} className="block">
-                  <div className="aspect-[63/88] w-full bg-gray-100">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={`/api/thumbnails/${a.id}`}
-                      alt={a.title}
-                      loading="lazy"
-                      className="size-full object-cover"
-                    />
-                  </div>
-                </Link>
-                <div className="space-y-1.5 p-3">
-                  <div className="flex items-center gap-1.5">
-                    <Badge variant={STATUS[a.status].variant}>{STATUS[a.status].label}</Badge>
-                    <Badge variant="muted">{FORMAT_INFO[a.format as Format]?.label ?? a.format}</Badge>
-                  </div>
-                  <p className="truncate text-sm font-semibold text-foreground">{a.title}</p>
-                  <p className="tabular truncate text-xs text-muted-foreground">{a.card.label}</p>
-                  {a.status !== "withdrawn" && <WithdrawMine id={a.id} cardLabel={a.card.label} />}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      {/* 들어온 요청(그려주세요) */}
-      {requests.length > 0 && (
-        <section aria-labelledby="incoming" className="space-y-4">
-          <h2 id="incoming" className="font-display text-xl font-bold text-foreground">
-            그려주세요 — 많이 요청된 도안
-          </h2>
-          <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-background">
-            {requests.map((r) => (
-              <li key={`${r.cardPath}-${r.format}`}>
-                <Link
-                  href={r.cardPath}
-                  className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-gray-50"
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="tabular font-semibold text-foreground">{r.cardLabel}</span>
-                      <Badge variant="secondary">{r.formatLabel}</Badge>
-                    </div>
-                    <div className="truncate text-sm text-muted-foreground">{r.name}</div>
-                  </div>
-                  <Badge variant="primary">요청 {r.count}</Badge>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      <StudioArtworks works={works} />
     </div>
   );
 }
