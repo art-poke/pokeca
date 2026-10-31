@@ -1,18 +1,24 @@
 "use client";
 
-import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useRef, useState } from "react";
 import { FORMAT_INFO, FORMATS, type Format } from "@/lib/formats";
+import { cn } from "@/lib/utils";
 import { errorMessage, uploadFile } from "./upload";
-import styles from "@/app/admin/admin.module.css";
 
-// 작품 등록 (design 11A): 카드 찾기 → 규격 → 파일 → 출처 → 허락.
-// 모든 작품은 사이트에 보관한다. 원본은 필수, 미리보기는 비워 두면 서버가 원본에서 만든다.
-// 작품 ID는 폼을 열 때 만든다. 저장이 중간에 실패해 다시 눌러도 같은 작품이 된다(서버 멱등).
-// mode "artist"는 승인된 작가가 자기 도안을 올리는 화면이다: 작가 이름은 계정 이름, 허락 근거 없음, 바로 공개.
+// 작품 등록: 카드 찾기 → 제목 → 규격 → 파일 → 출처 → 허락.
+// mode "artist"는 승인 작가가 자기 도안을 올리는 화면(작가 이름=계정, 허락 근거 없음, 바로 공개).
 
 type Card = { cardId: string; label: string; name: string; setName: string };
 type Uploaded = { file: File; uploadId: string };
+
+const fieldset = "space-y-3 rounded-2xl border border-border bg-background p-5";
+const legend = "px-1 text-sm font-bold text-ink-700";
+const input =
+  "h-11 w-full rounded-lg border border-input bg-background px-3.5 text-base text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30";
+const labelText = "text-sm font-medium text-foreground";
+const hint = "text-xs text-muted-foreground";
+const checkRow = "flex items-center gap-2 text-sm text-ink-700";
 
 export function NewArtworkForm({ mode = "admin" }: { mode?: "admin" | "artist" }) {
   const artist = mode === "artist";
@@ -43,7 +49,9 @@ export function NewArtworkForm({ mode = "admin" }: { mode?: "admin" | "artist" }
     if (!file || file.size === 0) return undefined;
     const prev = uploaded.current[kind];
     if (prev && prev.file === file) return prev.uploadId;
-    setSaving({ original: "원본 올리는 중…", thumbnail: "미리보기 올리는 중…", evidence: "허락 근거 올리는 중…" }[kind]);
+    setSaving(
+      { original: "원본 올리는 중…", thumbnail: "미리보기 올리는 중…", evidence: "허락 근거 올리는 중…" }[kind],
+    );
     const uploadId = await uploadFile(kind, file, api);
     uploaded.current[kind] = { file, uploadId };
     return uploadId;
@@ -95,16 +103,16 @@ export function NewArtworkForm({ mode = "admin" }: { mode?: "admin" | "artist" }
   }
 
   return (
-    <form className={styles.form} onSubmit={submit}>
-      <fieldset className={styles.fieldset}>
-        <legend>1. 카드</legend>
-        <div className={styles.row}>
+    <form className="space-y-4" onSubmit={submit}>
+      <fieldset className={fieldset}>
+        <legend className={legend}>1. 카드</legend>
+        <div className="flex gap-2">
           <label className="visually-hidden" htmlFor="card-q">
             카드 번호 또는 이름
           </label>
           <input
             id="card-q"
-            className={`${styles.input} ${styles.short}`}
+            className={input}
             placeholder="sv2a 201/165"
             onKeyDown={(e) => {
               if (e.key === "Enter") {
@@ -115,136 +123,140 @@ export function NewArtworkForm({ mode = "admin" }: { mode?: "admin" | "artist" }
           />
           <button
             type="button"
-            className={styles.secondary}
+            className="h-11 shrink-0 rounded-lg border border-border bg-background px-4 text-sm font-semibold text-ink-700 transition-colors hover:bg-gray-50 disabled:opacity-60"
             disabled={searching}
-            onClick={(e) => findCards((e.currentTarget.previousElementSibling as HTMLInputElement).value)}
+            onClick={(e) =>
+              findCards((e.currentTarget.previousElementSibling as HTMLInputElement).value)
+            }
           >
             {searching ? "찾는 중…" : "카드 찾기"}
           </button>
         </div>
-        {cards && cards.length === 0 && <p className={styles.muted}>맞는 카드가 없어요.</p>}
+        {cards && cards.length === 0 && <p className={hint}>맞는 카드가 없어요.</p>}
         {cards && cards.length > 0 && (
-          <ul className={styles.candidates} aria-label="카드 후보">
+          <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border" aria-label="카드 후보">
             {cards.map((c) => (
               <li key={c.cardId}>
                 <button
                   type="button"
-                  className={styles.candidateButton}
+                  className={cn(
+                    "flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-gray-50",
+                    card?.cardId === c.cardId && "bg-accent",
+                  )}
                   aria-pressed={card?.cardId === c.cardId}
                   onClick={() => setCard(c)}
                 >
-                  <strong>{c.label}</strong> {c.name} <span className={styles.muted}>· {c.setName}</span>
+                  <strong className="tabular text-foreground">{c.label}</strong>
+                  <span>{c.name}</span>
+                  <span className="text-muted-foreground">· {c.setName}</span>
                 </button>
               </li>
             ))}
           </ul>
         )}
         {card && (
-          <p role="status">
-            선택한 카드: <strong>{card.label}</strong> {card.name}
+          <p role="status" className="text-sm text-ink-700">
+            선택한 카드: <strong className="tabular">{card.label}</strong> {card.name}
           </p>
         )}
       </fieldset>
 
       {!artist && (
-        <label className={styles.field}>
-          <span>작가 이름(닉네임)</span>
-          <input name="artistName" required maxLength={80} className={styles.input} />
+        <label className="block space-y-1.5">
+          <span className={labelText}>작가 이름(닉네임)</span>
+          <input name="artistName" required maxLength={80} className={input} />
         </label>
       )}
 
-      <label className={styles.field}>
-        <span>도안 제목 (선택)</span>
-        <span>비워 두면 “{"{작가}"}님의 도안”으로 보여요.</span>
-        <input name="title" maxLength={120} className={styles.input} placeholder="예: 리자몽 9포켓 풀아트" />
+      <label className="block space-y-1.5">
+        <span className={labelText}>도안 제목 (선택)</span>
+        <span className={cn("block", hint)}>비워 두면 “{"{작가}"}님의 도안”으로 보여요.</span>
+        <input name="title" maxLength={120} className={input} placeholder="예: 리자몽 9포켓 풀아트" />
       </label>
 
-      <fieldset className={styles.fieldset}>
-        <legend>2. 규격</legend>
-        <div className={styles.row}>
+      <fieldset className={fieldset}>
+        <legend className={legend}>2. 규격</legend>
+        <div className="flex flex-wrap gap-4">
           {FORMATS.map((f: Format, i) => (
-            <label key={f} className={styles.check}>
-              <input type="radio" name="format" value={f} required defaultChecked={i === 0} />
+            <label key={f} className={checkRow}>
+              <input type="radio" name="format" value={f} required defaultChecked={i === 0} className="accent-primary" />
               {FORMAT_INFO[f].label}
             </label>
           ))}
         </div>
       </fieldset>
 
-      <fieldset className={styles.fieldset}>
-        <legend>3. 파일</legend>
-        <label className={styles.field}>
-          <span>원본 파일 (필수)</span>
-          <span>방문자가 받아 인쇄하는 파일이에요. PNG·JPEG·PDF, 100 MB까지</span>
-          <input name="original" type="file" required accept="image/png,image/jpeg,application/pdf" />
+      <fieldset className={fieldset}>
+        <legend className={legend}>3. 파일</legend>
+        <label className="block space-y-1">
+          <span className={labelText}>원본 파일 (필수)</span>
+          <span className={cn("block", hint)}>방문자가 받아 인쇄하는 파일이에요. PNG·JPEG·PDF, 100 MB까지</span>
+          <input name="original" type="file" required accept="image/png,image/jpeg,application/pdf" className="mt-1 block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-muted file:px-3 file:py-2 file:text-sm file:font-semibold file:text-ink-700" />
         </label>
-        <label className={styles.field}>
-          <span>미리보기 (선택)</span>
-          <span>비워 두면 원본에서 자동으로 만들어요. PDF 원본이면 PNG·JPEG로 꼭 올려 주세요.</span>
-          <input name="thumbnail" type="file" accept="image/png,image/jpeg" />
+        <label className="block space-y-1">
+          <span className={labelText}>미리보기 (선택)</span>
+          <span className={cn("block", hint)}>비워 두면 원본에서 자동으로 만들어요. PDF 원본이면 PNG·JPEG로 올려 주세요.</span>
+          <input name="thumbnail" type="file" accept="image/png,image/jpeg" className="mt-1 block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-muted file:px-3 file:py-2 file:text-sm file:font-semibold file:text-ink-700" />
         </label>
-        <label className={styles.check}>
-          <input type="checkbox" name="printSizeVerified" />
-          {artist ? "규격 인쇄 치수에 맞춰 만들었어요" : "파일 치수를 직접 확인함"} (방문자에게 인쇄 치수를 안내)
+        <label className={checkRow}>
+          <input type="checkbox" name="printSizeVerified" className="accent-primary" />
+          {artist ? "규격 인쇄 치수에 맞춰 만들었어요" : "파일 치수를 직접 확인함"} (방문자에게 인쇄 치수 안내)
         </label>
       </fieldset>
 
-      <fieldset className={styles.fieldset}>
-        <legend>4. 출처 (선택)</legend>
-        <label className={styles.field}>
-          <span>{artist ? "이 도안을 처음 올린 글 주소" : "작가가 처음 올린 글 주소"}</span>
-          <span>
+      <fieldset className={fieldset}>
+        <legend className={legend}>4. 출처 (선택)</legend>
+        <label className="block space-y-1">
+          <span className={labelText}>{artist ? "이 도안을 처음 올린 글 주소" : "작가가 처음 올린 글 주소"}</span>
+          <span className={cn("block", hint)}>
             {artist
               ? "카페·SNS에 올린 글이 있으면 도안 옆에 출처 링크로 보여 줘요."
               : "도안 옆에 출처 링크로 보여 줘요. 파일만 받았다면 비워 두세요."}
           </span>
-          <input name="sourceUrl" type="url" placeholder="https://cafe.naver.com/…" className={styles.input} />
+          <input name="sourceUrl" type="url" placeholder="https://cafe.naver.com/…" className={input} />
         </label>
-        <div className={styles.row}>
-          <label className={styles.check}>
-            <input type="radio" name="sourceVisibility" value="public" defaultChecked />
+        <div className="flex flex-wrap gap-4">
+          <label className={checkRow}>
+            <input type="radio" name="sourceVisibility" value="public" defaultChecked className="accent-primary" />
             누구나 볼 수 있음
           </label>
-          <label className={styles.check}>
-            <input type="radio" name="sourceVisibility" value="members_only" />
+          <label className={checkRow}>
+            <input type="radio" name="sourceVisibility" value="members_only" className="accent-primary" />
             카페 회원 전용
           </label>
         </div>
       </fieldset>
 
-      {artist ? (
-        <fieldset className={styles.fieldset}>
-          <legend>5. 동의</legend>
-          <label className={styles.check}>
-            <input type="checkbox" name="consent" required />
-            내가 만든 도안이고, 사이트에 보관해 방문자가 미리보기·다운로드하는 것에 동의해요
+      <fieldset className={fieldset}>
+        <legend className={legend}>5. {artist ? "동의" : "아티스트 허락"}</legend>
+        <label className={checkRow}>
+          <input type="checkbox" name="consent" required className="accent-primary" />
+          {artist
+            ? "내가 만든 도안이고, 사이트 보관·미리보기·다운로드에 동의해요"
+            : "사이트에 파일을 보관하고 방문자가 미리보기·다운로드하는 것을 허락받았어요"}
+        </label>
+        {artist ? (
+          <p className={hint}>올리면 바로 카드 페이지와 내 작가 페이지에 공개돼요. 내 도안 목록에서 언제든 내릴 수 있어요.</p>
+        ) : (
+          <label className="block space-y-1">
+            <span className={labelText}>허락 근거 (선택)</span>
+            <span className={cn("block", hint)}>아티스트 DM 캡처 등. PNG·JPEG·PDF, 20 MB까지. 어드민만 볼 수 있어요.</span>
+            <input name="evidence" type="file" accept="image/png,image/jpeg,application/pdf" className="mt-1 block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-muted file:px-3 file:py-2 file:text-sm file:font-semibold file:text-ink-700" />
           </label>
-          <p className={styles.hint}>올리면 바로 카드 페이지와 내 작가 페이지에 공개돼요. 내 도안 목록에서 언제든 내릴 수 있어요.</p>
-        </fieldset>
-      ) : (
-        <fieldset className={styles.fieldset}>
-          <legend>5. 아티스트 허락</legend>
-          <label className={styles.check}>
-            <input type="checkbox" name="consent" required />
-            사이트에 파일을 보관하고 방문자가 미리보기·다운로드하는 것을 허락받았어요
-          </label>
-          <label className={styles.field}>
-            <span>허락 근거 (선택)</span>
-            <span>아티스트 DM 캡처 등. PNG·JPEG·PDF, 20 MB까지. 어드민만 볼 수 있어요.</span>
-            <input name="evidence" type="file" accept="image/png,image/jpeg,application/pdf" />
-          </label>
-        </fieldset>
-      )}
+        )}
+      </fieldset>
 
       <div role="status">
-        {error && <p className={styles.error}>{error}</p>}
-        {saving && <p className={styles.ok}>{saving}</p>}
+        {error && <p className="text-sm text-destructive">{error}</p>}
+        {saving && <p className="text-sm font-medium text-success">{saving}</p>}
       </div>
-      <div>
-        <button type="submit" className={styles.primary} disabled={!!saving}>
-          {artist ? "올리기" : "등록"}
-        </button>
-      </div>
+      <button
+        type="submit"
+        className="inline-flex h-11 items-center justify-center rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground transition-colors hover:bg-red-700 disabled:opacity-60"
+        disabled={!!saving}
+      >
+        {artist ? "올리기" : "등록"}
+      </button>
     </form>
   );
 }
