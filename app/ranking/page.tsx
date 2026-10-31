@@ -114,6 +114,14 @@ async function Ranking({ searchParams }: Pick<PageProps<"/ranking">, "searchPara
                   >
                     {a.rank}
                   </span>
+                  {/* 실제 확장 아트 썸네일 */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`/api/thumbnails/${a.artworkId}`}
+                    alt={a.title}
+                    loading="lazy"
+                    className="size-14 shrink-0 rounded-lg border border-border object-cover"
+                  />
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-semibold text-foreground">{a.title}</div>
                     <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">

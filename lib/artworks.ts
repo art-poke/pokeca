@@ -131,6 +131,13 @@ export async function createArtwork(
     const { error: titleError } = await db().from("artworks").update({ title }).eq("id", newId);
     if (titleError) console.error("artwork title update", titleError);
   }
+  // 이 카드×규격의 미해결 도안 요청을 해결 처리한다(작가면 resolved_by에 기록).
+  try {
+    const { resolveRequests } = await import("@/lib/art-requests");
+    await resolveRequests(input.cardId, input.format, input.artistId ?? null);
+  } catch (e) {
+    console.error("resolveRequests", e);
+  }
   return newId;
 }
 

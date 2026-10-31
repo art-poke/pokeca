@@ -9,7 +9,6 @@ import {
   MessagesSquare,
   Palette,
   Search,
-  ShieldAlert,
   Trophy,
   X,
 } from "lucide-react";
@@ -27,7 +26,6 @@ const NAV = [
   { href: "/requests", label: "도안 요청해요", icon: Megaphone },
   { href: "/community", label: "커뮤니티", icon: MessagesSquare },
   { href: "/artist", label: "작가 스튜디오", icon: Palette },
-  { href: "/takedown", label: "권리자 내림 요청", icon: ShieldAlert },
 ] as const;
 
 // usePathname이 요청 데이터라 PPR에서 AppShell은 Suspense 안에 있어야 한다. 그 동안 보여줄 셸.
@@ -187,15 +185,9 @@ export const AppShell = ({
           <footer className="border-t border-border bg-background">
             <div className="flex flex-col gap-3 px-4 py-8 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between md:px-6">
               <p>비영리 팬 아카이브입니다. 도안의 권리는 각 아티스트에게 있습니다.</p>
-              <p className="flex items-center gap-3">
+              <p>
                 <Link href="/artist/login" className="hover:text-foreground">
                   작가로 도안 올리기
-                </Link>
-                <span aria-hidden className="text-gray-300">
-                  ·
-                </span>
-                <Link href="/takedown" className="hover:text-foreground">
-                  권리자 내림 요청
                 </Link>
               </p>
             </div>

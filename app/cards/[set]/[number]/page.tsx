@@ -4,9 +4,10 @@ import { FormatResults } from "@/components/FormatResults";
 import { RequestArtButton } from "@/components/request-art-button";
 import { Badge } from "@/components/ui/badge";
 import { PokeballMark } from "@/components/ui/logo";
-import { hasRequested } from "@/lib/art-requests";
+import { requestedFormats } from "@/lib/art-requests";
 import { listPublicArtworks } from "@/lib/artworks";
 import { getCard } from "@/lib/cards";
+import { FORMATS } from "@/lib/formats";
 import { currentMember } from "@/lib/members";
 import { numberFromPath, safeDecode } from "@/lib/search";
 
@@ -37,7 +38,9 @@ async function Card({
     currentMember(),
   ]);
   const from = aliasFrom(query.from);
-  const requested = member ? await hasRequested(member.userId, card.cardId) : false;
+  const myRequested = member ? await requestedFormats(member.userId, card.cardId) : [];
+  const present = new Set(artworks.map((a) => a.format));
+  const missingFormats = FORMATS.filter((f) => !present.has(f));
 
   return (
     <article className="space-y-8">
@@ -78,7 +81,12 @@ async function Card({
             </p>
           )}
           <div className="mt-4">
-            <RequestArtButton cardId={card.cardId} isMember={!!member} requested={requested} />
+            <RequestArtButton
+              cardId={card.cardId}
+              isMember={!!member}
+              missingFormats={missingFormats}
+              requestedFormats={myRequested}
+            />
           </div>
         </div>
       </header>
