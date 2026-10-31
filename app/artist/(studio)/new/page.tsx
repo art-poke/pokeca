@@ -7,7 +7,7 @@ export const metadata = { title: "도안 올리기 · 확장 아트 아카이브
 
 export default function NewArtistArtworkPage() {
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-4xl space-y-6">
       <h1 className="font-display text-2xl font-bold text-foreground">도안 올리기</h1>
       <Suspense fallback={<div className="h-96 animate-pulse rounded-2xl bg-gray-100" />}>
         <Gate />
