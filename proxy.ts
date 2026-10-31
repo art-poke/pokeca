@@ -57,10 +57,15 @@ async function session(request: NextRequest, area: "/admin" | "/artist", open: s
 
   const { pathname } = request.nextUrl;
   if (!user && pathname.startsWith(area) && !open.includes(pathname)) {
-    const login = request.nextUrl.clone();
-    login.pathname = `${area}/login`;
-    login.search = "";
-    return NextResponse.redirect(login);
+    // dev 미리보기: 작가 스튜디오 화면은 로그인 없이도 렌더(페이지가 데모 작가로 보여줌). API는 그대로 막는다.
+    const devStudioPreview =
+      process.env.NODE_ENV !== "production" && area === "/artist" && !pathname.startsWith("/api/");
+    if (!devStudioPreview) {
+      const login = request.nextUrl.clone();
+      login.pathname = `${area}/login`;
+      login.search = "";
+      return NextResponse.redirect(login);
+    }
   }
   return response;
 }

@@ -1,20 +1,32 @@
 import Link from "next/link";
 import { logout } from "../actions";
-import styles from "@/app/admin/admin.module.css";
 
-// 작가 화면 공통. 접근 확인은 각 화면의 requireArtist()가 한다.
+// 작가 화면 공통. 접근 확인은 각 화면의 requireArtist()가 한다(dev 미리보기 예외).
 export default function StudioLayout({ children }: LayoutProps<"/artist">) {
   return (
-    <div className={styles.console}>
-      <nav aria-label="작가" className={styles.nav}>
-        <Link href="/artist">내 도안</Link>
-        <Link href="/artist/new">도안 올리기</Link>
-        <form action={logout} className={styles.logout}>
-          <button type="submit" className={styles.linkButton}>
+    <div className="mx-auto max-w-5xl">
+      <div className="mb-6 flex items-center gap-1 border-b border-border">
+        <Link
+          href="/artist"
+          className="px-3 py-2.5 text-sm font-semibold text-ink-700 hover:text-foreground"
+        >
+          내 스튜디오
+        </Link>
+        <Link
+          href="/artist/new"
+          className="px-3 py-2.5 text-sm font-semibold text-ink-700 hover:text-foreground"
+        >
+          도안 올리기
+        </Link>
+        <form action={logout} className="ml-auto">
+          <button
+            type="submit"
+            className="px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+          >
             로그아웃
           </button>
         </form>
-      </nav>
+      </div>
       {children}
     </div>
   );

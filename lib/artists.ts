@@ -90,6 +90,19 @@ export async function currentArtist(): Promise<Artist | null> {
   return user ? artistByUserId(user.id) : null;
 }
 
+// 개발 미리보기용: 승인된 작가 아무나 1명(로컬에서 로그인 없이 스튜디오 UI 확인).
+export async function anyApprovedArtist(): Promise<Artist | null> {
+  const { data, error } = await db()
+    .from("artists")
+    .select(COLUMNS)
+    .eq("status", "approved")
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle<ArtistRow>();
+  if (error) throw error;
+  return data ? fromRow(data) : null;
+}
+
 // 작가 화면과 server action의 첫 줄. 로그인 전이면 로그인으로, 신청 전이면 신청 폼으로 보낸다.
 // 승인 여부는 화면마다 따로 본다(대기 중에도 내 정보는 보여야 한다).
 export async function requireArtist(): Promise<Artist> {
@@ -234,6 +247,7 @@ export async function getPortfolio(handle: string): Promise<{ artist: Artist; ar
 
 export type MyArtwork = {
   id: string;
+  title: string;
   format: string;
   status: Status;
   createdAt: string;
@@ -244,13 +258,15 @@ export type MyArtwork = {
 export async function listMyArtworks(artistId: string): Promise<MyArtwork[]> {
   const { data, error } = await db()
     .from("artworks")
-    .select("id, format, status, created_at, cards(set_code, collector_number, name_ko)")
+    .select("id, title, artist_name, format, status, created_at, cards(set_code, collector_number, name_ko)")
     .eq("artist_id", artistId)
     .neq("status", "withdrawn")
     .order("created_at", { ascending: false })
     .returns<
       {
         id: string;
+        title: string | null;
+        artist_name: string;
         format: string;
         status: Status;
         created_at: string;
@@ -260,6 +276,7 @@ export async function listMyArtworks(artistId: string): Promise<MyArtwork[]> {
   if (error) throw error;
   return data.map((r) => ({
     id: r.id,
+    title: r.title?.trim() || `${r.artist_name}님의 도안`,
     format: r.format,
     status: r.status,
     createdAt: r.created_at,
