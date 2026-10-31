@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export type CommentNode = {
@@ -82,7 +83,12 @@ const CommentRow = ({
 
   async function remove() {
     const res = await fetch(`/api/comments/${comment.id}`, { method: "DELETE" });
-    if (res.ok) router.refresh();
+    if (res.ok) {
+      toast.success("댓글을 삭제했어요");
+      router.refresh();
+    } else {
+      toast.error("삭제하지 못했어요");
+    }
   }
 
   return (
@@ -133,13 +139,11 @@ const CommentForm = ({
   const router = useRouter();
   const [body, setBody] = useState("");
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   async function submit() {
     const text = body.trim();
     if (!text || pending) return;
     setPending(true);
-    setError(null);
     try {
       const res = await fetch("/api/comments", {
         method: "POST",
@@ -147,18 +151,20 @@ const CommentForm = ({
         body: JSON.stringify({ target, targetId, body: text, parentId }),
       });
       if (res.status === 401) {
-        setError("로그인이 필요해요.");
+        toast("댓글을 쓰려면 로그인하세요", {
+          action: { label: "로그인", onClick: () => (window.location.href = "/artist/login") },
+        });
         return;
       }
       if (!res.ok) {
-        setError("등록하지 못했어요.");
+        toast.error("등록하지 못했어요");
         return;
       }
       setBody("");
       onDone?.();
       router.refresh();
     } catch {
-      setError("등록하지 못했어요.");
+      toast.error("등록하지 못했어요");
     } finally {
       setPending(false);
     }
@@ -174,7 +180,6 @@ const CommentForm = ({
         className="w-full resize-y rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
       />
       <div className="mt-2 flex items-center justify-end gap-2">
-        {error && <span className="mr-auto text-xs text-destructive">{error}</span>}
         {parentId && (
           <button
             type="button"

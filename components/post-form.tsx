@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 type BoardOption = { value: string; label: string };
@@ -13,12 +14,10 @@ export const PostForm = ({ boards }: { boards: BoardOption[] }) => {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   async function submit() {
     if (!title.trim() || !body.trim() || pending) return;
     setPending(true);
-    setError(null);
     try {
       const res = await fetch("/api/community/posts", {
         method: "POST",
@@ -26,21 +25,22 @@ export const PostForm = ({ boards }: { boards: BoardOption[] }) => {
         body: JSON.stringify({ board, title, body }),
       });
       if (res.status === 401) {
-        setError("로그인이 필요해요.");
+        toast("로그인이 필요해요");
         return;
       }
       if (res.status === 403) {
-        setError("이 게시판에 쓸 권한이 없어요.");
+        toast.error("이 게시판에 쓸 권한이 없어요");
         return;
       }
       if (!res.ok) {
-        setError("등록하지 못했어요.");
+        toast.error("등록하지 못했어요");
         return;
       }
       const { id } = (await res.json()) as { id: string };
+      toast.success("글을 등록했어요");
       router.push(`/community/${id}`);
     } catch {
-      setError("등록하지 못했어요.");
+      toast.error("등록하지 못했어요");
     } finally {
       setPending(false);
     }
@@ -80,7 +80,6 @@ export const PostForm = ({ boards }: { boards: BoardOption[] }) => {
         className="w-full resize-y rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
       />
       <div className="flex items-center justify-end gap-3">
-        {error && <span className="mr-auto text-sm text-destructive">{error}</span>}
         <button
           type="button"
           onClick={() => router.back()}

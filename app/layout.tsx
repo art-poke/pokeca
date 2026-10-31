@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 import "wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.css";
 import { Suspense } from "react";
+import { Toaster } from "sonner";
 import { AppShell, AppShellFallback } from "@/components/app-shell";
 import { AuthMenu, AuthMenuFallback } from "@/components/auth-menu";
 import "./globals.css";
@@ -26,6 +27,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             {children}
           </AppShell>
         </Suspense>
+        <Toaster
+          position="bottom-center"
+          richColors
+          toastOptions={{ style: { fontFamily: "var(--font-sans)" } }}
+        />
       </body>
     </html>
   );

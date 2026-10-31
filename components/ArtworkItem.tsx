@@ -4,6 +4,7 @@ import { Download } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import type { PublicArtwork } from "@/lib/artworks";
 import { FORMAT_INFO } from "@/lib/formats";
@@ -91,25 +92,45 @@ export function SourceLink({ artwork }: { artwork: PublicArtwork }) {
   );
 }
 
-type DownloadState = "idle" | "loading" | "failed" | "gone" | "login";
 const NOTICE_KEY = "print-notice-shown";
 
-// 다운로드(회원 전용). 비회원은 401 → 로그인 안내.
+// 다운로드(회원 전용). 피드백·인쇄안내는 toast.
 export function DownloadAction({ artwork }: { artwork: PublicArtwork }) {
   const router = useRouter();
-  const [state, setState] = useState<DownloadState>("idle");
-  const [notice, setNotice] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  function printNotice() {
+    let shown = false;
+    try {
+      shown = sessionStorage.getItem(NOTICE_KEY) === "1";
+      sessionStorage.setItem(NOTICE_KEY, "1");
+    } catch {}
+    if (shown) return;
+    const printSize = FORMAT_INFO[artwork.format].printSize;
+    const how =
+      artwork.printSizeVerified && printSize
+        ? `이 파일은 ${printSize}로 확인됐어요.`
+        : artwork.sourceUrl
+          ? "작가 원본 글의 인쇄 안내도 확인하세요."
+          : `${FORMAT_INFO[artwork.format].label} 규격에 맞춰 인쇄하세요.`;
+    toast.message("인쇄 안내", {
+      description: `‘실제 크기(100%)’로, ‘페이지에 맞추기’는 꺼주세요. ${how}`,
+      duration: 8000,
+    });
+  }
 
   async function download() {
-    setState("loading");
+    setLoading(true);
     try {
       const res = await fetch(`/api/download/${artwork.id}`, { method: "POST" });
       if (res.status === 401) {
-        setState("login");
+        toast("다운로드는 로그인 후 받을 수 있어요", {
+          action: { label: "로그인", onClick: () => (window.location.href = "/artist/login") },
+        });
         return;
       }
       if (res.status === 410 || res.status === 404) {
-        setState("gone");
+        toast.error("이 도안은 더 이상 제공되지 않아요");
         router.refresh();
         return;
       }
@@ -121,66 +142,24 @@ export function DownloadAction({ artwork }: { artwork: PublicArtwork }) {
       document.body.append(a);
       a.click();
       a.remove();
-      setState("idle");
       router.refresh();
-      let shown = false;
-      try {
-        shown = sessionStorage.getItem(NOTICE_KEY) === "1";
-        sessionStorage.setItem(NOTICE_KEY, "1");
-      } catch {}
-      if (!shown) setNotice(true);
+      printNotice();
     } catch {
-      setState("failed");
+      toast.error("파일을 준비하지 못했어요. 다시 시도해 주세요.");
+    } finally {
+      setLoading(false);
     }
   }
 
-  const printSize = FORMAT_INFO[artwork.format].printSize;
   return (
-    <div>
-      <button
-        type="button"
-        className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-red-700 disabled:opacity-60"
-        onClick={download}
-        disabled={state === "loading" || state === "gone"}
-      >
-        <Download className="size-4" aria-hidden />
-        {state === "loading" ? "준비 중…" : "다운로드"}
-      </button>
-      <div role="status">
-        {state === "login" && (
-          <p className="mt-2 text-sm text-muted-foreground">
-            다운로드는 로그인 후 받을 수 있어요.{" "}
-            <Link href="/artist/login" className="font-semibold text-primary hover:underline">
-              로그인
-            </Link>
-          </p>
-        )}
-        {state === "failed" && (
-          <p className="mt-2 text-sm text-destructive">파일을 준비하지 못했어요. 다시 시도해 주세요.</p>
-        )}
-        {state === "gone" && (
-          <p className="mt-2 text-sm text-destructive">이 도안은 더 이상 제공되지 않아요.</p>
-        )}
-        {notice && (
-          <div className="mt-2 rounded-xl bg-muted p-3 text-sm text-ink-700">
-            <p>
-              인쇄할 때 크기는 ‘실제 크기(100%)’로, ‘페이지에 맞추기’는 끄세요.{" "}
-              {artwork.printSizeVerified && printSize
-                ? `이 파일은 ${printSize}로 확인됐어요.`
-                : artwork.sourceUrl
-                  ? "작가의 원본 글에 있는 인쇄 안내를 함께 확인하세요."
-                  : `${FORMAT_INFO[artwork.format].label} 규격에 맞춰 인쇄하세요.`}
-            </p>
-            <button
-              type="button"
-              className="mt-2 font-semibold text-primary hover:underline"
-              onClick={() => setNotice(false)}
-            >
-              닫기
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
+    <button
+      type="button"
+      className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-red-700 disabled:opacity-60"
+      onClick={download}
+      disabled={loading}
+    >
+      <Download className="size-4" aria-hidden />
+      {loading ? "준비 중…" : "다운로드"}
+    </button>
   );
 }

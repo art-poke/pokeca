@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export const PostDeleteButton = ({ postId, board }: { postId: string; board: string }) => {
   const router = useRouter();
@@ -13,9 +14,11 @@ export const PostDeleteButton = ({ postId, board }: { postId: string; board: str
     setPending(true);
     const res = await fetch(`/api/community/posts/${postId}`, { method: "DELETE" });
     if (res.ok) {
+      toast.success("글을 삭제했어요");
       router.push(`/community?board=${board}`);
       router.refresh();
     } else {
+      toast.error("삭제하지 못했어요");
       setPending(false);
     }
   }
