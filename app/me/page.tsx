@@ -3,7 +3,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { ProfileEdit } from "@/components/profile-edit";
+import { RowsSkeleton } from "@/components/skeletons";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { listFavoriteCards } from "@/lib/favorites";
 import { anyMember, currentMember, type Member } from "@/lib/members";
 
@@ -11,7 +13,15 @@ export const metadata = { title: "마이프로필 · 확장 아트 아카이브"
 
 export default function MyProfilePage() {
   return (
-    <Suspense fallback={<div className="h-96 animate-pulse rounded-2xl bg-gray-100" />}>
+    <Suspense
+      fallback={
+        <div className="space-y-8">
+          <Skeleton className="h-36 rounded-2xl" />
+          <Skeleton className="h-6 w-40" />
+          <RowsSkeleton count={4} />
+        </div>
+      }
+    >
       <Profile />
     </Suspense>
   );
@@ -33,7 +43,7 @@ async function Profile() {
   const favorites = await listFavoriteCards(member.userId);
 
   return (
-    <div className="space-y-8">
+    <div className="enter space-y-8">
       <ProfileEdit
         userId={member.userId}
         nickname={member.nickname}
@@ -54,7 +64,7 @@ async function Profile() {
             아직 즐겨찾기한 카드가 없어요. 카드 페이지에서 <span className="font-semibold text-foreground">즐겨찾기</span>를 눌러 담아 보세요.
           </div>
         ) : (
-          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="enter grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {favorites.map((c) => (
               <li key={c.cardId}>
                 <Link

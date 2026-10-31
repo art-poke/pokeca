@@ -2,7 +2,9 @@ import { Crown, Medal, TrendingUp, Trophy } from "lucide-react";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
+import { RankingListSkeleton } from "@/components/skeletons";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   artistRanking,
   type ArtistRankEntry,
@@ -17,9 +19,19 @@ export const metadata = { title: "랭킹 · 확장 아트 아카이브" };
 
 export default function RankingPage(props: PageProps<"/ranking">) {
   return (
-    <Suspense fallback={<div className="h-96 animate-pulse rounded-3xl bg-gray-100" />}>
+    <Suspense fallback={<RankingSkeleton />}>
       <Ranking searchParams={props.searchParams} />
     </Suspense>
+  );
+}
+
+function RankingSkeleton() {
+  return (
+    <div className="space-y-8">
+      <Skeleton className="h-10 w-64 rounded-xl" />
+      <Skeleton className="h-64 rounded-3xl" />
+      <RankingListSkeleton count={6} />
+    </div>
   );
 }
 
@@ -32,7 +44,7 @@ async function Ranking({ searchParams }: Pick<PageProps<"/ranking">, "searchPara
   const [artists, artworks] = await Promise.all([artistRanking(period, 10), artworkRanking(period, 6)]);
 
   return (
-    <div className="space-y-10">
+    <div className="enter space-y-10">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Trophy className="size-7 text-primary" aria-hidden />

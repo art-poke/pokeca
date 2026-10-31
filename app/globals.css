@@ -191,6 +191,37 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* 스켈레톤 쉬머: 로딩 중 placeholder. rounded·크기는 호출부에서. */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+@utility skeleton {
+  background-color: #e9ebef;
+  background-image: linear-gradient(90deg, #e9ebef 0%, #f4f5f7 50%, #e9ebef 100%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+/* 등장 애니메이션: 렌더(또는 소프트 네비게이션) 시 살짝 떠오르며 페이드인. */
+@keyframes enter-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@utility enter {
+  animation: enter-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

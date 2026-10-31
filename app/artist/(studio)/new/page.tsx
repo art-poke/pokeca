@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { NewArtworkForm } from "@/components/admin/NewArtworkForm";
+import { SpecInfoButton } from "@/components/spec-info";
 import { currentArtist } from "@/lib/artists";
 
 export const metadata = { title: "도안 올리기 · 확장 아트 아카이브" };
@@ -8,7 +9,10 @@ export const metadata = { title: "도안 올리기 · 확장 아트 아카이브
 export default function NewArtistArtworkPage() {
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-2xl font-bold text-foreground">도안 올리기</h1>
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="font-display text-2xl font-bold text-foreground">도안 올리기</h1>
+        <SpecInfoButton />
+      </div>
       <Suspense fallback={<div className="h-96 animate-pulse rounded-2xl bg-gray-100" />}>
         <Gate />
       </Suspense>

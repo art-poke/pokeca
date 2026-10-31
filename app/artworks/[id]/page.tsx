@@ -6,6 +6,7 @@ import { ArtistName, DownloadAction, SourceLink } from "@/components/ArtworkItem
 import { Comments } from "@/components/comments";
 import { RecommendButton } from "@/components/recommend-button";
 import { ReportTrigger } from "@/components/report-trigger";
+import { ArtworkDetailSkeleton } from "@/components/skeletons";
 import { Badge } from "@/components/ui/badge";
 import { getArtworkDetail } from "@/lib/artworks";
 import { listComments } from "@/lib/comments";
@@ -15,7 +16,7 @@ import { currentMember } from "@/lib/members";
 
 export default function ArtworkPage(props: PageProps<"/artworks/[id]">) {
   return (
-    <Suspense>
+    <Suspense fallback={<ArtworkDetailSkeleton />}>
       <Detail params={props.params} />
     </Suspense>
   );
@@ -35,7 +36,7 @@ async function Detail({ params }: Pick<PageProps<"/artworks/[id]">, "params">) {
   const multi = artwork.pieceCount > 1;
 
   return (
-    <article className="space-y-8">
+    <article className="enter space-y-8">
       <Link
         href={artwork.card.path}
         className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"

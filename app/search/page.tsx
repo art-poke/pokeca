@@ -90,7 +90,7 @@ async function Results({ searchParams }: { searchParams: PageProps<"/search">["s
 // 검색 랜딩(쿼리 없음): 큰 검색창 + 예시 + 최근 등록 카드.
 function SearchLanding() {
   return (
-    <div className="space-y-10">
+    <div className="enter space-y-10">
       <section className="relative overflow-hidden rounded-3xl border border-border bg-background px-6 py-10 shadow-sm md:px-10 md:py-12">
         <div className="absolute inset-x-0 top-0 h-1.5 bg-red-500" aria-hidden />
         <PokeballMark

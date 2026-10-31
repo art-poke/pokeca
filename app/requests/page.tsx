@@ -1,6 +1,7 @@
 import { Megaphone } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
+import { RowsSkeleton } from "@/components/skeletons";
 import { Badge } from "@/components/ui/badge";
 import { listOpenRequests } from "@/lib/art-requests";
 
@@ -17,7 +18,7 @@ export default function RequestsPage() {
         아직 도안이 없는 카드를 규격별로 요청하면 여기 모여요. 많이 요청된 순서로 위에 올라가요 —
         작가님들이 보고 그려줄 수 있게. 작가가 그 규격 도안을 올리면 자동으로 해결 처리돼요.
       </p>
-      <Suspense fallback={<div className="h-64 animate-pulse rounded-2xl bg-gray-100" />}>
+      <Suspense fallback={<RowsSkeleton />}>
         <List />
       </Suspense>
     </div>
@@ -34,7 +35,7 @@ async function List() {
     );
   }
   return (
-    <ol className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-background">
+    <ol className="enter divide-y divide-border overflow-hidden rounded-2xl border border-border bg-background">
       {items.map((c, i) => (
         <li key={`${c.cardPath}-${c.format}`}>
           <Link

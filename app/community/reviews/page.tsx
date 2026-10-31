@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { CommunityTabs } from "@/components/community-tabs";
 import { ReviewArtistSearch } from "@/components/review-artist-search";
+import { RowsSkeleton } from "@/components/skeletons";
 import { recentReviews } from "@/lib/reviews";
 
 export const metadata = { title: "작가 후기 · 커뮤니티 · 확장 아트 아카이브" };
@@ -25,7 +26,7 @@ export default function ReviewsPage() {
         <h2 id="recent-reviews" className="font-display text-lg font-bold text-foreground">
           최근 후기
         </h2>
-        <Suspense fallback={<div className="h-40 animate-pulse rounded-2xl bg-gray-100" />}>
+        <Suspense fallback={<RowsSkeleton count={4} />}>
           <Feed />
         </Suspense>
       </section>
@@ -43,7 +44,7 @@ async function Feed() {
     );
   }
   return (
-    <ul className="space-y-3">
+    <ul className="enter space-y-3">
       {reviews.map((r) => (
         <li key={r.id} className="rounded-2xl border border-border bg-background p-4">
           <div className="flex items-center gap-2 text-sm">

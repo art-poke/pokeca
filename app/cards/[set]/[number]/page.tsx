@@ -8,6 +8,7 @@ import { PokeballMark } from "@/components/ui/logo";
 import { requestedFormats } from "@/lib/art-requests";
 import { listPublicArtworks } from "@/lib/artworks";
 import { getCard } from "@/lib/cards";
+import { CardPageSkeleton } from "@/components/skeletons";
 import { isFavorited } from "@/lib/favorites";
 import { FORMATS } from "@/lib/formats";
 import { currentMember } from "@/lib/members";
@@ -17,7 +18,7 @@ const LANG_LABEL = { ja: "일본", en: "영문" } as const;
 
 export default function CardPage(props: PageProps<"/cards/[set]/[number]">) {
   return (
-    <Suspense>
+    <Suspense fallback={<CardPageSkeleton />}>
       <Card params={props.params} searchParams={props.searchParams} />
     </Suspense>
   );
@@ -47,7 +48,7 @@ async function Card({
   const missingFormats = FORMATS.filter((f) => !present.has(f));
 
   return (
-    <article className="space-y-8">
+    <article className="enter space-y-8">
       <header className="flex items-stretch gap-4 rounded-2xl border border-border bg-background p-4 md:gap-6 md:p-6">
         {/* 공식 카드 이미지는 쓰지 않는다. 중립 실루엣만 둔다. */}
         <div

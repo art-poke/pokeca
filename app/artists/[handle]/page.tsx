@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ArtistGallery } from "@/components/ArtistGallery";
 import { ArtistReviews } from "@/components/artist-reviews";
+import { ArtistPageSkeleton } from "@/components/skeletons";
 import { currentAdmin } from "@/lib/admin";
 import { resolvedCountByArtist } from "@/lib/art-requests";
 import { getPortfolio } from "@/lib/artists";
@@ -17,7 +18,7 @@ export async function generateMetadata(props: PageProps<"/artists/[handle]">): P
 
 export default function ArtistPage(props: PageProps<"/artists/[handle]">) {
   return (
-    <Suspense>
+    <Suspense fallback={<ArtistPageSkeleton />}>
       <Portfolio params={props.params} />
     </Suspense>
   );
@@ -37,7 +38,7 @@ async function Portfolio({ params }: Pick<PageProps<"/artists/[handle]">, "param
   const isSelf = member?.userId === artist.userId;
 
   return (
-    <article className="space-y-8">
+    <article className="enter space-y-8">
       <header className="flex items-start gap-4 rounded-2xl border border-border bg-background p-5 md:gap-5 md:p-6">
         <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-secondary text-2xl font-bold text-secondary-foreground">
           {artist.displayName[0]}

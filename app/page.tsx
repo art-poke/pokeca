@@ -4,6 +4,7 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { ArtworkItem } from "@/components/ArtworkItem";
 import { HomeBanner } from "@/components/home/home-banner";
+import { ArtworkGridSkeleton, RankingListSkeleton } from "@/components/skeletons";
 import { recentArtworks } from "@/lib/artworks";
 import { artistRanking } from "@/lib/ranking";
 import { cn } from "@/lib/utils";
@@ -33,7 +34,7 @@ export default function Home() {
               <ArrowUpRight className="size-4" />
             </Link>
           </div>
-          <Suspense fallback={<RecentSkeleton />}>
+          <Suspense fallback={<ArtworkGridSkeleton className="mt-4" />}>
             <RecentArtworks />
           </Suspense>
         </section>
@@ -44,9 +45,7 @@ export default function Home() {
               <Crown className="size-5 text-primary" aria-hidden />
               주간 작가 랭킹
             </h2>
-            <Suspense
-              fallback={<div className="mt-4 h-40 animate-pulse rounded-xl bg-gray-100" />}
-            >
+            <Suspense fallback={<div className="mt-4"><RankingListSkeleton /></div>}>
               <WeeklyRanking />
             </Suspense>
             <Link
@@ -79,22 +78,6 @@ async function RecentArtworks() {
         <ArtworkItem key={a.id} artwork={a} card={a.card} />
       ))}
     </ul>
-  );
-}
-
-function RecentSkeleton() {
-  return (
-    <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-      {Array.from({ length: 8 }, (_, i) => (
-        <div key={i} className="overflow-hidden rounded-2xl border border-border bg-background">
-          <div className="aspect-[63/88] w-full animate-pulse bg-gray-100" />
-          <div className="space-y-2 p-3">
-            <div className="h-3 w-2/3 animate-pulse rounded bg-gray-100" />
-            <div className="h-3 w-1/2 animate-pulse rounded bg-gray-100" />
-          </div>
-        </div>
-      ))}
-    </div>
   );
 }
 

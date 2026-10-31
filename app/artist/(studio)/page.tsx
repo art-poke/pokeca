@@ -2,6 +2,8 @@ import { Download, Megaphone, ThumbsUp, Trophy } from "lucide-react";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { ArtistReviews } from "@/components/artist-reviews";
+import { ArtworkGridSkeleton } from "@/components/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 import { artistStats } from "@/lib/artist-stats";
 import { anyApprovedArtist, type Artist, currentArtist, listMyArtworks } from "@/lib/artists";
 import { listArtistReviews } from "@/lib/reviews";
@@ -11,9 +13,26 @@ export const metadata = { title: "내 스튜디오 · 확장 아트 아카이브
 
 export default function StudioPage(props: PageProps<"/artist">) {
   return (
-    <Suspense fallback={<div className="h-96 animate-pulse rounded-2xl bg-gray-100" />}>
+    <Suspense fallback={<StudioSkeleton />}>
       <Studio searchParams={props.searchParams} />
     </Suspense>
+  );
+}
+
+function StudioSkeleton() {
+  return (
+    <div className="space-y-8">
+      <div className="flex flex-col gap-4 sm:flex-row">
+        <Skeleton className="h-56 rounded-2xl sm:w-64 sm:shrink-0" />
+        <div className="grid flex-1 grid-cols-2 gap-3">
+          {Array.from({ length: 4 }, (_, i) => (
+            <Skeleton key={i} className="h-20 rounded-2xl" />
+          ))}
+        </div>
+      </div>
+      <Skeleton className="h-7 w-40" />
+      <ArtworkGridSkeleton count={4} />
+    </div>
   );
 }
 
@@ -48,7 +67,7 @@ async function Studio({ searchParams }: { searchParams: PageProps<"/artist">["se
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="enter space-y-8">
       {preview && (
         <p className="rounded-xl bg-accent px-4 py-2.5 text-sm text-accent-foreground">
           미리보기 모드예요 — 실제로는 로그인한 본인 계정이 보여요. (데모 작가 @{artist.displayName})

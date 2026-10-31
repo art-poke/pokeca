@@ -2,6 +2,8 @@ import { MessageSquare, PenLine } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { CommunityTabs } from "@/components/community-tabs";
+import { RowsSkeleton } from "@/components/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 import { type Board, isBoard, listPosts } from "@/lib/community";
 
 export const metadata = { title: "커뮤니티 · 확장 아트 아카이브" };
@@ -19,7 +21,14 @@ export default function CommunityPage(props: PageProps<"/community">) {
           글쓰기
         </Link>
       </header>
-      <Suspense fallback={<div className="h-64 animate-pulse rounded-2xl bg-gray-100" />}>
+      <Suspense
+        fallback={
+          <div className="space-y-4">
+            <Skeleton className="h-10 w-72 rounded-xl" />
+            <RowsSkeleton />
+          </div>
+        }
+      >
         <Board searchParams={props.searchParams} />
       </Suspense>
     </div>
@@ -41,7 +50,7 @@ async function Board({ searchParams }: Pick<PageProps<"/community">, "searchPara
           아직 글이 없어요. 첫 글을 남겨보세요.
         </div>
       ) : (
-        <ul className="mt-4 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-background">
+        <ul className="enter mt-4 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-background">
           {posts.map((p) => (
             <li key={p.id}>
               <Link
