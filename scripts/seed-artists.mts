@@ -5,13 +5,24 @@ const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPAB
   auth: { persistSession: false },
 });
 
+// 이미 있으면 모든 페이지를 훑어 찾는다(테스트가 유저를 수백 개 쌓아 1페이지로는 못 찾음).
+async function findUserId(email: string): Promise<string | null> {
+  for (let page = 1; page <= 50; page++) {
+    const { data, error } = await sb.auth.admin.listUsers({ page, perPage: 1000 });
+    if (error) throw error;
+    const u = data.users.find((x) => x.email === email);
+    if (u) return u.id;
+    if (data.users.length < 1000) return null;
+  }
+  return null;
+}
+
 async function ensureUser(email: string, name: string): Promise<string> {
   const created = await sb.auth.admin.createUser({ email, email_confirm: true, user_metadata: { name } });
   if (created.data?.user) return created.data.user.id;
-  const { data } = await sb.auth.admin.listUsers({ perPage: 200 });
-  const u = data.users.find((x) => x.email === email);
-  if (!u) throw new Error(`no user ${email}`);
-  return u.id;
+  const id = await findUserId(email);
+  if (!id) throw new Error(`no user ${email}`);
+  return id;
 }
 
 // 작가로 만들 이름 → 핸들

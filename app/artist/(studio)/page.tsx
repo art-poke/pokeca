@@ -1,8 +1,10 @@
 import { Download, Megaphone, ThumbsUp, Trophy } from "lucide-react";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { ArtistReviews } from "@/components/artist-reviews";
 import { artistStats } from "@/lib/artist-stats";
 import { anyApprovedArtist, type Artist, currentArtist, listMyArtworks } from "@/lib/artists";
+import { listArtistReviews } from "@/lib/reviews";
 import { StudioArtworks } from "./StudioArtworks";
 
 export const metadata = { title: "내 스튜디오 · 확장 아트 아카이브" };
@@ -32,9 +34,10 @@ async function Studio({ searchParams }: { searchParams: PageProps<"/artist">["se
 
   if (artist.status !== "approved") return <StatusCard artist={artist} />;
 
-  const [works, stats] = await Promise.all([
+  const [works, stats, reviews] = await Promise.all([
     listMyArtworks(artist.userId),
     artistStats(artist.userId),
+    listArtistReviews(artist.userId, null),
   ]);
 
   const statCards = [
@@ -54,7 +57,7 @@ async function Studio({ searchParams }: { searchParams: PageProps<"/artist">["se
 
       {/* 좌: 프로필(이미지+이름) · 우: 통계 2x2 */}
       <div className="flex flex-col gap-4 sm:flex-row">
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-background p-6 sm:w-64 sm:shrink-0">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-background p-6 sm:w-64 sm:shrink-0 sm:self-start">
           <span className="flex size-32 items-center justify-center rounded-full bg-secondary text-5xl font-bold text-secondary-foreground ring-4 ring-accent">
             {artist.displayName[0]}
           </span>
@@ -86,6 +89,13 @@ async function Studio({ searchParams }: { searchParams: PageProps<"/artist">["se
       )}
 
       <StudioArtworks works={works} />
+
+      <ArtistReviews
+        artistHandle={artist.handle}
+        reviews={reviews}
+        canWrite={false}
+        selfNotice="방문자가 남긴 후기예요. 작가 공개 페이지에도 함께 보여요."
+      />
     </div>
   );
 }

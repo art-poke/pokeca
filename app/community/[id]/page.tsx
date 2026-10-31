@@ -31,7 +31,7 @@ async function Post({ params }: Pick<PageProps<"/community/[id]">, "params">) {
   const canDelete = post.mine || isAdmin;
 
   return (
-    <article className="mx-auto max-w-3xl space-y-6">
+    <article className="space-y-6">
       <Link
         href={`/community?board=${post.board}`}
         className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"

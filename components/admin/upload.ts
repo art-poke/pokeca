@@ -15,11 +15,11 @@ export const UPLOAD_ERRORS: Record<string, string> = {
 };
 
 // 허락 근거(evidence)는 별도 비공개 버킷에 올린다. 서명 토큰이 버킷·경로에 묶여 있어 다른 곳에는 못 쓴다.
-// api는 업로드 URL을 발급하는 영역: 어드민 "/api/admin", 작가 "/api/artist".
+// api는 업로드 URL을 발급하는 영역: 어드민 "/api/admin", 작가 "/api/artist", 회원 "/api/member"(아바타).
 export async function uploadFile(
-  kind: "original" | "thumbnail" | "evidence",
+  kind: "original" | "thumbnail" | "evidence" | "avatar" | "review",
   file: File,
-  api: "/api/admin" | "/api/artist" = "/api/admin",
+  api: "/api/admin" | "/api/artist" | "/api/member" = "/api/admin",
 ): Promise<string> {
   const res = await fetch(`${api}/uploads`, {
     method: "POST",
@@ -42,6 +42,7 @@ export function errorMessage(code: string, fallback = "저장하지 못했어요
 
 const ERRORS: Record<string, string> = {
   original_required: "원본 파일이 필요해요.",
+  duplicate_position: "같은 자리에 조각이 두 개예요. 자리를 다시 확인해 주세요.",
   thumbnail_required: "미리보기를 만들지 못했어요. 미리보기 파일을 직접 올려 주세요.",
   pdf_needs_thumbnail: "PDF 원본은 미리보기를 만들 수 없어요. 미리보기(PNG·JPEG)를 함께 올려 주세요.",
   preview_failed: "원본 이미지를 읽지 못해 미리보기를 만들지 못했어요. 파일을 확인해 주세요.",

@@ -1,33 +1,12 @@
-import { ArrowUpRight, Crown } from "lucide-react";
+import { ArrowUpRight, Crown, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
+import { ArtworkItem } from "@/components/ArtworkItem";
 import { HomeBanner } from "@/components/home/home-banner";
-import { Badge } from "@/components/ui/badge";
+import { recentArtworks } from "@/lib/artworks";
 import { artistRanking } from "@/lib/ranking";
 import { cn } from "@/lib/utils";
-
-// 이달의 소식은 아직 mock (뉴스 시스템은 추후). 주간 작가 랭킹은 실제 engagements 집계.
-const NEWS = [
-  {
-    tag: "공지",
-    title: "한글판 카드 1,430장 데이터 반영",
-    date: "2026.10.30",
-    excerpt: "스칼렛&바이올렛·MEGA 시리즈 47개 세트의 확장 아트 카드를 검색할 수 있어요.",
-  },
-  {
-    tag: "업데이트",
-    title: "PSA·BRG 인쇄 치수 안내 추가",
-    date: "2026.10.22",
-    excerpt: "다운로드 후 슬랩 보관 케이스에 맞는 정확한 인쇄 크기를 알려드려요.",
-  },
-  {
-    tag: "이벤트",
-    title: "이달의 9포켓 바인더 챌린지",
-    date: "2026.10.15",
-    excerpt: "좋아하는 포켓몬으로 9포켓을 채우고 작가님께 응원을 남겨보세요.",
-  },
-] as const;
 
 export default function Home() {
   return (
@@ -37,31 +16,26 @@ export default function Home() {
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <section aria-labelledby="news-heading">
+        <section aria-labelledby="recent-heading">
           <div className="flex items-end justify-between">
-            <h2 id="news-heading" className="font-display text-xl font-bold text-foreground md:text-2xl">
-              이달의 소식
+            <h2
+              id="recent-heading"
+              className="flex items-center gap-2 font-display text-xl font-bold text-foreground md:text-2xl"
+            >
+              <Sparkles className="size-5 text-primary" aria-hidden />
+              최근 올라온 도안
             </h2>
-            <span className="text-sm text-muted-foreground">총 {NEWS.length}건</span>
+            <Link
+              href="/search"
+              className="flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+            >
+              더 보기
+              <ArrowUpRight className="size-4" />
+            </Link>
           </div>
-          <ul className="mt-4 grid gap-4 sm:grid-cols-2">
-            {NEWS.map((n, i) => (
-              <li
-                key={n.title}
-                className="animate-in fade-in slide-in-from-bottom-3 fill-mode-both duration-500"
-                style={{ animationDelay: `${i * 90}ms` }}
-              >
-                <article className="group h-full rounded-2xl border border-border bg-background p-5 transition-shadow hover:shadow-md">
-                  <Badge variant={n.tag === "공지" ? "primary" : "soft"}>{n.tag}</Badge>
-                  <h3 className="mt-3 font-bold text-foreground transition-colors group-hover:text-primary">
-                    {n.title}
-                  </h3>
-                  <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">{n.excerpt}</p>
-                  <time className="mt-4 block text-xs text-muted-foreground">{n.date}</time>
-                </article>
-              </li>
-            ))}
-          </ul>
+          <Suspense fallback={<RecentSkeleton />}>
+            <RecentArtworks />
+          </Suspense>
         </section>
 
         <aside aria-labelledby="ranking-heading">
@@ -85,6 +59,41 @@ export default function Home() {
           </div>
         </aside>
       </div>
+    </div>
+  );
+}
+
+async function RecentArtworks() {
+  await connection();
+  const items = await recentArtworks(8);
+  if (items.length === 0) {
+    return (
+      <p className="mt-4 rounded-2xl border border-dashed border-border bg-background px-3 py-12 text-center text-sm text-muted-foreground">
+        아직 올라온 도안이 없어요. 작가 스튜디오에서 첫 도안을 올려보세요.
+      </p>
+    );
+  }
+  return (
+    <ul className="mt-4 grid grid-cols-2 gap-3 duration-500 animate-in fade-in slide-in-from-bottom-3 sm:grid-cols-3 md:grid-cols-4">
+      {items.map((a) => (
+        <ArtworkItem key={a.id} artwork={a} card={a.card} />
+      ))}
+    </ul>
+  );
+}
+
+function RecentSkeleton() {
+  return (
+    <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+      {Array.from({ length: 8 }, (_, i) => (
+        <div key={i} className="overflow-hidden rounded-2xl border border-border bg-background">
+          <div className="aspect-[63/88] w-full animate-pulse bg-gray-100" />
+          <div className="space-y-2 p-3">
+            <div className="h-3 w-2/3 animate-pulse rounded bg-gray-100" />
+            <div className="h-3 w-1/2 animate-pulse rounded bg-gray-100" />
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

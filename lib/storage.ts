@@ -21,11 +21,12 @@ export const BUCKET = "artworks";
 export const MAX_BYTES = 100 * 1024 * 1024;
 export const EVIDENCE_BUCKET = "consent-evidence";
 const EVIDENCE_MAX_BYTES = 20 * 1024 * 1024;
+const AVATAR_MAX_BYTES = 5 * 1024 * 1024;
 const EVIDENCE_TTL_SECONDS = 60;
 const DOWNLOAD_TTL_SECONDS = 300;
 
 export type FileKind = "original" | "thumbnail";
-export type UploadKind = FileKind | "evidence";
+export type UploadKind = FileKind | "evidence" | "avatar" | "review";
 export type MimeType = "image/png" | "image/jpeg" | "image/webp" | "application/pdf";
 
 const ALLOWED: Record<UploadKind, MimeType[]> = {
@@ -33,10 +34,18 @@ const ALLOWED: Record<UploadKind, MimeType[]> = {
   // 썸네일은 <img>로 보여 주므로 이미지 형식만.
   thumbnail: ["image/png", "image/jpeg"],
   evidence: ["image/png", "image/jpeg", "application/pdf"],
+  // 프로필 이미지(회원)·후기 이미지. <img>로 보여 주므로 이미지만.
+  avatar: ["image/png", "image/jpeg"],
+  review: ["image/png", "image/jpeg"],
 };
 
 const bucketOf = (kind: UploadKind) => (kind === "evidence" ? EVIDENCE_BUCKET : BUCKET);
-const maxBytesOf = (kind: UploadKind) => (kind === "evidence" ? EVIDENCE_MAX_BYTES : MAX_BYTES);
+const maxBytesOf = (kind: UploadKind) =>
+  kind === "evidence"
+    ? EVIDENCE_MAX_BYTES
+    : kind === "avatar" || kind === "review"
+      ? AVATAR_MAX_BYTES
+      : MAX_BYTES;
 
 export const EXTENSION: Record<MimeType, string> = {
   "image/png": "png",
@@ -64,6 +73,17 @@ export function evidencePath(artworkId: string, uploadId: string): string {
   if (!UUID.test(artworkId)) throw new StorageInputError("invalid_artwork_id");
   if (!UUID.test(uploadId)) throw new StorageInputError("invalid_upload_id");
   return `artworks/${artworkId}/${uploadId}`;
+}
+
+export function avatarPath(userId: string, uploadId: string): string {
+  if (!UUID.test(userId)) throw new StorageInputError("invalid_user_id");
+  if (!UUID.test(uploadId)) throw new StorageInputError("invalid_upload_id");
+  return `avatars/${userId}/${uploadId}`;
+}
+
+export function reviewImagePath(uploadId: string): string {
+  if (!UUID.test(uploadId)) throw new StorageInputError("invalid_upload_id");
+  return `reviews/${uploadId}`;
 }
 
 export function detectMime(head: Uint8Array): MimeType | null {
@@ -145,6 +165,21 @@ export async function readFile(path: string): Promise<Uint8Array> {
 // 허락 근거를 consent-evidence 버킷 안에서 확정한다. 반환값은 consent_events.evidence_path에 넣을 경로.
 export async function promoteEvidence(uploadId: string, artworkId: string): Promise<string> {
   return (await promote("evidence", pendingPath(uploadId), evidencePath(artworkId, uploadId))).path;
+}
+
+// 프로필 이미지를 artworks 버킷 avatars/ 아래에 확정한다. 반환값은 members.avatar_path에 넣을 경로.
+export async function promoteAvatar(uploadId: string, userId: string): Promise<string> {
+  return (await promote("avatar", pendingPath(uploadId), avatarPath(userId, uploadId))).path;
+}
+
+// 후기 이미지를 artworks 버킷 reviews/ 아래에 확정한다. 반환값은 artist_reviews.image_path에 넣을 경로.
+export async function promoteReviewImage(uploadId: string): Promise<string> {
+  return (await promote("review", pendingPath(uploadId), reviewImagePath(uploadId))).path;
+}
+
+// 아바타 교체 시 옛 파일 정리(artwork_files 테이블과 무관하므로 저장소만 지운다).
+export async function removeAvatar(path: string): Promise<void> {
+  if (path) await db().storage.from(BUCKET).remove([path]);
 }
 
 // 어드민 전용(/api/admin/evidence). 공개 라우트에서 부르지 않는다.

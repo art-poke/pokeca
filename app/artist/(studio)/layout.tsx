@@ -4,7 +4,7 @@ import { logout } from "../actions";
 // 작가 화면 공통. 접근 확인은 각 화면의 requireArtist()가 한다(dev 미리보기 예외).
 export default function StudioLayout({ children }: LayoutProps<"/artist">) {
   return (
-    <div className="mx-auto max-w-5xl">
+    <div>
       <div className="mb-6 flex items-center gap-1 border-b border-border">
         <Link
           href="/artist"

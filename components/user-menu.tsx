@@ -44,6 +44,12 @@ export const UserMenu = ({
           </div>
           <DropdownMenu.Separator className="my-1 h-px bg-border" />
           <DropdownMenu.Item asChild>
+            <Link href="/me" className={itemCls}>
+              <User className="size-4" aria-hidden />
+              마이프로필
+            </Link>
+          </DropdownMenu.Item>
+          <DropdownMenu.Item asChild>
             <Link href={registered ? "/artist" : "/artist/signup"} className={itemCls}>
               <Palette className="size-4" aria-hidden />
               {registered ? "내 스튜디오" : "작가 신청"}

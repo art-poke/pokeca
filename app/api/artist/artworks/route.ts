@@ -18,9 +18,14 @@ export const POST = artistRoute(async (request, _ctx, artist) => {
     printSizeVerified: !!body.printSizeVerified,
   };
   const uploads = body.uploads ?? {};
+  // originals는 문자열 또는 {uploadId, position}(9포켓 자리 지정). 그대로 넘기면 createArtwork가 정규화한다.
   const id = await createArtwork(
     input,
-    { original: uploads.original, thumbnail: uploads.thumbnail },
+    {
+      originals: Array.isArray(uploads.originals) ? uploads.originals : undefined,
+      original: uploads.original,
+      thumbnail: uploads.thumbnail,
+    },
     artistActor(artist),
   );
   return Response.json({ id }, { status: 201 });

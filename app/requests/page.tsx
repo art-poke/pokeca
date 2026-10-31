@@ -8,7 +8,7 @@ export const metadata = { title: "도안 요청해요 · 확장 아트 아카이
 
 export default function RequestsPage() {
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="space-y-6">
       <header className="flex items-center gap-2">
         <Megaphone className="size-7 text-primary" aria-hidden />
         <h1 className="font-display text-2xl font-bold text-foreground md:text-3xl">도안 요청해요</h1>

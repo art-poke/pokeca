@@ -28,9 +28,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           </AppShell>
         </Suspense>
         <Toaster
-          position="bottom-center"
+          position="top-center"
           richColors
-          toastOptions={{ style: { fontFamily: "var(--font-sans)" } }}
+          closeButton
+          toastOptions={{
+            style: {
+              fontFamily: "var(--font-sans)",
+              fontWeight: 600,
+              boxShadow: "0 8px 30px rgb(0 0 0 / 0.16)",
+            },
+          }}
         />
       </body>
     </html>

@@ -135,13 +135,24 @@ export function DownloadAction({ artwork }: { artwork: PublicArtwork }) {
         return;
       }
       if (!res.ok) throw new Error(String(res.status));
-      const { url } = await res.json();
       const a = document.createElement("a");
-      a.href = url;
+      let revoke: string | null = null;
+      if (res.headers.get("content-type")?.includes("application/json")) {
+        // 단일 조각: 서명 URL로.
+        const { url } = await res.json();
+        a.href = url;
+      } else {
+        // 여러 조각: ZIP 바이트를 blob으로 받아 내려받는다.
+        const blob = await res.blob();
+        revoke = URL.createObjectURL(blob);
+        a.href = revoke;
+        a.download = decodeURIComponent(res.headers.get("X-Download-Filename") ?? "도안.zip");
+      }
       a.rel = "noopener";
       document.body.append(a);
       a.click();
       a.remove();
+      if (revoke) URL.revokeObjectURL(revoke);
       router.refresh();
       printNotice();
     } catch {

@@ -14,6 +14,15 @@ export const FORMAT_INFO: Record<Format, { label: string; printSize: string | nu
   etc: { label: "기타", printSize: null },
 };
 
+// 규격별 올릴 수 있는 원본 조각 수. 9포켓은 바인더 둘레 8칸이라 최대 8장,
+// 슬랩류(PSA·BRG)는 1장, 기타는 여러 장 허용. 여러 장이면 ZIP으로 묶어 내려준다.
+export const FORMAT_PIECES: Record<Format, number> = {
+  "9pocket": 8,
+  psa: 1,
+  brg: 1,
+  etc: 9,
+};
+
 export function isFormat(value: unknown): value is Format {
   return typeof value === "string" && (FORMATS as readonly string[]).includes(value);
 }

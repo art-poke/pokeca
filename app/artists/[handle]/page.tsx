@@ -2,8 +2,12 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ArtistGallery } from "@/components/ArtistGallery";
+import { ArtistReviews } from "@/components/artist-reviews";
+import { currentAdmin } from "@/lib/admin";
 import { resolvedCountByArtist } from "@/lib/art-requests";
 import { getPortfolio } from "@/lib/artists";
+import { currentMember } from "@/lib/members";
+import { listArtistReviews } from "@/lib/reviews";
 import { safeDecode } from "@/lib/search";
 
 export async function generateMetadata(props: PageProps<"/artists/[handle]">): Promise<Metadata> {
@@ -24,10 +28,16 @@ async function Portfolio({ params }: Pick<PageProps<"/artists/[handle]">, "param
   const found = handle ? await getPortfolio(handle) : null;
   if (!found) notFound();
   const { artist, artworks } = found;
-  const resolved = await resolvedCountByArtist(artist.userId);
+  const [resolved, member, admin] = await Promise.all([
+    resolvedCountByArtist(artist.userId),
+    currentMember(),
+    currentAdmin(),
+  ]);
+  const reviews = await listArtistReviews(artist.userId, member?.userId ?? null);
+  const isSelf = member?.userId === artist.userId;
 
   return (
-    <article className="mx-auto max-w-5xl space-y-8">
+    <article className="space-y-8">
       <header className="flex items-start gap-4 rounded-2xl border border-border bg-background p-5 md:gap-5 md:p-6">
         <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-secondary text-2xl font-bold text-secondary-foreground">
           {artist.displayName[0]}
@@ -72,6 +82,14 @@ async function Portfolio({ params }: Pick<PageProps<"/artists/[handle]">, "param
           )}
         </div>
       </section>
+
+      <ArtistReviews
+        artistHandle={artist.handle}
+        reviews={reviews}
+        canWrite={!!member && !isSelf}
+        canModerate={!!admin}
+        selfNotice={isSelf ? "방문자가 남긴 내 후기예요." : undefined}
+      />
     </article>
   );
 }

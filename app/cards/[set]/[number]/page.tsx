@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { FavoriteButton } from "@/components/favorite-button";
 import { FormatResults } from "@/components/FormatResults";
 import { RequestArtButton } from "@/components/request-art-button";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +8,7 @@ import { PokeballMark } from "@/components/ui/logo";
 import { requestedFormats } from "@/lib/art-requests";
 import { listPublicArtworks } from "@/lib/artworks";
 import { getCard } from "@/lib/cards";
+import { isFavorited } from "@/lib/favorites";
 import { FORMATS } from "@/lib/formats";
 import { currentMember } from "@/lib/members";
 import { numberFromPath, safeDecode } from "@/lib/search";
@@ -38,7 +40,9 @@ async function Card({
     currentMember(),
   ]);
   const from = aliasFrom(query.from);
-  const myRequested = member ? await requestedFormats(member.userId, card.cardId) : [];
+  const [myRequested, favorited] = member
+    ? await Promise.all([requestedFormats(member.userId, card.cardId), isFavorited(member.userId, card.cardId)])
+    : [[], false];
   const present = new Set(artworks.map((a) => a.format));
   const missingFormats = FORMATS.filter((f) => !present.has(f));
 
@@ -80,7 +84,8 @@ async function Card({
               {LANG_LABEL[from.lang]}판)과 같은 그림의 한글판 카드예요. 도안은 한글판 기준이에요.
             </p>
           )}
-          <div className="mt-4">
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <FavoriteButton cardId={card.cardId} isMember={!!member} initial={favorited} />
             <RequestArtButton
               cardId={card.cardId}
               isMember={!!member}

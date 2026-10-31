@@ -6,6 +6,18 @@ const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const key = process.env.SUPABASE_SECRET_KEY!;
 const sb = createClient(url, key, { auth: { persistSession: false } });
 
+// 이미 있으면 모든 페이지를 훑어 찾는다(테스트가 유저를 수백 개 쌓아 1페이지로는 못 찾음).
+async function findUserId(email: string): Promise<string | null> {
+  for (let page = 1; page <= 50; page++) {
+    const { data, error } = await sb.auth.admin.listUsers({ page, perPage: 1000 });
+    if (error) throw error;
+    const u = data.users.find((x) => x.email === email);
+    if (u) return u.id;
+    if (data.users.length < 1000) return null;
+  }
+  return null;
+}
+
 async function ensureUser(name: string): Promise<string> {
   const email = `demo-${encodeURIComponent(name)}@example.com`;
   const created = await sb.auth.admin.createUser({
@@ -14,11 +26,9 @@ async function ensureUser(name: string): Promise<string> {
     user_metadata: { name },
   });
   if (created.data?.user) return created.data.user.id;
-  // 이미 있으면 목록에서 찾는다.
-  const { data } = await sb.auth.admin.listUsers({ perPage: 200 });
-  const found = data.users.find((u) => u.email === email);
+  const found = await findUserId(email);
   if (!found) throw new Error(`cannot create/find user ${email}`);
-  return found.id;
+  return found;
 }
 
 const NAMES = ["김트레이너", "이수집가", "박포켓", "최바인더", "정도감"];

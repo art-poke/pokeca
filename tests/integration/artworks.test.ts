@@ -5,6 +5,7 @@ import {
   ArtworkError,
   attachFile,
   createArtwork,
+  getArtworkDetail,
   listPublicArtworks,
   resolveDownload,
   resolveThumbnail,
@@ -207,5 +208,84 @@ describe("status", () => {
   it("returns 404 for unknown artworks and 410 for unavailable ones (eng E2)", async () => {
     expect(await resolveDownload(crypto.randomUUID())).toEqual({ kind: "not_found" });
     expect(await resolveDownload("not-a-uuid")).toEqual({ kind: "not_found" });
+  });
+});
+
+// 여러 조각(9포켓 등): 조각마다 원본+미리보기를 position으로 저장하고, 다운로드는 ZIP으로 묶는다.
+describe("multiple pieces (9pocket)", () => {
+  async function storedMulti(count: number, overrides: Partial<NewArtwork> = {}) {
+    const input = await base(overrides);
+    const originals = await Promise.all(
+      Array.from({ length: count }, () => uploadAsBrowser("original", ART_PNG, "image/png")),
+    );
+    await createArtwork(input, { originals }, "test");
+    return input.id;
+  }
+
+  it("stores one original + one auto-preview per piece with sequential positions", async () => {
+    const id = await storedMulti(3);
+    const rows = await sql<{ kind: string; position: number }[]>`
+      select kind, position from artwork_files where artwork_id = ${id} order by kind, position`;
+    expect(rows).toEqual([
+      { kind: "original", position: 0 },
+      { kind: "original", position: 1 },
+      { kind: "original", position: 2 },
+      { kind: "thumbnail", position: 0 },
+      { kind: "thumbnail", position: 1 },
+      { kind: "thumbnail", position: 2 },
+    ]);
+    // 조각마다 경로가 달라야 한다(uploadId가 다르므로).
+    expect(new Set(await storedPaths()).size).toBe(6);
+
+    const detail = await getArtworkDetail(id);
+    expect(detail?.pieceCount).toBe(3);
+  });
+
+  it("serves a per-position thumbnail", async () => {
+    const id = await storedMulti(2);
+    expect(await resolveThumbnail(id, 0)).toMatch(/^https?:\/\//);
+    expect(await resolveThumbnail(id, 1)).toMatch(/^https?:\/\//);
+    // 범위를 벗어난 position은 첫 조각으로 대체한다(404가 아니라).
+    expect(await resolveThumbnail(id, 9)).toMatch(/^https?:\/\//);
+  });
+
+  it("downloads multiple pieces as a ZIP, single piece as a signed URL", async () => {
+    const multiId = await storedMulti(2);
+    const result = await resolveDownload(multiId);
+    expect(result.kind).toBe("zip");
+    if (result.kind === "zip") {
+      // ZIP local file header 매직넘버 "PK\x03\x04".
+      expect(Array.from(result.bytes.slice(0, 4))).toEqual([0x50, 0x4b, 0x03, 0x04]);
+      expect(result.filename).toMatch(/\.zip$/);
+    }
+
+    const singleId = await storedMulti(1);
+    expect((await resolveDownload(singleId)).kind).toBe("ok");
+  });
+
+  it("keeps the chosen slots when pieces are placed out of order (not 0,1,2…)", async () => {
+    const input = await base();
+    // 1번·8번 칸만 채운 9포켓(자리 0과 7).
+    const originals = [
+      { uploadId: await uploadAsBrowser("original", ART_PNG, "image/png"), position: 7 },
+      { uploadId: await uploadAsBrowser("original", ART_PNG, "image/png"), position: 0 },
+    ];
+    await createArtwork(input, { originals }, "test");
+
+    const detail = await getArtworkDetail(input.id);
+    expect(detail?.pieceCount).toBe(2);
+    expect(detail?.positions).toEqual([0, 7]); // 정렬된 실제 자리
+    // 빈 자리는 미리보기가 없다.
+    expect(await resolveThumbnail(input.id, 0)).toMatch(/^https?:\/\//);
+    expect(await resolveThumbnail(input.id, 7)).toMatch(/^https?:\/\//);
+  });
+
+  it("rejects two pieces on the same slot", async () => {
+    const input = await base();
+    const originals = [
+      { uploadId: await uploadAsBrowser("original", ART_PNG, "image/png"), position: 2 },
+      { uploadId: await uploadAsBrowser("original", ART_PNG, "image/png"), position: 2 },
+    ];
+    await expectCode(createArtwork(input, { originals }, "test"), "duplicate_position");
   });
 });

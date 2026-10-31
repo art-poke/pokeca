@@ -201,6 +201,38 @@ export async function getArtistById(userId: string): Promise<Artist | null> {
   return data ? fromRow(data) : null;
 }
 
+// 승인 작가의 user_id를 핸들로 찾는다(후기 작성 등). 없거나 미승인이면 null.
+export async function approvedArtistId(handle: string): Promise<string | null> {
+  if (!HANDLE.test(handle)) return null;
+  const { data, error } = await db()
+    .from("artists")
+    .select("user_id")
+    .eq("handle", handle)
+    .eq("status", "approved")
+    .maybeSingle<{ user_id: string }>();
+  if (error) throw error;
+  return data?.user_id ?? null;
+}
+
+export type ArtistHit = { userId: string; handle: string; displayName: string };
+
+// 작가 이름/핸들 검색(커뮤니티 후기에서 작가 고르기). 승인 작가만.
+export async function searchArtists(q: string, limit = 8): Promise<ArtistHit[]> {
+  const query = q.trim();
+  if (!query) return [];
+  const like = `%${query.replace(/[%_]/g, (m) => `\\${m}`)}%`;
+  const { data, error } = await db()
+    .from("artists")
+    .select("user_id, handle, display_name")
+    .eq("status", "approved")
+    .or(`display_name.ilike.${like},handle.ilike.${like}`)
+    .order("display_name", { ascending: true })
+    .limit(limit)
+    .returns<{ user_id: string; handle: string; display_name: string }[]>();
+  if (error) throw error;
+  return data.map((r) => ({ userId: r.user_id, handle: r.handle, displayName: r.display_name }));
+}
+
 // 공개 작가 페이지 -----------------------------------------------------------------
 
 export type PortfolioArtwork = PublicArtwork & { card: { label: string; path: string; name: string } };

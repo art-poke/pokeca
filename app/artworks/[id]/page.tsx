@@ -32,9 +32,10 @@ async function Detail({ params }: Pick<PageProps<"/artworks/[id]">, "params">) {
     listComments("artwork", id, member?.userId ?? null),
   ]);
   const label = FORMAT_INFO[artwork.format].label;
+  const multi = artwork.pieceCount > 1;
 
   return (
-    <article className="mx-auto max-w-5xl space-y-8">
+    <article className="space-y-8">
       <Link
         href={artwork.card.path}
         className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -45,13 +46,26 @@ async function Detail({ params }: Pick<PageProps<"/artworks/[id]">, "params">) {
       </Link>
 
       <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_20rem]">
-        <div className="flex items-center justify-center overflow-hidden rounded-2xl border border-border bg-ink-900 p-4">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={`/api/thumbnails/${id}`}
-            alt={`${artwork.title} (@${artwork.artistName})`}
-            className="max-h-[70vh] w-auto max-w-full rounded-lg object-contain"
-          />
+        <div className="space-y-2">
+          <div className="flex items-center justify-center overflow-hidden rounded-2xl border border-border bg-ink-900 p-4">
+            {multi ? (
+              <Assembled id={id} positions={artwork.positions} nine={artwork.format === "9pocket"} />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={`/api/thumbnails/${id}`}
+                alt={`${artwork.title} (@${artwork.artistName})`}
+                className="max-h-[70vh] w-auto max-w-full rounded-lg object-contain"
+              />
+            )}
+          </div>
+          {multi && (
+            <p className="text-center text-xs text-muted-foreground">
+              {artwork.format === "9pocket"
+                ? `가운데 칸에 실제 카드를 넣고, 둘레 8칸에 조각 ${artwork.pieceCount}장을 끼워요. 다운로드하면 ZIP으로 받아요.`
+                : `조각 ${artwork.pieceCount}장 · 다운로드하면 ZIP으로 받아요.`}
+            </p>
+          )}
         </div>
 
         <div className="space-y-5">
@@ -84,5 +98,53 @@ async function Detail({ params }: Pick<PageProps<"/artworks/[id]">, "params">) {
 
       <Comments target="artwork" targetId={id} comments={comments} canWrite={!!member} />
     </article>
+  );
+}
+
+// 여러 조각 조립 미리보기. 9포켓은 3×3(가운데=실제 카드 자리), 그 외는 조각 격자.
+// positions = 실제로 조각이 들어간 자리(9포켓 0~7, 빈칸은 빠짐).
+function Assembled({ id, positions, nine }: { id: string; positions: number[]; nine: boolean }) {
+  const has = new Set(positions);
+  if (nine) {
+    // 셀 0..8, 가운데(4)는 실제 카드 자리. 둘레 8칸 = 조각 자리 0..7(좌→우, 위→아래).
+    return (
+      <div className="grid w-full max-w-md grid-cols-3 gap-1.5">
+        {Array.from({ length: 9 }, (_, c) => {
+          if (c === 4) {
+            return (
+              <div
+                key="center"
+                className="flex aspect-[63/88] items-center justify-center rounded-md bg-ink-800 p-1 text-center text-[10px] font-medium leading-tight text-white/55"
+              >
+                실제 카드 자리
+              </div>
+            );
+          }
+          const pi = c < 4 ? c : c - 1;
+          return (
+            <div key={c} className="relative aspect-[63/88] overflow-hidden rounded-md bg-ink-800/60">
+              {has.has(pi) ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={`/api/thumbnails/${id}?i=${pi}`} alt={`조각 ${pi + 1}`} className="size-full object-cover" />
+              ) : (
+                <span className="flex size-full items-center justify-center text-sm font-semibold text-white/20">
+                  {pi + 1}
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+  return (
+    <div className="grid w-full max-w-md grid-cols-3 gap-1.5">
+      {positions.map((pi) => (
+        <div key={pi} className="relative aspect-[63/88] overflow-hidden rounded-md bg-ink-800">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={`/api/thumbnails/${id}?i=${pi}`} alt={`조각 ${pi + 1}`} className="size-full object-cover" />
+        </div>
+      ))}
+    </div>
   );
 }

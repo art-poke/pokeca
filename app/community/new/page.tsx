@@ -23,7 +23,7 @@ async function New() {
     { value: "free", label: BOARD_LABEL.free },
   ];
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="space-y-6">
       <h1 className="font-display text-2xl font-bold text-foreground">글쓰기</h1>
       <PostForm boards={boards} />
     </div>

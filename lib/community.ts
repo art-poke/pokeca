@@ -4,12 +4,13 @@ import { UUID } from "@/lib/uuid";
 import { commentCount } from "@/lib/comments";
 
 // 커뮤니티 게시판. 공지=어드민만 작성, 건의·자유=회원 작성. 누구나 읽기·댓글.
-export const BOARDS = ["notice", "suggestion", "free"] as const;
+// 탭·기본 노출 순서: 자유게시판을 가장 먼저.
+export const BOARDS = ["free", "suggestion", "notice"] as const;
 export type Board = (typeof BOARDS)[number];
 export const BOARD_LABEL: Record<Board, string> = {
-  notice: "공지사항",
-  suggestion: "건의사항",
   free: "자유게시판",
+  suggestion: "건의사항",
+  notice: "공지사항",
 };
 
 export class PostError extends Error {

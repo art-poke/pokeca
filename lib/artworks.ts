@@ -4,6 +4,7 @@ import {
   EXTENSION,
   promoteEvidence,
   promoteUpload,
+  readFile,
   removeFiles,
   signedDownloadUrl,
   signedViewUrl,
@@ -14,6 +15,7 @@ import {
 } from "@/lib/storage";
 import { FORMATS, type Format } from "@/lib/formats";
 import { makePreview, PreviewError } from "@/lib/preview";
+import { buildZip } from "@/lib/zip";
 import { UUID } from "@/lib/uuid";
 
 // 작품의 생성·상태 변경·허락 근거 기록은 이 모듈만 한다 (eng D5, D9, D10).
@@ -78,7 +80,14 @@ function storageError(e: unknown): never {
 // uploads.evidence는 허락 근거 업로드 ID. 경로는 서버가 정한다(클라이언트가 보낸 경로는 받지 않는다).
 export async function createArtwork(
   input: NewArtwork,
-  uploads: { original?: string; thumbnail?: string; evidence?: string },
+  // originals: 조각 여러 장. 문자열이면 순서대로 position 0,1,2…, {uploadId,position}면 그 자리(9포켓 빈칸 포함)에.
+  // original/thumbnail: 단일(기존 호환). thumbnail은 position 0 조각의 미리보기로 쓴다.
+  uploads: {
+    originals?: (string | { uploadId: string; position: number })[];
+    original?: string;
+    thumbnail?: string;
+    evidence?: string;
+  },
   actor: string,
 ): Promise<string> {
   if (!input.artistName.trim()) throw new ArtworkError("artist_required");
@@ -86,18 +95,36 @@ export async function createArtwork(
   if (input.sourceUrl && !/^https?:\/\//.test(input.sourceUrl)) throw new ArtworkError("invalid_source_url");
   if (!!input.sourceUrl !== !!input.sourceVisibility) throw new ArtworkError("source_visibility_required");
   if (!UUID.test(input.id)) throw new ArtworkError("invalid_id");
-  if (!uploads.original) throw new ArtworkError("original_required");
 
-  const files: StoredFile[] = [];
+  // {uploadId, position}로 정규화. 문자열은 들어온 순서를 position으로 쓴다.
+  const pieces = uploads.originals?.length
+    ? uploads.originals.map((o, i) =>
+        typeof o === "string"
+          ? { uploadId: o, position: i }
+          : { uploadId: String(o.uploadId), position: Math.max(0, Math.trunc(Number(o.position) || 0)) },
+      )
+    : uploads.original
+      ? [{ uploadId: uploads.original, position: 0 }]
+      : [];
+  if (pieces.length === 0) throw new ArtworkError("original_required");
+  // position이 겹치면 유니크 제약에 걸린다. 미리 막는다.
+  if (new Set(pieces.map((p) => p.position)).size !== pieces.length) {
+    throw new ArtworkError("duplicate_position");
+  }
+
+  const files: (StoredFile & { position: number })[] = [];
   let evidencePath: string | null = null;
   try {
-    const original = await promoteUpload(uploads.original, input.id, "original");
-    files.push(original);
-    files.push(
-      uploads.thumbnail
-        ? await promoteUpload(uploads.thumbnail, input.id, "thumbnail")
-        : await makePreview(input.id, original),
-    );
+    for (const p of pieces) {
+      const original = await promoteUpload(p.uploadId, input.id, "original");
+      files.push({ ...original, position: p.position });
+      // 단일 original + 직접 올린 thumbnail(PDF 원본용)만 미리보기를 받고, 나머지는 원본에서 만든다.
+      const thumb =
+        uploads.thumbnail && p.position === 0 && pieces.length === 1
+          ? await promoteUpload(uploads.thumbnail, input.id, "thumbnail")
+          : await makePreview(input.id, original);
+      files.push({ ...thumb, position: p.position });
+    }
     if (uploads.evidence) evidencePath = await promoteEvidence(uploads.evidence, input.id);
   } catch (e) {
     storageError(e);
@@ -120,6 +147,7 @@ export async function createArtwork(
       path: f.path,
       mime_type: f.mimeType,
       size_bytes: f.sizeBytes,
+      position: f.position,
     })),
     p_actor: actor,
   });
@@ -276,11 +304,39 @@ export async function listPublicArtworks(cardId: string): Promise<PublicArtwork[
   return data.map(toPublic);
 }
 
+export type RecentArtwork = PublicArtwork & { card: { label: string; path: string; name: string } };
+
+// 홈: 최근 올라온 공개 도안(전체 카드 통틀어 최신 순). 카드 정보도 함께.
+export async function recentArtworks(limit = 8): Promise<RecentArtwork[]> {
+  const { data, error } = await db()
+    .from("artworks")
+    .select(
+      "id, title, artist_name, format, source_url, source_visibility, link_status, print_size_verified, artists(handle, status), cards(set_code, collector_number, name_ko)",
+    )
+    .eq("status", "active")
+    .order("created_at", { ascending: false })
+    .limit(limit)
+    .returns<(ArtworkRow & { cards: { set_code: string; collector_number: string; name_ko: string } })[]>();
+  if (error) throw error;
+  return data.map((r) => ({
+    ...toPublic(r),
+    card: {
+      label: `${r.cards.set_code} ${r.cards.collector_number}`,
+      path: `/cards/${encodeURIComponent(r.cards.set_code)}/${r.cards.collector_number.replace("/", "-")}`,
+      name: r.cards.name_ko,
+    },
+  }));
+}
+
 // 도안 상세 페이지 (/artworks/[id]) ---------------------------------------------
 
 export type ArtworkDetail = PublicArtwork & {
   card: { label: string; path: string; name: string };
   recommendCount: number;
+  // 원본 조각 수. 9포켓 등 여러 장이면 상세에서 3×3 조립 미리보기를 보여 준다.
+  pieceCount: number;
+  // 조각이 실제로 들어간 자리(9포켓은 0~7, 빈칸은 빠진다). 3×3 배치에 쓴다.
+  positions: number[];
 };
 
 export async function getArtworkDetail(id: string): Promise<ArtworkDetail | null> {
@@ -288,12 +344,15 @@ export async function getArtworkDetail(id: string): Promise<ArtworkDetail | null
   const { data, error } = await db()
     .from("artworks")
     .select(
-      "id, title, artist_name, format, source_url, source_visibility, link_status, print_size_verified, artists(handle, status), cards(set_code, collector_number, name_ko)",
+      "id, title, artist_name, format, source_url, source_visibility, link_status, print_size_verified, artists(handle, status), cards(set_code, collector_number, name_ko), artwork_files(kind, position)",
     )
     .eq("id", id)
     .eq("status", "active")
     .maybeSingle<
-      ArtworkRow & { cards: { set_code: string; collector_number: string; name_ko: string } }
+      ArtworkRow & {
+        cards: { set_code: string; collector_number: string; name_ko: string };
+        artwork_files: { kind: FileKind; position: number }[];
+      }
     >();
   if (error) throw error;
   if (!data) return null;
@@ -314,6 +373,11 @@ export async function getArtworkDetail(id: string): Promise<ArtworkDetail | null
       name: data.cards.name_ko,
     },
     recommendCount: count ?? 0,
+    pieceCount: data.artwork_files.filter((f) => f.kind === "original").length,
+    positions: data.artwork_files
+      .filter((f) => f.kind === "original")
+      .map((f) => f.position)
+      .sort((a, b) => a - b),
   };
 }
 
@@ -325,7 +389,7 @@ type FileLookup = {
   artist_name: string;
   format: Format;
   cards: { set_code: string; collector_number: string };
-  artwork_files: { kind: FileKind; path: string; mime_type: MimeType }[];
+  artwork_files: { kind: FileKind; path: string; mime_type: MimeType; position: number }[];
 };
 
 async function lookup(id: string): Promise<FileLookup | null> {
@@ -333,7 +397,7 @@ async function lookup(id: string): Promise<FileLookup | null> {
   const { data, error } = await db()
     .from("artworks")
     .select(
-      "id, status, artist_name, format, cards(set_code, collector_number), artwork_files(kind, path, mime_type)",
+      "id, status, artist_name, format, cards(set_code, collector_number), artwork_files(kind, path, mime_type, position)",
     )
     .eq("id", id)
     .maybeSingle<FileLookup>();
@@ -342,26 +406,47 @@ async function lookup(id: string): Promise<FileLookup | null> {
 }
 
 export type DownloadResult =
-  | { kind: "ok"; url: string }
+  | { kind: "ok"; url: string } // 단일 조각: 서명 URL로 리다이렉트
+  | { kind: "zip"; filename: string; bytes: Uint8Array } // 여러 조각: ZIP으로 묶어 전달
   | { kind: "not_found" } // 404
   | { kind: "unavailable" }; // 410: 숨김·철회 (eng E2)
 
-// 서명 URL은 active 작품에만 발급한다 (eng D10).
+// 서명 URL/파일은 active 작품에만 발급한다 (eng D10).
+// 원본이 여러 장(9포켓 등)이면 ZIP으로 묶어 내려준다.
 export async function resolveDownload(id: string): Promise<DownloadResult> {
   const a = await lookup(id);
   if (!a) return { kind: "not_found" };
-  const original = a.artwork_files.find((f) => f.kind === "original");
-  if (a.status !== "active" || !original) return { kind: "unavailable" };
-  const filename = [a.cards.set_code, a.cards.collector_number.replace("/", "-"), a.artist_name, a.format]
+  const originals = a.artwork_files
+    .filter((f) => f.kind === "original")
+    .sort((x, y) => x.position - y.position);
+  if (a.status !== "active" || originals.length === 0) return { kind: "unavailable" };
+
+  const base = [a.cards.set_code, a.cards.collector_number.replace("/", "-"), a.artist_name, a.format]
     .join("_")
     .replace(/[\\/:*?"<>|\s]+/g, "-");
-  return { kind: "ok", url: await signedDownloadUrl(original.path, `${filename}.${EXTENSION[original.mime_type]}`) };
+
+  if (originals.length === 1) {
+    const f = originals[0];
+    return { kind: "ok", url: await signedDownloadUrl(f.path, `${base}.${EXTENSION[f.mime_type]}`) };
+  }
+
+  const entries = await Promise.all(
+    originals.map(async (f, i) => ({
+      name: `${base}_${String(i + 1).padStart(2, "0")}.${EXTENSION[f.mime_type]}`,
+      data: await readFile(f.path),
+    })),
+  );
+  return { kind: "zip", filename: `${base}.zip`, bytes: buildZip(entries) };
 }
 
-// 미리보기 = active.
-export async function resolveThumbnail(id: string): Promise<string | null> {
+// 미리보기 = active. position으로 조각을 고른다(9포켓 3×3 조립용). 없으면 첫 조각.
+export async function resolveThumbnail(id: string, position = 0): Promise<string | null> {
   const a = await lookup(id);
-  const thumb = a?.artwork_files.find((f) => f.kind === "thumbnail");
-  if (!a || !thumb || a.status !== "active") return null;
+  if (!a || a.status !== "active") return null;
+  const thumbs = a.artwork_files
+    .filter((f) => f.kind === "thumbnail")
+    .sort((x, y) => x.position - y.position);
+  const thumb = thumbs.find((f) => f.position === position) ?? thumbs[0];
+  if (!thumb) return null;
   return signedViewUrl(thumb.path);
 }

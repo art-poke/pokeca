@@ -27,5 +27,17 @@ export async function POST(_request: Request, ctx: RouteContext<"/api/download/[
     if (error) console.error("download event", error);
   });
 
+  // 여러 조각(9포켓 등)은 ZIP 바이트를 바로 내려준다. 단일은 서명 URL(JSON)을 준다.
+  if (result.kind === "zip") {
+    return new Response(result.bytes as unknown as BodyInit, {
+      headers: {
+        "Content-Type": "application/zip",
+        "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(result.filename)}`,
+        "X-Download-Filename": encodeURIComponent(result.filename),
+        "Cache-Control": "no-store",
+      },
+    });
+  }
+
   return Response.json({ url: result.url }, { headers: { "Cache-Control": "no-store" } });
 }
