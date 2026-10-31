@@ -63,42 +63,48 @@ async function Studio({ searchParams }: { searchParams: PageProps<"/artist">["se
         </p>
       )}
 
-      {/* 프로필 헤더 */}
-      <header className="flex items-center gap-4 rounded-2xl border border-border bg-background p-5 md:p-6">
-        <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-secondary text-xl font-bold text-secondary-foreground">
-          {artist.displayName[0]}
-        </span>
-        <div className="min-w-0 flex-1">
-          <h1 className="font-display text-2xl font-bold text-foreground">@{artist.displayName}</h1>
-          <Link href={`/artists/${artist.handle}`} className="text-sm text-muted-foreground hover:text-primary">
-            내 작가 페이지 보기 ↗
+      {/* 좌: 프로필 카드(크게) · 우: 통계 4행 */}
+      <div className="flex flex-col gap-4 lg:flex-row">
+        <div className="flex flex-col items-center gap-4 rounded-2xl border border-border bg-background p-6 text-center lg:w-72 lg:shrink-0">
+          <span className="flex size-28 items-center justify-center rounded-full bg-secondary text-4xl font-bold text-secondary-foreground ring-4 ring-accent">
+            {artist.displayName[0]}
+          </span>
+          <div>
+            <h1 className="font-display text-xl font-bold text-foreground">@{artist.displayName}</h1>
+            <Link
+              href={`/artists/${artist.handle}`}
+              className="text-sm text-muted-foreground hover:text-primary"
+            >
+              내 작가 페이지 보기 ↗
+            </Link>
+          </div>
+          <Link
+            href="/artist/new"
+            className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-red-700"
+          >
+            <Plus className="size-4" />
+            새 도안 올리기
           </Link>
         </div>
-        <Link
-          href="/artist/new"
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-red-700"
-        >
-          <Plus className="size-4" />
-          새 도안 올리기
-        </Link>
-      </header>
+
+        <div className="flex-1 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-background">
+          {statCards.map((s) => (
+            <div key={s.label} className="flex items-center justify-between px-5 py-4 md:py-[1.35rem]">
+              <span className="flex items-center gap-3 text-sm font-medium text-muted-foreground">
+                <s.icon className="size-5 text-primary" aria-hidden />
+                {s.label}
+              </span>
+              <span className="tabular text-2xl font-bold text-foreground">{s.value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {uploaded && (
         <p role="status" className="rounded-xl bg-success/10 px-4 py-2.5 text-sm font-medium text-success">
           도안을 올렸어요. 카드 페이지와 작가 페이지에 공개됐어요.
         </p>
       )}
-
-      {/* 통계 */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {statCards.map((s) => (
-          <div key={s.label} className="rounded-2xl border border-border bg-background p-4">
-            <s.icon className="size-5 text-primary" aria-hidden />
-            <div className="tabular mt-2 text-2xl font-bold text-foreground">{s.value}</div>
-            <div className="text-sm text-muted-foreground">{s.label}</div>
-          </div>
-        ))}
-      </div>
 
       {/* 내 도안 */}
       <section aria-labelledby="mine" className="space-y-4">
