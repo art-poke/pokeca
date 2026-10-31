@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { SearchBar } from "@/components/search-bar";
 import { Logo, PokeballMark } from "@/components/ui/logo";
 import { cn } from "@/lib/utils";
@@ -43,6 +43,19 @@ export const AppShellFallback = () => (
 );
 
 const STORAGE_KEY = "art-poke:sidebar-collapsed";
+const COLLAPSE_EVENT = "art-poke:sidebar-toggle";
+
+// 사이드바 접힘 상태를 localStorage 외부 저장소로 구독한다(effect 내 setState 없이, SSR 기본 펼침).
+const readCollapsed = () =>
+  typeof localStorage === "undefined" ? false : localStorage.getItem(STORAGE_KEY) === "1";
+const subscribeCollapsed = (cb: () => void) => {
+  window.addEventListener(COLLAPSE_EVENT, cb);
+  window.addEventListener("storage", cb);
+  return () => {
+    window.removeEventListener(COLLAPSE_EVENT, cb);
+    window.removeEventListener("storage", cb);
+  };
+};
 
 const isActive = (pathname: string, href: string) =>
   href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
@@ -91,21 +104,12 @@ export const AppShell = ({
 }) => {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  const collapsed = useSyncExternalStore(subscribeCollapsed, readCollapsed, () => false);
 
-  // 접힘 상태는 localStorage에 저장해 새로고침해도 유지한다.
-  useEffect(() => {
-    setCollapsed(localStorage.getItem(STORAGE_KEY) === "1");
-  }, []);
-  const toggleCollapsed = () =>
-    setCollapsed((v) => {
-      const next = !v;
-      localStorage.setItem(STORAGE_KEY, next ? "1" : "0");
-      return next;
-    });
-
-  // 라우트가 바뀌면 모바일 드로어를 닫는다.
-  useEffect(() => setOpen(false), [pathname]);
+  const toggleCollapsed = () => {
+    localStorage.setItem(STORAGE_KEY, collapsed ? "0" : "1");
+    window.dispatchEvent(new Event(COLLAPSE_EVENT));
+  };
 
   // /search는 자체 큰 검색창이 주인공, 어드민·작가는 자체 폼이 있어 머리글 검색을 숨긴다.
   const studio = pathname === "/artist" || pathname.startsWith("/artist/");

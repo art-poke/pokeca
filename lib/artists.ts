@@ -210,7 +210,7 @@ export async function getPortfolio(handle: string): Promise<{ artist: Artist; ar
   const { data, error } = await db()
     .from("artworks")
     .select(
-      "id, artist_name, format, source_url, source_visibility, link_status, print_size_verified, cards(set_code, collector_number, name_ko)",
+      "id, title, artist_name, format, source_url, source_visibility, link_status, print_size_verified, cards(set_code, collector_number, name_ko)",
     )
     .eq("artist_id", artist.userId)
     .eq("status", "active")

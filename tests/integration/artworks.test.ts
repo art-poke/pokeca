@@ -69,6 +69,7 @@ describe("upload and create", () => {
     const [item] = await listPublicArtworks(await cardId());
     expect(item).toEqual({
       id,
+      title: "도안작가님의 도안",
       artistName: "도안작가",
       format: "9pocket",
       sourceUrl: "https://cafe.naver.com/example/123",
