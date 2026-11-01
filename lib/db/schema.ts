@@ -55,3 +55,43 @@ export const admins = pgTable("admins", {
   email: text("email").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// 작가 계정 (infra/db/01_app.sql의 public.artists 거울).
+export const artists = pgTable("artists", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  handle: text("handle").notNull().unique(),
+  displayName: text("display_name").notNull(),
+  email: text("email"),
+  provider: text("provider").notNull(),
+  intro: text("intro"),
+  linkUrl: text("link_url"),
+  status: text("status").notNull().default("pending"),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  reviewedBy: text("reviewed_by"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// 일반 회원 (infra/db/01_app.sql의 public.members 거울).
+export const members = pgTable("members", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  nickname: text("nickname").notNull(),
+  avatarPath: text("avatar_path"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// 카드 즐겨찾기 (infra/db/01_app.sql의 public.favorites 거울). (회원, 카드)당 1행.
+export const favorites = pgTable(
+  "favorites",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    cardId: uuid("card_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({ pk: primaryKey({ columns: [t.userId, t.cardId] }) }),
+);
