@@ -36,6 +36,40 @@ resource "aws_lambda_function" "healthcheck" {
   }
 }
 
+# 마이그레이션 Lambda: sql/*.sql을 RDS에 적용(invoke 전용, Function URL 없음).
+# RDS가 사설망이라 VPC 안에서 실행. sql/은 빌드 시 ../db 에서 복사.
+data "archive_file" "migrate" {
+  type        = "zip"
+  source_dir  = "${path.module}/lambda-migrate"
+  output_path = "${path.module}/lambda-migrate.zip"
+}
+
+resource "aws_lambda_function" "migrate" {
+  function_name    = "${var.project_name}-migrate"
+  runtime          = "nodejs20.x"
+  handler          = "index.handler"
+  role             = aws_iam_role.lambda.arn
+  filename         = data.archive_file.migrate.output_path
+  source_code_hash = data.archive_file.migrate.output_base64sha256
+  timeout          = 60
+  memory_size      = 256
+
+  vpc_config {
+    subnet_ids         = aws_subnet.private[*].id
+    security_group_ids = [aws_security_group.lambda.id]
+  }
+
+  environment {
+    variables = {
+      DB_HOST = aws_db_instance.main.address
+      DB_PORT = tostring(aws_db_instance.main.port)
+      DB_USER = aws_db_instance.main.username
+      DB_PASS = random_password.db.result
+      DB_NAME = aws_db_instance.main.db_name
+    }
+  }
+}
+
 # 공개 HTTPS 입구(무료). ALB 불필요 — Lambda 서비스가 입구·분배 내장.
 resource "aws_lambda_function_url" "healthcheck" {
   function_name      = aws_lambda_function.healthcheck.function_name
