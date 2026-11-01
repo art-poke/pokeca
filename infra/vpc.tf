@@ -18,10 +18,10 @@ resource "aws_subnet" "private" {
   tags              = { Name = "${var.project_name}-private-${count.index}" }
 }
 
-# App Runner VPC Connector가 붙는 보안그룹(egress만).
-resource "aws_security_group" "apprunner" {
-  name        = "${var.project_name}-apprunner-sg"
-  description = "App Runner VPC connector egress"
+# Lambda(VPC 연결)가 붙는 보안그룹(egress만).
+resource "aws_security_group" "lambda" {
+  name        = "${var.project_name}-lambda-sg"
+  description = "Lambda VPC egress"
   vpc_id      = aws_vpc.main.id
   egress {
     from_port   = 0
@@ -29,10 +29,12 @@ resource "aws_security_group" "apprunner" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  tags = { Name = "${var.project_name}-apprunner-sg" }
+  tags = { Name = "${var.project_name}-lambda-sg" }
 }
 
-# RDS 보안그룹: App Runner SG에서 오는 5432만 허용.
+# RDS 보안그룹: 이제 Lambda SG에서 오는 5432만 허용(ingress만 in-place 교체).
+# description은 원래 값 유지 — AWS SG description은 수정 불가라 바꾸면 SG 전체가
+# 교체되고, RDS에 ENI가 붙어 있어 교체가 실패/사이클을 유발한다. 문구는 코멘트 수준.
 resource "aws_security_group" "rds" {
   name        = "${var.project_name}-rds-sg"
   description = "Postgres from App Runner only"
@@ -41,7 +43,7 @@ resource "aws_security_group" "rds" {
     from_port       = 5432
     to_port         = 5432
     protocol        = "tcp"
-    security_groups = [aws_security_group.apprunner.id]
+    security_groups = [aws_security_group.lambda.id]
   }
   tags = { Name = "${var.project_name}-rds-sg" }
 }

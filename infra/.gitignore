@@ -10,3 +10,7 @@
 override.tf
 override.tf.json
 # .terraform.lock.hcl 은 커밋한다 (provider 버전 고정)
+
+# Lambda 빌드 산출물
+lambda-healthcheck/node_modules/
+*.zip

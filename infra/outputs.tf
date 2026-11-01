@@ -1,11 +1,6 @@
-output "apprunner_url" {
-  value       = var.enable_app_runner ? "https://${aws_apprunner_service.main[0].service_url}" : "(enable_app_runner=false)"
-  description = "App Runner 공개 URL"
-}
-
-output "apprunner_service_arn" {
-  value       = var.enable_app_runner ? aws_apprunner_service.main[0].arn : ""
-  description = "App Runner 서비스 ARN(상태 폴링용)"
+output "healthcheck_url" {
+  value       = aws_lambda_function_url.healthcheck.function_url
+  description = "헬스체크 Lambda 공개 URL (/에 접속 → DB OK)"
 }
 
 output "rds_endpoint" {
