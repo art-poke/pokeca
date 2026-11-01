@@ -8,7 +8,7 @@
 #   2) 아래 <suffix>를 본인 고유값(예: 계정ID 뒤 6자리)으로 바꾸고 `terraform init`
 terraform {
   backend "s3" {
-    bucket       = "pokeca-tfstate-<suffix>"
+    bucket       = "pokeca-tfstate-138681986450"
     key          = "phase1/terraform.tfstate"
     region       = "ap-northeast-2"
     encrypt      = true

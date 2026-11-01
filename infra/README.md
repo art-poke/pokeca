@@ -12,7 +12,9 @@ art-poke를 AWS 네이티브로 올리는 **1단계**. Terraform으로 AWS 리�
 VPC(사설 서브넷 2) · RDS Postgres t4g.micro · Cognito User Pool · S3(비공개) ·
 ECR · IAM(App Runner Access/Instance 역할) · Secrets Manager · App Runner(+VPC Connector)
 
-CloudFront 없음(서울·소규모라 생략, 나중 무중단 추가). 메일은 Resend 외부 유지.
+CloudFront 없음(소규모라 생략, 나중 무중단 추가). 메일은 Resend 외부 유지.
+
+> ⚠️ **리전 = 도쿄(ap-northeast-1).** App Runner가 서울(ap-northeast-2)에 없어서 전부 도쿄로 통일(VPC Connector는 같은 리전만). 한국↔도쿄 지연 ~30ms. 단, **Terraform 상태 버킷만 서울(ap-northeast-2)**에 둔다(백엔드 리전은 리소스 리전과 별개).
 
 ## 선결 조건 (1회)
 
@@ -49,13 +51,22 @@ terraform apply     # VPC·RDS·Cognito·S3·ECR·IAM·Secrets 생성 (RDS는 5~
 
 ### 2. 헬스체크 이미지 빌드·푸시
 
+> ⚠️ **함정 2개 주의:**
+> - **macOS keychain 멈춤:** `docker login`이 `credsStore: desktop` 때문에 비대화형에서 멈춘다. `DOCKER_CONFIG`를 임시 디렉터리로 우회.
+> - **zsh 모디파이어:** `"$ECR_URL:latest"`는 zsh가 `:l`을 소문자 모디파이어로 해석해 태그가 깨진다. 반드시 `"${ECR_URL}:latest"`(중괄호).
+
 ```bash
 ECR_URL=$(terraform output -raw ecr_repository_url)
-ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
-aws ecr get-login-password --region ap-northeast-2 \
-  | docker login --username AWS --password-stdin "${ACCOUNT}.dkr.ecr.ap-northeast-2.amazonaws.com"
-docker build --platform linux/amd64 -t "$ECR_URL:latest" healthcheck/   # App Runner는 x86_64
-docker push "$ECR_URL:latest"
+ACCOUNT=$(aws sts get-caller-identity --profile artpoke --query Account --output text)
+
+# keychain 우회용 임시 docker config
+export DOCKER_CONFIG=/tmp/pokeca-dockercfg
+mkdir -p "$DOCKER_CONFIG" && echo '{}' > "$DOCKER_CONFIG/config.json"
+
+aws ecr get-login-password --region ap-northeast-1 \
+  | docker login --username AWS --password-stdin "${ACCOUNT}.dkr.ecr.ap-northeast-1.amazonaws.com"
+docker build --platform linux/amd64 -t "${ECR_URL}:latest" healthcheck/   # App Runner는 x86_64
+docker push "${ECR_URL}:latest"
 ```
 
 ### 3. 2차 apply (App Runner ON) + 검증
