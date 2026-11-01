@@ -1,7 +1,14 @@
 // 이 파일은 DB 스키마의 Drizzle 거울(mirror)이다. 단일 출처(source of truth)는
 // infra/db/00_authjs.sql(Auth.js 어댑터 테이블) + infra/db/01_app.sql(앱 테이블)이다.
 // SQL을 바꾸면 이 파일도 함께 맞춰 드리프트를 막는다.
-import { pgTable, uuid, text, timestamp, bigint, boolean, smallint, jsonb, primaryKey, unique } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, timestamp, bigint, boolean, smallint, jsonb, date, primaryKey, unique } from "drizzle-orm/pg-core";
+
+// 세트(확장팩) (infra/db/01_app.sql의 public.sets 거울). 정본 키 code.
+export const sets = pgTable("sets", {
+  code: text("code").primaryKey(),
+  nameKo: text("name_ko").notNull(),
+  releasedOn: date("released_on"),
+});
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -97,6 +104,43 @@ export const cards = pgTable(
   },
   (t) => ({ setNumberUnique: unique().on(t.setCode, t.collectorNumber) }),
 );
+
+// 같은 그림의 일본판·영문판 (infra/db/01_app.sql의 public.card_aliases 거울).
+export const cardAliases = pgTable(
+  "card_aliases",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    cardId: uuid("card_id")
+      .notNull()
+      .references(() => cards.id, { onDelete: "cascade" }),
+    lang: text("lang").notNull(),
+    setCode: text("set_code").notNull(),
+    collectorNumber: text("collector_number").notNull(),
+    name: text("name"),
+  },
+  (t) => ({ langKeyUnique: unique().on(t.lang, t.setCode, t.collectorNumber) }),
+);
+
+// 카드를 찾지 못한 검색 (infra/db/01_app.sql의 public.search_misses 거울).
+export const searchMisses = pgTable("search_misses", {
+  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+  query: text("query").notNull(),
+  parsed: jsonb("parsed"),
+  visitorId: uuid("visitor_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  requested: boolean("requested").notNull().default(false),
+});
+
+// 측정 이벤트 (infra/db/01_app.sql의 public.events 거울).
+export const events = pgTable("events", {
+  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+  type: text("type").notNull(),
+  visitorId: uuid("visitor_id"),
+  cardId: uuid("card_id").references(() => cards.id),
+  artworkId: uuid("artwork_id").references(() => artworks.id),
+  payload: jsonb("payload"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
 
 // 작품 (infra/db/01_app.sql의 public.artworks 거울).
 // 생성·상태·허락 변경은 plpgsql 함수(artwork_create 등)가 한 트랜잭션에서 처리한다.
