@@ -1,7 +1,7 @@
 // 이 파일은 DB 스키마의 Drizzle 거울(mirror)이다. 단일 출처(source of truth)는
 // infra/db/00_authjs.sql(Auth.js 어댑터 테이블) + infra/db/01_app.sql(앱 테이블)이다.
 // SQL을 바꾸면 이 파일도 함께 맞춰 드리프트를 막는다.
-import { pgTable, uuid, text, timestamp, bigint, primaryKey, unique } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, timestamp, bigint, boolean, smallint, jsonb, primaryKey, unique } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -83,6 +83,98 @@ export const members = pgTable("members", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+// 정본 카드 (infra/db/01_app.sql의 public.cards 거울). 정본 키는 (set_code, collector_number).
+export const cards = pgTable(
+  "cards",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    setCode: text("set_code").notNull(),
+    collectorNumber: text("collector_number").notNull(),
+    nameKo: text("name_ko").notNull(),
+    rarity: text("rarity"),
+    illustrator: text("illustrator"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({ setNumberUnique: unique().on(t.setCode, t.collectorNumber) }),
+);
+
+// 작품 (infra/db/01_app.sql의 public.artworks 거울).
+// 생성·상태·허락 변경은 plpgsql 함수(artwork_create 등)가 한 트랜잭션에서 처리한다.
+// consent_level·thumbnail_ok 컬럼은 마이그레이션에서 제거됐다(아카이브 전용 전환).
+export const artworks = pgTable(
+  "artworks",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    cardId: uuid("card_id")
+      .notNull()
+      .references(() => cards.id),
+    artistName: text("artist_name").notNull(),
+    format: text("format").notNull(),
+    sourceUrl: text("source_url"),
+    sourceVisibility: text("source_visibility"),
+    status: text("status").notNull().default("active"),
+    filesPurged: boolean("files_purged").notNull().default(false),
+    uploadId: uuid("upload_id").unique(),
+    linkStatus: text("link_status").notNull().default("unchecked"),
+    linkCheckedAt: timestamp("link_checked_at", { withTimezone: true }),
+    printSizeVerified: boolean("print_size_verified").notNull().default(false),
+    consentedAt: timestamp("consented_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    // 계정을 지워도 작품은 남긴다(artist_name 보존).
+    artistId: uuid("artist_id").references(() => artists.userId, { onDelete: "set null" }),
+    title: text("title"),
+  },
+);
+
+// 작품 파일(원본·미리보기). (작품, 종류, 자리)당 1행. (infra/db/01_app.sql의 public.artwork_files 거울).
+export const artworkFiles = pgTable(
+  "artwork_files",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    artworkId: uuid("artwork_id")
+      .notNull()
+      .references(() => artworks.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    path: text("path").notNull().unique(),
+    mimeType: text("mime_type").notNull(),
+    sizeBytes: bigint("size_bytes", { mode: "number" }).notNull(),
+    position: smallint("position").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({ artworkKindPositionUnique: unique().on(t.artworkId, t.kind, t.position) }),
+);
+
+// 상태·허락 변경 이력 (infra/db/01_app.sql의 public.consent_events 거울).
+export const consentEvents = pgTable("consent_events", {
+  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+  artworkId: uuid("artwork_id")
+    .notNull()
+    .references(() => artworks.id),
+  kind: text("kind").notNull(),
+  before: jsonb("before"),
+  after: jsonb("after").notNull(),
+  reason: text("reason"),
+  evidencePath: text("evidence_path"),
+  actor: text("actor"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// 추천·다운로드 점수: (유저, 도안)당 1행 (infra/db/01_app.sql의 public.engagements 거울).
+export const engagements = pgTable(
+  "engagements",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    artworkId: uuid("artwork_id")
+      .notNull()
+      .references(() => artworks.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({ pk: primaryKey({ columns: [t.userId, t.artworkId] }) }),
+);
+
 // 카드 즐겨찾기 (infra/db/01_app.sql의 public.favorites 거울). (회원, 카드)당 1행.
 export const favorites = pgTable(
   "favorites",
@@ -90,8 +182,9 @@ export const favorites = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    // TODO(C2): cards 테이블 선언 후 .references(() => cards.id, { onDelete: "cascade" }) 추가
-    cardId: uuid("card_id").notNull(),
+    cardId: uuid("card_id")
+      .notNull()
+      .references(() => cards.id, { onDelete: "cascade" }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({ pk: primaryKey({ columns: [t.userId, t.cardId] }) }),
