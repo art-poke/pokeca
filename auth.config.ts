@@ -7,6 +7,7 @@ import Google from "next-auth/providers/google";
 export const authConfig = {
   providers: [Kakao, Google],
   session: { strategy: "jwt" },
+  // 작가 OAuth 기본 로그인 페이지일 뿐이다. 영역별 로그인 리다이렉트(어드민 → /admin/login)는 proxy.ts가 한다.
   pages: { signIn: "/artist/login" },
   callbacks: {
     async jwt({ token, account }) {
