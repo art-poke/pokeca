@@ -1,5 +1,7 @@
 import "server-only";
-import { db } from "@/lib/supabase/server";
+import { and, count, desc, eq, sql } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { artists, artworkFiles, artworks, cards, engagements } from "@/lib/db/schema";
 import {
   EXTENSION,
   promoteEvidence,
@@ -41,6 +43,19 @@ const DB_ERROR_CODES = [
   "thumbnail_required",
   "evidence_required",
 ];
+
+// Drizzle는 pg 에러를 감싸 실제 에러를 .cause 체인에 둔다. plpgsql의 `raise exception '<code>'`은
+// pg 에러의 message로 올라온다. cause 체인을 따라 그 pg 에러를 찾아 rethrow에 넘긴다.
+function dbError(e: unknown): { message: string } {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let cur: any = e;
+  for (let i = 0; i < 5 && cur; i++) {
+    if (typeof cur.message === "string" && DB_ERROR_CODES.includes(cur.message)) return cur;
+    cur = cur.cause;
+  }
+  // 알려진 코드가 없으면 원래 에러를 그대로 던지도록 바깥쪽 에러를 돌려준다.
+  return (e ?? { message: "unknown" }) as { message: string };
+}
 
 function rethrow(error: { message: string }): never {
   if (DB_ERROR_CODES.includes(error.message)) throw new ArtworkError(error.message);
@@ -130,34 +145,42 @@ export async function createArtwork(
     storageError(e);
   }
 
-  const { data, error } = await db().rpc("artwork_create", {
-    p_artwork: {
-      id: input.id,
-      card_id: input.cardId,
-      artist_name: input.artistName.trim(),
-      artist_id: input.artistId ?? null,
-      format: input.format,
-      source_url: input.sourceUrl,
-      source_visibility: input.sourceVisibility,
-      print_size_verified: input.printSizeVerified,
-      evidence_path: evidencePath,
-    },
-    p_files: files.map((f) => ({
-      kind: f.kind,
-      path: f.path,
-      mime_type: f.mimeType,
-      size_bytes: f.sizeBytes,
-      position: f.position,
-    })),
-    p_actor: actor,
-  });
-  if (error) rethrow(error);
-  const newId = data as string;
+  // 생성·파일·이력 기록은 plpgsql 함수(artwork_create)가 한 트랜잭션에서 처리한다. TS로 재구현하지 않는다.
+  const pArtwork = {
+    id: input.id,
+    card_id: input.cardId,
+    artist_name: input.artistName.trim(),
+    artist_id: input.artistId ?? null,
+    format: input.format,
+    source_url: input.sourceUrl,
+    source_visibility: input.sourceVisibility,
+    print_size_verified: input.printSizeVerified,
+    evidence_path: evidencePath,
+  };
+  const pFiles = files.map((f) => ({
+    kind: f.kind,
+    path: f.path,
+    mime_type: f.mimeType,
+    size_bytes: f.sizeBytes,
+    position: f.position,
+  }));
+  let newId: string;
+  try {
+    const r = await db.execute(
+      sql`select public.artwork_create(${JSON.stringify(pArtwork)}::jsonb, ${JSON.stringify(pFiles)}::jsonb, ${actor}) as id`,
+    );
+    newId = (r.rows[0] as { id: string }).id;
+  } catch (e) {
+    rethrow(dbError(e));
+  }
   // 제목은 작가 입력(선택). rpc는 건드리지 않고 생성 직후 반영한다.
   const title = input.title?.trim();
   if (title) {
-    const { error: titleError } = await db().from("artworks").update({ title }).eq("id", newId);
-    if (titleError) console.error("artwork title update", titleError);
+    try {
+      await db.update(artworks).set({ title }).where(eq(artworks.id, newId));
+    } catch (e) {
+      console.error("artwork title update", e);
+    }
   }
   // 이 카드×규격의 미해결 도안 요청을 해결 처리한다(작가면 resolved_by에 기록).
   try {
@@ -178,15 +201,16 @@ export async function setStatus(
   to: Status,
   opts: { reason?: string; actor: string },
 ): Promise<ChangeResult> {
-  const { data, error } = await db().rpc("artwork_set_status", {
-    p_id: id,
-    p_to: to,
-    p_reason: opts.reason ?? null,
-    p_actor: opts.actor,
-  });
-  if (error) rethrow(error);
-  const { changed, purge_paths } = data as { changed: boolean; purge_paths: string[] };
-  return { changed, purged: await purgeAfterCommit(purge_paths) };
+  let result: { changed: boolean; purge_paths: string[] };
+  try {
+    const r = await db.execute(
+      sql`select public.artwork_set_status(${id}::uuid, ${to}, ${opts.reason ?? null}, ${opts.actor}) as result`,
+    );
+    result = (r.rows[0] as { result: { changed: boolean; purge_paths: string[] } }).result;
+  } catch (e) {
+    rethrow(dbError(e));
+  }
+  return { changed: result.changed, purged: await purgeAfterCommit(result.purge_paths) };
 }
 
 // 허락 근거(DM 캡처 등)를 나중에 덧붙인다. 경로는 서버가 정한다.
@@ -203,21 +227,21 @@ export async function addEvidence(
   } catch (e) {
     storageError(e);
   }
-  const { error } = await db().rpc("artwork_add_evidence", {
-    p_id: id,
-    p_reason: opts.reason ?? null,
-    p_actor: opts.actor,
-    p_evidence_path: evidencePath,
-  });
-  if (error) rethrow(error);
+  try {
+    await db.execute(
+      sql`select public.artwork_add_evidence(${id}::uuid, ${opts.reason ?? null}, ${opts.actor}, ${evidencePath})`,
+    );
+  } catch (e) {
+    rethrow(dbError(e));
+  }
 }
 
 export async function attachFile(id: string, kind: FileKind, uploadId: string): Promise<void> {
   if (!UUID.test(id)) throw new ArtworkError("not_found");
   if (kind !== "original" && kind !== "thumbnail") throw new ArtworkError("invalid_kind");
   // 파일을 옮기기 전에 확인한다. 철회 작품에 옮긴 파일은 추적되지 않는다(정리 작업이 지우긴 한다).
-  const { data: target, error: targetError } = await db().from("artworks").select("status").eq("id", id).maybeSingle();
-  if (targetError) throw targetError;
+  const targetRows = await db.select({ status: artworks.status }).from(artworks).where(eq(artworks.id, id)).limit(1);
+  const target = targetRows[0] ?? null;
   if (!target) throw new ArtworkError("not_found");
   if (target.status === "withdrawn") throw new ArtworkError("withdrawn_is_final");
   // 원본을 바꾸면 미리보기도 새 원본에서 다시 만든다. PDF 원본이면 기존 미리보기를 둔다.
@@ -230,15 +254,16 @@ export async function attachFile(id: string, kind: FileKind, uploadId: string): 
     storageError(e);
   }
   for (const file of files) {
-    const { data, error } = await db().rpc("artwork_attach_file", {
-      p_id: id,
-      p_kind: file.kind,
-      p_path: file.path,
-      p_mime_type: file.mimeType,
-      p_size_bytes: file.sizeBytes,
-    });
-    if (error) rethrow(error);
-    await purgeAfterCommit((data as { purge_paths: string[] }).purge_paths);
+    let purgePaths: string[];
+    try {
+      const r = await db.execute(
+        sql`select public.artwork_attach_file(${id}::uuid, ${file.kind}, ${file.path}, ${file.mimeType}, ${file.sizeBytes}) as result`,
+      );
+      purgePaths = (r.rows[0] as { result: { purge_paths: string[] } }).result.purge_paths;
+    } catch (e) {
+      rethrow(dbError(e));
+    }
+    await purgeAfterCommit(purgePaths);
   }
 }
 
@@ -291,39 +316,86 @@ export function toPublic(r: ArtworkRow): PublicArtwork {
 
 // 최신 등록 순.
 export async function listPublicArtworks(cardId: string): Promise<PublicArtwork[]> {
-  const { data, error } = await db()
-    .from("artworks")
-    .select(
-      "id, title, artist_name, format, source_url, source_visibility, link_status, print_size_verified, artists(handle, status)",
-    )
-    .eq("card_id", cardId)
-    .eq("status", "active")
-    .order("created_at", { ascending: false })
-    .returns<ArtworkRow[]>();
-  if (error) throw error;
-  return data.map(toPublic);
+  const rows = await db
+    .select({
+      id: artworks.id,
+      title: artworks.title,
+      artist_name: artworks.artistName,
+      format: artworks.format,
+      source_url: artworks.sourceUrl,
+      source_visibility: artworks.sourceVisibility,
+      link_status: artworks.linkStatus,
+      print_size_verified: artworks.printSizeVerified,
+      artistHandle: artists.handle,
+      artistStatus: artists.status,
+    })
+    .from(artworks)
+    .leftJoin(artists, eq(artworks.artistId, artists.userId))
+    .where(and(eq(artworks.cardId, cardId), eq(artworks.status, "active")))
+    .orderBy(desc(artworks.createdAt));
+  return rows.map((r) => toPublic(toArtworkRow(r)));
+}
+
+// Drizzle select 결과(평평한 artistHandle/artistStatus)를 toPublic이 받는 ArtworkRow로 맞춘다.
+type ArtworkSelect = {
+  id: string;
+  title: string | null;
+  artist_name: string;
+  format: string;
+  source_url: string | null;
+  source_visibility: string | null;
+  link_status: string;
+  print_size_verified: boolean;
+  artistHandle: string | null;
+  artistStatus: string | null;
+};
+
+function toArtworkRow(r: ArtworkSelect): ArtworkRow {
+  return {
+    id: r.id,
+    title: r.title,
+    artist_name: r.artist_name,
+    format: r.format as Format,
+    source_url: r.source_url,
+    source_visibility: r.source_visibility as "public" | "members_only" | null,
+    link_status: r.link_status,
+    print_size_verified: r.print_size_verified,
+    artists: r.artistHandle ? { handle: r.artistHandle, status: r.artistStatus ?? "" } : null,
+  };
 }
 
 export type RecentArtwork = PublicArtwork & { card: { label: string; path: string; name: string } };
 
 // 홈: 최근 올라온 공개 도안(전체 카드 통틀어 최신 순). 카드 정보도 함께.
 export async function recentArtworks(limit = 8): Promise<RecentArtwork[]> {
-  const { data, error } = await db()
-    .from("artworks")
-    .select(
-      "id, title, artist_name, format, source_url, source_visibility, link_status, print_size_verified, artists(handle, status), cards(set_code, collector_number, name_ko)",
-    )
-    .eq("status", "active")
-    .order("created_at", { ascending: false })
-    .limit(limit)
-    .returns<(ArtworkRow & { cards: { set_code: string; collector_number: string; name_ko: string } })[]>();
-  if (error) throw error;
-  return data.map((r) => ({
-    ...toPublic(r),
+  const rows = await db
+    .select({
+      id: artworks.id,
+      title: artworks.title,
+      artist_name: artworks.artistName,
+      format: artworks.format,
+      source_url: artworks.sourceUrl,
+      source_visibility: artworks.sourceVisibility,
+      link_status: artworks.linkStatus,
+      print_size_verified: artworks.printSizeVerified,
+      artistHandle: artists.handle,
+      artistStatus: artists.status,
+      setCode: cards.setCode,
+      collectorNumber: cards.collectorNumber,
+      nameKo: cards.nameKo,
+    })
+    .from(artworks)
+    .innerJoin(cards, eq(artworks.cardId, cards.id))
+    .leftJoin(artists, eq(artworks.artistId, artists.userId))
+    .where(eq(artworks.status, "active"))
+    .orderBy(desc(artworks.createdAt))
+    .limit(limit);
+  return rows.map((r) => ({
+    ...toPublic(toArtworkRow(r)),
     card: {
-      label: `${r.cards.set_code} ${r.cards.collector_number}`,
-      path: `/cards/${encodeURIComponent(r.cards.set_code)}/${r.cards.collector_number.replace("/", "-")}`,
-      name: r.cards.name_ko,
+      label: `${r.setCode} ${r.collectorNumber}`,
+      path: `/cards/${encodeURIComponent(r.setCode)}/${r.collectorNumber.replace("/", "-")}`,
+      name: r.nameKo,
     },
   }));
 }
@@ -341,40 +413,52 @@ export type ArtworkDetail = PublicArtwork & {
 
 export async function getArtworkDetail(id: string): Promise<ArtworkDetail | null> {
   if (!UUID.test(id)) return null;
-  const { data, error } = await db()
-    .from("artworks")
-    .select(
-      "id, title, artist_name, format, source_url, source_visibility, link_status, print_size_verified, artists(handle, status), cards(set_code, collector_number, name_ko), artwork_files(kind, position)",
-    )
-    .eq("id", id)
-    .eq("status", "active")
-    .maybeSingle<
-      ArtworkRow & {
-        cards: { set_code: string; collector_number: string; name_ko: string };
-        artwork_files: { kind: FileKind; position: number }[];
-      }
-    >();
-  if (error) throw error;
+  const rows = await db
+    .select({
+      id: artworks.id,
+      title: artworks.title,
+      artist_name: artworks.artistName,
+      format: artworks.format,
+      source_url: artworks.sourceUrl,
+      source_visibility: artworks.sourceVisibility,
+      link_status: artworks.linkStatus,
+      print_size_verified: artworks.printSizeVerified,
+      artistHandle: artists.handle,
+      artistStatus: artists.status,
+      setCode: cards.setCode,
+      collectorNumber: cards.collectorNumber,
+      nameKo: cards.nameKo,
+    })
+    .from(artworks)
+    .innerJoin(cards, eq(artworks.cardId, cards.id))
+    .leftJoin(artists, eq(artworks.artistId, artists.userId))
+    .where(and(eq(artworks.id, id), eq(artworks.status, "active")))
+    .limit(1);
+  const data = rows[0] ?? null;
   if (!data) return null;
 
+  const fileRows = await db
+    .select({ kind: artworkFiles.kind, position: artworkFiles.position })
+    .from(artworkFiles)
+    .where(eq(artworkFiles.artworkId, id));
+
   // 추천수(순환참조 피하려 inline).
-  const { count, error: countError } = await db()
-    .from("engagements")
-    .select("*", { count: "exact", head: true })
-    .eq("artwork_id", id)
-    .eq("kind", "recommend");
-  if (countError) throw countError;
+  const countRows = await db
+    .select({ n: count() })
+    .from(engagements)
+    .where(and(eq(engagements.artworkId, id), eq(engagements.kind, "recommend")));
+  const recommendCount = countRows[0]?.n ?? 0;
 
   return {
-    ...toPublic(data),
+    ...toPublic(toArtworkRow(data)),
     card: {
-      label: `${data.cards.set_code} ${data.cards.collector_number}`,
-      path: `/cards/${encodeURIComponent(data.cards.set_code)}/${data.cards.collector_number.replace("/", "-")}`,
-      name: data.cards.name_ko,
+      label: `${data.setCode} ${data.collectorNumber}`,
+      path: `/cards/${encodeURIComponent(data.setCode)}/${data.collectorNumber.replace("/", "-")}`,
+      name: data.nameKo,
     },
-    recommendCount: count ?? 0,
-    pieceCount: data.artwork_files.filter((f) => f.kind === "original").length,
-    positions: data.artwork_files
+    recommendCount,
+    pieceCount: fileRows.filter((f) => f.kind === "original").length,
+    positions: fileRows
       .filter((f) => f.kind === "original")
       .map((f) => f.position)
       .sort((a, b) => a - b),
@@ -394,15 +478,45 @@ type FileLookup = {
 
 async function lookup(id: string): Promise<FileLookup | null> {
   if (!UUID.test(id)) return null;
-  const { data, error } = await db()
-    .from("artworks")
-    .select(
-      "id, status, artist_name, format, cards(set_code, collector_number), artwork_files(kind, path, mime_type, position)",
-    )
-    .eq("id", id)
-    .maybeSingle<FileLookup>();
-  if (error) throw error;
-  return data;
+  const rows = await db
+    .select({
+      id: artworks.id,
+      status: artworks.status,
+      artist_name: artworks.artistName,
+      format: artworks.format,
+      setCode: cards.setCode,
+      collectorNumber: cards.collectorNumber,
+    })
+    .from(artworks)
+    .innerJoin(cards, eq(artworks.cardId, cards.id))
+    .where(eq(artworks.id, id))
+    .limit(1);
+  const a = rows[0];
+  if (!a) return null;
+
+  const fileRows = await db
+    .select({
+      kind: artworkFiles.kind,
+      path: artworkFiles.path,
+      mime_type: artworkFiles.mimeType,
+      position: artworkFiles.position,
+    })
+    .from(artworkFiles)
+    .where(eq(artworkFiles.artworkId, id));
+
+  return {
+    id: a.id,
+    status: a.status as Status,
+    artist_name: a.artist_name,
+    format: a.format as Format,
+    cards: { set_code: a.setCode, collector_number: a.collectorNumber },
+    artwork_files: fileRows.map((f) => ({
+      kind: f.kind as FileKind,
+      path: f.path,
+      mime_type: f.mime_type as MimeType,
+      position: f.position,
+    })),
+  };
 }
 
 export type DownloadResult =
