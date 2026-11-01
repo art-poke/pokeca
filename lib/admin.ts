@@ -3,12 +3,11 @@ import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { admins } from "@/lib/db/schema";
-import { db as supabaseDb } from "@/lib/supabase/server";
+import { admins, artworks, cards } from "@/lib/db/schema";
 import { addEvidence, ArtworkError, setStatus } from "@/lib/artworks";
+import { UUID } from "@/lib/uuid";
 
 // 어드민 = Auth.js 로그인 + admins 허용 목록 (설계 "관리자와 업로드 보안").
-// 과도기(C1): 로그인·허용 목록은 Drizzle(db)로, 작품·카드 의존 함수는 Supabase(supabaseDb)로. C2에서 정리한다.
 export type Admin = { userId: string; email: string };
 
 export async function currentAdmin(): Promise<Admin | null> {
@@ -33,13 +32,15 @@ export async function requireAdmin(): Promise<Admin> {
 // 파괴적 행동(철회)은 화면 확인과 별개로 서버에서도 확인한다 (eng E1).
 // confirm은 그 작품 정본 카드의 "세트 번호" 문자열이어야 한다. 예: "sv2a 201/165"
 export async function expectedConfirm(artworkId: string): Promise<string | null> {
-  const { data, error } = await supabaseDb()
-    .from("artworks")
-    .select("cards(set_code, collector_number)")
-    .eq("id", artworkId)
-    .maybeSingle<{ cards: { set_code: string; collector_number: string } }>();
-  if (error) throw error;
-  return data ? `${data.cards.set_code} ${data.cards.collector_number}` : null;
+  if (!UUID.test(artworkId)) return null;
+  const rows = await db
+    .select({ setCode: cards.setCode, collectorNumber: cards.collectorNumber })
+    .from(artworks)
+    .innerJoin(cards, eq(artworks.cardId, cards.id))
+    .where(eq(artworks.id, artworkId))
+    .limit(1);
+  const row = rows[0];
+  return row ? `${row.setCode} ${row.collectorNumber}` : null;
 }
 
 export type AdminArtworkAction =
