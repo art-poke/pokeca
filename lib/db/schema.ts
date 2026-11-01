@@ -46,3 +46,12 @@ export const verificationTokens = pgTable(
   },
   (t) => ({ pk: primaryKey({ columns: [t.identifier, t.token] }) }),
 );
+
+// 어드민 허용 목록 (infra/db/01_app.sql의 public.admins 거울).
+export const admins = pgTable("admins", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  email: text("email").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});

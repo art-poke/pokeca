@@ -1,20 +1,26 @@
 import "server-only";
 import { redirect } from "next/navigation";
-import { authClient } from "@/lib/supabase/auth";
-import { db } from "@/lib/supabase/server";
+import { eq } from "drizzle-orm";
+import { auth } from "@/auth";
+import { db } from "@/lib/db";
+import { admins } from "@/lib/db/schema";
+import { db as supabaseDb } from "@/lib/supabase/server";
 import { addEvidence, ArtworkError, setStatus } from "@/lib/artworks";
 
-// 어드민 = Supabase Auth 로그인 + admins 허용 목록 (설계 "관리자와 업로드 보안").
+// 어드민 = Auth.js 로그인 + admins 허용 목록 (설계 "관리자와 업로드 보안").
+// 과도기(C1): 로그인·허용 목록은 Drizzle(db)로, 작품·카드 의존 함수는 Supabase(supabaseDb)로. C2에서 정리한다.
 export type Admin = { userId: string; email: string };
 
 export async function currentAdmin(): Promise<Admin | null> {
-  const {
-    data: { user },
-  } = await (await authClient()).auth.getUser();
-  if (!user) return null;
-  const { data, error } = await db().from("admins").select("user_id, email").eq("user_id", user.id).maybeSingle();
-  if (error) throw error;
-  return data ? { userId: data.user_id, email: data.email } : null;
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) return null;
+  const rows = await db
+    .select({ userId: admins.userId, email: admins.email })
+    .from(admins)
+    .where(eq(admins.userId, userId))
+    .limit(1);
+  return rows[0] ?? null;
 }
 
 // 어드민 화면과 server action의 첫 줄. 허용 목록에 없으면 로그인으로 보낸다.
@@ -27,7 +33,7 @@ export async function requireAdmin(): Promise<Admin> {
 // 파괴적 행동(철회)은 화면 확인과 별개로 서버에서도 확인한다 (eng E1).
 // confirm은 그 작품 정본 카드의 "세트 번호" 문자열이어야 한다. 예: "sv2a 201/165"
 export async function expectedConfirm(artworkId: string): Promise<string | null> {
-  const { data, error } = await db()
+  const { data, error } = await supabaseDb()
     .from("artworks")
     .select("cards(set_code, collector_number)")
     .eq("id", artworkId)
