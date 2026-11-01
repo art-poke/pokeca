@@ -101,6 +101,13 @@ export class ArtistError extends Error {
   }
 }
 
+// Drizzle은 pg 에러를 DrizzleQueryError로 감싸 .cause에 둔다. unique 위반(23505)은 어느 쪽에 있어도 읽는다.
+function pgErrorCode(e: unknown): string | undefined {
+  const direct = (e as { code?: string })?.code;
+  if (direct) return direct;
+  return (e as { cause?: { code?: string } })?.cause?.code;
+}
+
 // 로그인 ---------------------------------------------------------------------
 
 export const SOCIAL_PROVIDERS = ["kakao", "google"] as const;
@@ -193,7 +200,7 @@ export async function registerArtist(user: SocialUser, input: ArtistApplication)
       .returning(artistColumns);
     return fromDrizzle(rows[0]);
   } catch (e) {
-    if ((e as { code?: string })?.code === "23505") {
+    if (pgErrorCode(e) === "23505") {
       // 주소가 겹치거나, 같은 계정이 두 번 신청했다.
       if (await artistByUserId(user.id)) throw new ArtistError("already_registered");
       throw new ArtistError("handle_taken");
