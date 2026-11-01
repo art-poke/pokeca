@@ -90,6 +90,7 @@ export const favorites = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    // TODO(C2): cards 테이블 선언 후 .references(() => cards.id, { onDelete: "cascade" }) 추가
     cardId: uuid("card_id").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },

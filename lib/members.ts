@@ -2,6 +2,7 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { asc, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
+import { isUniqueViolation } from "@/lib/db/errors";
 import { artists, favorites, members } from "@/lib/db/schema";
 import { currentSocialUser } from "@/lib/artists";
 import { NICKNAME_MAX } from "@/lib/profile";
@@ -22,13 +23,6 @@ export class MemberError extends Error {
   constructor(public code: string) {
     super(code);
   }
-}
-
-// Drizzle은 pg 에러를 DrizzleQueryError로 감싸 .cause에 둔다. unique 위반(23505)은 어느 쪽에 있어도 읽는다.
-function pgErrorCode(e: unknown): string | undefined {
-  const direct = (e as { code?: string })?.code;
-  if (direct) return direct;
-  return (e as { cause?: { code?: string } })?.cause?.code;
 }
 
 async function artistDisplayName(userId: string): Promise<string | null> {
@@ -73,7 +67,7 @@ export async function currentMember(): Promise<Member | null> {
     await db.insert(members).values({ userId: user.id, nickname });
   } catch (e) {
     // 동시 첫 요청 경합: 이미 생겼으면 그대로 둔다.
-    if (pgErrorCode(e) !== "23505") throw e;
+    if (!isUniqueViolation(e)) throw e;
   }
   return withDisplayName({ userId: user.id, nickname, avatarPath: null });
 }
