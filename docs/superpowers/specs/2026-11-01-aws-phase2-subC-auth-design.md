@@ -70,9 +70,14 @@ Supabase Auth → **Auth.js v5**로 교체하고, 동시에 Supabase 데이터 �
 
 소셜 프로필 추출 현행(`lib/artists.ts:74-79`): `user.app_metadata.provider`, `user_metadata.{full_name,name,nickname,preferred_username}` → Auth.js `profile()` 콜백으로 매핑 필요.
 
-### 3.4 데이터 접근 `db()` (총 134곳 = 소스 ~115 + 테스트/헬퍼 ~19, Drizzle로 전환)
+### 3.4 데이터 접근 `db()` (총 134곳 = 소스 ~115 + 테스트/헬퍼 ~19)
+**⚠️ `db()` 호출은 3종류다 — 전부 PostgREST가 아님(플랜 검증에서 확인):**
+- **(a) PostgREST 쿼리 `db().from()`** — 대부분. Drizzle 쿼리로 전환(서브 C).
+- **(b) 저장 프로시저 `db().rpc("fn", …)` — 12곳**(artworks 4, cards 3, requests 2, admin-data/reports/storage 각 1). `01_app.sql`의 plpgsql 함수. Drizzle `db.execute(sql\`select * from fn(…)\`)`로 전환(서브 C, 다른 패턴).
+- **(c) 오브젝트 스토리지 `db().storage.*` — 13곳**(storage.ts 11, cleanup.ts 2). **서브 C 범위 밖 → 서브 D.** 서브 C에서는 얇은 임시 스토리지 클라이언트(`lib/storage-client.ts`, `@supabase/supabase-js` 유지)로 **격리만** 한다.
+
 - **소스(22파일):** `lib/{admin,admin-data,artists,members,artworks,cards,search,favorites,comments,reviews,community,engagements,reports,requests,ranking,storage,cleanup,art-requests,artist-stats}.ts`, `app/api/{events,avatars/[userId],download/[id],search-requests}/route.ts` (**API 라우트 4개**).
-- **테스트/헬퍼(~19곳):** `tests/integration/*`, `tests/helpers/fixtures.ts`, `tests/e2e/db.ts` 등 — C3에서 함께 전환(테스트 계층 분량을 과소평가하지 말 것).
+- **테스트/헬퍼(~19곳):** `tests/integration/*`, `tests/helpers/fixtures.ts`, `tests/e2e/db.ts` 등 — C3에서 함께 전환. fixtures/일부 통합 테스트의 **업로드 경로는 스토리지(서브 D) 의존** → 그 부분은 stub/blocked.
 
 ### 3.5 세션/미들웨어
 - **`middleware.ts` 없음.** `proxy.ts`가 Next 16의 요청 라우팅/세션 리프레시 담당(`session()` 함수, 56행 `getUser()`). `/admin/*`·`/artist/*` 가드 + `/artist/callback`·`/admin/login` 예외. `visitor_id` 쿠키(1년) 부여 — **유지.**
@@ -102,7 +107,7 @@ Supabase Auth → **Auth.js v5**로 교체하고, 동시에 Supabase 데이터 �
 7. **`app/artist/callback/route.ts` 삭제** — Auth.js 콜백이 대체.
 8. **`proxy.ts` 세션 체크 재작성** — Supabase `getUser()` → Auth.js `auth()`(JWT). `visitor_id` 로직 유지.
 9. **데이터 접근 134곳** — Drizzle 쿼리로 전환.
-10. **`lib/supabase/` 삭제 + `@supabase/*` 의존성 제거**(C3).
+10. **`lib/supabase/{auth,server}.ts` 삭제 + `@supabase/ssr` 제거**(C3). ⚠️ `@supabase/supabase-js`는 **스토리지(`lib/storage-client.ts`)가 서브 D 전까지 사용**하므로 유지.
 
 ### 4.2 데이터 흐름
 - **소셜 로그인:** 버튼 → `signIn("kakao")` → 카카오 리다이렉트 → `/api/auth/callback/kakao` → Auth.js가 `users`/`accounts` upsert(Drizzle adapter) → JWT 쿠키 발급 → `auth()` 세션에 `user.id`.
@@ -154,8 +159,8 @@ Supabase Auth → **Auth.js v5**로 교체하고, 동시에 Supabase 데이터 �
 ## 9. 성공 기준 (서브 C DoD)
 
 - [ ] 로컬 Docker Postgres에서 카카오·구글·어드민 로그인이 **Auth.js**로 동작.
-- [ ] 전체 앱 데이터 접근이 **Drizzle(RDS 직결 방식)**로 동작(`db()` 134곳 전환 완료).
-- [ ] `@supabase/*` 의존성·`lib/supabase/` 제거.
+- [ ] 앱 데이터 접근(쿼리 `db().from()` + 저장프로시저 `db().rpc()`)이 **Drizzle**로 동작. **스토리지 `db().storage.*`는 서브 D로 이월**(얇은 클라이언트로 격리).
+- [ ] `@supabase/ssr` + `lib/supabase/{auth,server}.ts` 제거. (`@supabase/supabase-js`는 스토리지용으로 서브 D까지 잔존.)
 - [ ] `requireAdmin`/`requireArtist`/`currentMember` 등 가드가 세션 기반으로 정상.
 - [ ] `npm run typecheck` 녹색, 핵심 테스트 통과.
 - [ ] `infra/db/*.sql`가 스키마 단일 출처로 유지(Drizzle schema와 일치).
