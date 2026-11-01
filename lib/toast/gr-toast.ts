@@ -11,3 +11,7 @@ export const showInfoToast = (message: string) => toast(message);
 /** code(또는 메시지)를 받아 유저친화 문구로 띄운다. */
 export const showErrorToast = (codeOrMessage?: string) =>
   toast.error(getErrorMessage(codeOrMessage));
+
+/** 비회원 액션 시 로그인 유도 토스트(액션 버튼 포함). */
+export const showLoginNudge = (message: string, onLogin: () => void) =>
+  toast(message, { action: { label: "로그인", onClick: onLogin } });

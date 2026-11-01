@@ -1,53 +1,30 @@
 "use server";
 
-import { cache } from "react";
-import { serverApi } from "@/lib/api/server-fetch";
-import { withErrorHandling } from "@/lib/server-action/with-error-handling";
-import { ArtworkTransformer } from "@/domains/artwork/transform";
-import { ARTWORK_ENDPOINTS } from "./endpoints";
-import type {
-  ArtworkCursor,
-  ArtworkDetail,
-  ArtworksData,
-  ServerArtworkDetail,
-  ServerArtworksResponse,
-  ServerRecommendResult,
-} from "./types";
+import { getArtworkDetail, recentArtworks } from "@/lib/artworks";
+import { getEngagement } from "@/lib/engagements";
+import { currentMember } from "@/lib/members";
+import type { Artwork, ArtworkDetail } from "./types";
 
-// ── 읽기(쿼리용) ─ 실패 시 throw → react-query가 로딩/에러 상태로 처리 ──────────
+// ---------------------------------------------------------------------------
+// 읽기(쿼리용) 서버액션 — 같은 Next 안에서 lib/*를 직접 호출(네트워크 홉 없음).
+// 실패 시 throw → react-query가 로딩/에러 상태로 처리.
+// ---------------------------------------------------------------------------
 
-const PAGE_SIZE = 12;
+export const fetchRecentArtworks = async (limit = 8): Promise<Artwork[]> =>
+  recentArtworks(limit);
 
-export const fetchArtworks = async (
-  cardId?: string,
-  cursor?: ArtworkCursor,
-): Promise<ArtworksData> => {
-  const data = await serverApi.get<ServerArtworksResponse>(ARTWORK_ENDPOINTS.list, {
-    params: {
-      size: PAGE_SIZE,
-      cardId,
-      lastId: cursor?.lastId,
-      lastSortOrder: cursor?.lastSortOrder,
-    },
-  });
-  return ArtworkTransformer.toArtworksData(data);
+// 상세 + 현재 유저의 추천 여부를 합쳐서 내려준다.
+export const fetchArtworkDetail = async (
+  id: string,
+): Promise<ArtworkDetail | null> => {
+  const detail = await getArtworkDetail(id);
+  if (!detail) return null;
+  const member = await currentMember();
+  const isRecommended = member
+    ? (await getEngagement(member.userId, id)) === "recommend"
+    : false;
+  return { ...detail, isRecommended };
 };
 
-// cache(): 같은 렌더 패스에서 같은 id 중복 호출을 1회로 합친다(레이아웃+페이지 동시 조회 등).
-export const fetchArtworkDetail = cache(
-  async (id: string): Promise<ArtworkDetail> => {
-    const data = await serverApi.get<ServerArtworkDetail>(
-      ARTWORK_ENDPOINTS.detail(id),
-    );
-    return ArtworkTransformer.toDetail(data);
-  },
-);
-
-// ── 쓰기(뮤테이션용) ─ withErrorHandling → ServerActionResult 반환(throw 안 함) ──
-
-const _toggleRecommend = async (
-  artworkId: string,
-): Promise<ServerRecommendResult> =>
-  serverApi.post<ServerRecommendResult>(ARTWORK_ENDPOINTS.recommend(artworkId));
-
-export const toggleRecommend = withErrorHandling(_toggleRecommend);
+// 쓰기(추천 토글)는 기존 route handler(/api/artworks/[id]/recommend)를 클라에서 호출한다
+// (memberRoute의 인증·에러 규격 재사용). → domains/artwork/hooks.ts

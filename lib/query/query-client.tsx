@@ -7,7 +7,7 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import { isServerFetchError } from "@/lib/api/envelope";
+import { isApiError } from "@/lib/api/errors";
 import { showErrorToast } from "@/lib/toast/gr-toast";
 import { captureClientError } from "./telemetry";
 
@@ -22,7 +22,7 @@ import { captureClientError } from "./telemetry";
 // ---------------------------------------------------------------------------
 
 const is4xx = (error: unknown): boolean =>
-  isServerFetchError(error) && error.status >= 400 && error.status < 500;
+  isApiError(error) && error.status >= 400 && error.status < 500;
 
 const makeQueryClient = () =>
   new QueryClient({
@@ -33,7 +33,7 @@ const makeQueryClient = () =>
     mutationCache: new MutationCache({
       onError: (error, _vars, _ctx, mutation) => {
         if (!mutation.meta?.skipGlobalError) {
-          showErrorToast(isServerFetchError(error) ? error.code ?? undefined : undefined);
+          showErrorToast(isApiError(error) ? error.code ?? undefined : undefined);
         }
         captureClientError(error, { layer: "mutation", ...mutation.meta });
       },

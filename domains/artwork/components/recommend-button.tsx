@@ -2,11 +2,11 @@
 
 import { ThumbsUp } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { showInfoToast } from "@/lib/toast/gr-toast";
+import { showLoginNudge } from "@/lib/toast/gr-toast";
 import { cn } from "@/lib/utils";
 import { useToggleRecommendMutation } from "@/domains/artwork/hooks";
 
-// 추천 토글 버튼. 상태는 훅이 낙관적으로 관리 → 버튼은 훅만 호출한다.
+// 추천 토글 버튼. 상태는 훅이 낙관적으로 관리(상세 쿼리 캐시) → 버튼은 훅만 호출한다.
 export const RecommendButton = ({
   id,
   isRecommended,
@@ -23,8 +23,9 @@ export const RecommendButton = ({
 
   const onClick = () => {
     if (!isMember) {
-      showInfoToast("추천은 로그인 후 이용할 수 있어요.");
-      router.push("/artist/login");
+      showLoginNudge("추천은 로그인 후 이용할 수 있어요", () =>
+        router.push("/artist/login"),
+      );
       return;
     }
     mutate();
