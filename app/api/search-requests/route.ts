@@ -1,4 +1,6 @@
-import { db } from "@/lib/supabase/server";
+import { and, eq } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { searchMisses } from "@/lib/db/schema";
 import { parseQuery } from "@/lib/search";
 import { visitorId } from "@/lib/visitor";
 
@@ -11,18 +13,27 @@ export async function POST(request: Request) {
 
   const visitor = await visitorId();
   if (visitor) {
-    const { data, error } = await db()
-      .from("search_misses")
-      .select("id")
-      .eq("visitor_id", visitor)
-      .eq("query", query)
-      .eq("requested", true)
-      .limit(1);
-    if (error) return new Response(null, { status: 500 });
-    if (data.length > 0) return new Response(null, { status: 204 });
+    try {
+      const rows = await db
+        .select({ id: searchMisses.id })
+        .from(searchMisses)
+        .where(
+          and(
+            eq(searchMisses.visitorId, visitor),
+            eq(searchMisses.query, query),
+            eq(searchMisses.requested, true),
+          ),
+        )
+        .limit(1);
+      if (rows.length > 0) return new Response(null, { status: 204 });
+    } catch {
+      return new Response(null, { status: 500 });
+    }
   }
-  const { error } = await db()
-    .from("search_misses")
-    .insert({ query, parsed, visitor_id: visitor, requested: true });
-  return new Response(null, { status: error ? 500 : 204 });
+  try {
+    await db.insert(searchMisses).values({ query, parsed, visitorId: visitor, requested: true });
+  } catch {
+    return new Response(null, { status: 500 });
+  }
+  return new Response(null, { status: 204 });
 }

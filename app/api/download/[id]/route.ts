@@ -1,8 +1,9 @@
 import { after } from "next/server";
 import { resolveDownload } from "@/lib/artworks";
+import { db } from "@/lib/db";
+import { events } from "@/lib/db/schema";
 import { recordDownloadEngagement } from "@/lib/engagements";
 import { currentMember } from "@/lib/members";
-import { db } from "@/lib/supabase/server";
 import { visitorId } from "@/lib/visitor";
 
 // 다운로드는 회원 전용(에픽 결정). 서명 URL은 5분 뒤 만료되므로 화면에 남기지 않는다.
@@ -21,10 +22,11 @@ export async function POST(_request: Request, ctx: RouteContext<"/api/download/[
   await recordDownloadEngagement(member.userId, id);
   const visitor = await visitorId();
   after(async () => {
-    const { error } = await db()
-      .from("events")
-      .insert({ type: "download", visitor_id: visitor, artwork_id: id });
-    if (error) console.error("download event", error);
+    try {
+      await db.insert(events).values({ type: "download", visitorId: visitor, artworkId: id });
+    } catch (error) {
+      console.error("download event", error);
+    }
   });
 
   // 여러 조각(9포켓 등)은 ZIP 바이트를 바로 내려준다. 단일은 서명 URL(JSON)을 준다.
