@@ -1,8 +1,14 @@
-import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { attachFile, createArtwork, setStatus } from "@/lib/artworks";
 import { cleanup } from "@/lib/cleanup";
 import { db } from "@/lib/supabase/server";
 import { cardId, PDF, PNG, resetArtworks, sql, storedPaths, uploadAsBrowser } from "../helpers/fixtures";
+
+// @/lib/artworks가 Drizzle(@/lib/db)로 전환됐다. 스토리지·시드 카드는 아직 Supabase(sub D)이므로
+// 둘이 같은 Postgres를 보도록, @/lib/db가 Pool을 만들기 전에 DATABASE_URL을 Supabase DB로 맞춘다(hoisted).
+vi.hoisted(() => {
+  if (process.env.SUPABASE_DB_URL) process.env.DATABASE_URL = process.env.SUPABASE_DB_URL;
+});
 
 afterAll(() => sql.end());
 beforeEach(resetArtworks);

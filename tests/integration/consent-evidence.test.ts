@@ -20,6 +20,15 @@ import {
   uploadAsBrowser,
 } from "../helpers/fixtures";
 
+// 이 스위트는 Supabase 스토리지(storage.objects·시드 카드)와 같은 DB를 써야 한다.
+// 데이터 계층은 Drizzle(@/lib/db, DATABASE_URL)로 전환됐지만 스토리지는 아직 Supabase(sub D)다.
+// 둘이 같은 Postgres를 보도록, @/lib/db가 Pool을 만들기 전에 DATABASE_URL을 Supabase DB로 맞춘다(hoisted).
+vi.hoisted(() => {
+  if (process.env.SUPABASE_DB_URL) process.env.DATABASE_URL = process.env.SUPABASE_DB_URL;
+});
+
+// @/auth는 node 전용 next-auth를 끌어와 테스트 환경에서 import가 깨진다(artists-auth.test.ts와 동일).
+vi.mock("@/auth", () => ({ auth: vi.fn(), signIn: vi.fn(), signOut: vi.fn() }));
 // 라우트 핸들러를 요청 밖에서 부르므로 쿠키 저장소를 빈 것으로 바꾼다(= 로그인하지 않은 요청).
 vi.mock("next/headers", () => ({ cookies: async () => ({ getAll: () => [], set: () => {} }) }));
 vi.mock("next/server", async (original) => ({ ...(await original<typeof import("next/server")>()), connection: async () => {} }));

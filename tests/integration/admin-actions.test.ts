@@ -1,7 +1,15 @@
-import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { applyAdminAction } from "@/lib/admin";
 import { ArtworkError, createArtwork, resolveDownload } from "@/lib/artworks";
 import { cardId, PDF, PNG, resetArtworks, sql, storedPaths, uploadAsBrowser } from "../helpers/fixtures";
+
+// 데이터 계층은 Drizzle(@/lib/db)로 전환됐지만 스토리지·시드 카드는 아직 Supabase(sub D)다.
+// 둘이 같은 Postgres를 보도록, @/lib/db가 Pool을 만들기 전에 DATABASE_URL을 Supabase DB로 맞춘다(hoisted).
+vi.hoisted(() => {
+  if (process.env.SUPABASE_DB_URL) process.env.DATABASE_URL = process.env.SUPABASE_DB_URL;
+});
+// @/auth는 node 전용 next-auth를 끌어와 테스트 환경에서 import가 깨진다(artists-auth.test.ts와 동일).
+vi.mock("@/auth", () => ({ auth: vi.fn(), signIn: vi.fn(), signOut: vi.fn() }));
 
 afterAll(() => sql.end());
 beforeEach(resetArtworks);
