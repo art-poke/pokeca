@@ -9,7 +9,7 @@
 ```
 art-poke AWS 이전 Phase 2 이어서 한다. docs/superpowers/NEXT-SESSION-phase2.md 와
 docs/superpowers/specs/2026-11-01-aws-phase2-design.md 읽고,
-서브 C(인증 이전)부터 시작하자. AWS는 반드시 --profile artpoke (계정 138681986450, 회사 gr-readonly 금지).
+서브 C(인증+데이터계층)는 완료(브랜치 feat/aws-phase2-subC-auth, PR). 서브 D(스토리지 이전: Supabase Storage→S3+CloudFront)부터 시작하자. AWS는 반드시 --profile artpoke (계정 138681986450, 회사 gr-readonly 금지).
 먼저 /gstack 으로 brainstorming→writing-plans 거쳐 진행.
 ```
 
@@ -27,6 +27,14 @@ docs/superpowers/specs/2026-11-01-aws-phase2-design.md 읽고,
   - `infra/db/00_authjs.sql` (Auth.js 테이블, uuid), `infra/db/01_app.sql` (앱 스키마 변환본)
   - 적용 도구: **migration Lambda** `infra/lambda-migrate/` — `aws lambda invoke --function-name pokeca-migrate --profile artpoke --region ap-northeast-1 /tmp/o.json`
 - 전부 커밋됨, `terraform plan = No changes`.
+- ✅ **서브 C (인증 이전 + 데이터 계층 전환) 완료 (2026-11-02, 브랜치 `feat/aws-phase2-subC-auth`, PR 올림).**
+  - **인증**: Supabase Auth → **Auth.js v5**(`next-auth@5.0.0-beta.32`). split-config(`auth.config.ts` 엣지 + `auth.ts` 노드), providers=Kakao/Google/Credentials(bcrypt), **JWT 세션**, `@auth/drizzle-adapter`. `proxy.ts`=엣지 auth 가드. 어드민 로그인 end-to-end 검증(curl).
+  - **데이터 계층**: `db()`(Supabase PostgREST) **134곳 전부 → Drizzle ORM**(`@/lib/db`, node-postgres). `.rpc()`는 `db.execute(sql\`select fn(...)\`)`로 **같은 plpgsql 함수 호출 유지**. 23505는 `@/lib/db/errors`(`isUniqueViolation`, cause 체인 순회).
+  - **검증**: `npm run typecheck`·`npm test`(135 pass/38 skip)·`npm run build` **전부 녹색**. 금칙 패턴(authClient/supabase server/db().from/.rpc/@supabase/ssr) grep=0.
+  - **제거**: `lib/supabase/{auth,server}.ts`, `@supabase/ssr`. 스키마 단일 출처 `infra/db/*.sql` 유지.
+  - **로컬 개발 DB**: Docker Postgres(5432) `docker-compose.yml` + `infra/db/*.sql`. 어드민 생성 `npm run admin:create -- <email> <pw>`. ⚠️ **테스트/시드는 Node 22 필요**(node 20이면 reseed 데모만 비치명 실패).
+  - ⚠️ **서브 D로 이월된 것**: ① **스토리지** — `db().storage.*`는 `lib/storage-client.ts`(얇은 Supabase storage 래퍼)로 격리. `@supabase/supabase-js`·`NEXT_PUBLIC_SUPABASE_URL`·`SUPABASE_SECRET_KEY`는 그래서 **아직 남겨둠**(서브 D=S3 전환 때 제거). ② 스토리지 결합 통합테스트 4개 `describe.skip`(`// blocked until sub D`), `tests/helpers/fixtures.ts` 미이전. ③ 시드 스크립트(`scripts/seed-*.mts`, `demo:*`)는 아직 Supabase 대상 — 5432로 미이전(self-seeding 테스트로 대체).
+  - ⚠️ **사용자 액션 대기(소셜 로그인 브라우저 검증)**: 카카오/구글 콘솔에 콜백 `http://localhost:3000/api/auth/callback/{kakao,google}` 등록 + `.env.local`에 `AUTH_KAKAO_ID/SECRET`·`AUTH_GOOGLE_ID/SECRET` 입력 필요 → ego-lite로. 어드민 로그인은 콘솔 불필요(이미 검증).
 
 ## 2. 확정된 결정 (재논의 금지)
 
@@ -41,12 +49,11 @@ docs/superpowers/specs/2026-11-01-aws-phase2-design.md 읽고,
 
 ## 3. 남은 작업 (순서대로)
 
-### 서브 C — 인증 이전 (🔴 최대, 다음 세션 1순위)
-Auth.js v5 도입. 대상 파일:
-- `lib/supabase/auth.ts`, `lib/admin.ts`, `lib/artists.ts`(currentSocialUser), `lib/members.ts`
-- `app/artist/actions.ts`(socialLogin/signInWithOAuth), `app/artist/callback/route.ts`, `app/artist/login/page.tsx`
-- `app/admin/actions.ts`(signInWithPassword→Credentials+bcrypt), `app/admin/login/*`
-- `components/auth-menu.tsx`
+### ✅ 서브 C — 인증 이전 + 데이터 계층 전환 (완료, 위 §1 참조)
+설계 `docs/superpowers/specs/2026-11-01-aws-phase2-subC-auth-design.md`, 플랜 `docs/superpowers/plans/2026-11-01-aws-phase2-subC-auth.md`. 브랜치 `feat/aws-phase2-subC-auth` (PR). **다음 세션 1순위는 아래 서브 D(스토리지).** (아래는 원래 서브 C 대상 파일 기록 — 전부 전환됨.)
+- ~~`lib/supabase/auth.ts`~~(삭제), `lib/admin.ts`, `lib/artists.ts`, `lib/members.ts` → Auth.js+Drizzle
+- `app/artist/actions.ts`(→signIn/signOut), ~~`app/artist/callback/route.ts`~~(삭제, Auth.js가 대체), `app/artist/login/page.tsx`(그대로)
+- `app/admin/actions.ts`(→Credentials), `app/admin/login/*`(그대로), `components/auth-menu.tsx`(그대로)
 할 일:
 1. `@auth/core` + next-auth v5 설치, `auth.ts` 설정(Kakao, Google, Credentials 공급자)
 2. RDS 어댑터 연결(`@auth/pg-adapter` 또는 Drizzle) — users/accounts/sessions는 이미 RDS에 있음(00_authjs.sql)
