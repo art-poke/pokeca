@@ -1,13 +1,16 @@
-import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
+import bcrypt from "bcryptjs";
 import postgres from "postgres";
 import sharp from "sharp";
 
 // E2E 테스트 데이터 준비. 앱 코드(lib/)를 거치지 않고 로컬 DB·저장소에 직접 넣는다.
-export const sql = postgres(process.env.SUPABASE_DB_URL!, { onnotice: () => {} });
-const service = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SECRET_KEY!, {
-  auth: { persistSession: false },
-});
+// 데이터는 Drizzle 직결 DB(DATABASE_URL, 5432)로. 스토리지는 아직 Supabase(sub D)다 —
+// lib/storage-client.ts는 "server-only"라 Playwright(순수 node)에서 못 읽으므로 여기서 직접 만든다.
+export const sql = postgres(process.env.DATABASE_URL!, { onnotice: () => {} });
+const storage = () =>
+  createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SECRET_KEY!, {
+    auth: { persistSession: false },
+  }).storage;
 
 export const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 1, 2, 3, 4]);
 // 화면에 실제로 그려지는 작은 이미지(카드 비율). 서버가 미리보기를 만들 수 있는 진짜 PNG다.
@@ -44,7 +47,7 @@ export async function seedArtwork(s: Seed = {}): Promise<string> {
   const bytes = await previewPng();
   for (const kind of ["original", "thumbnail"]) {
     const path = `artworks/${id}/${kind}-e2e`;
-    const { error } = await service.storage.from("artworks").upload(path, bytes, { contentType: "image/png" });
+    const { error } = await storage().from("artworks").upload(path, bytes, { contentType: "image/png" });
     if (error) throw error;
     await sql`insert into artwork_files (artwork_id, kind, path, mime_type, size_bytes)
       values (${id}, ${kind}, ${path}, 'image/png', ${bytes.length})`;
@@ -56,64 +59,66 @@ export async function clearArtworks(): Promise<void> {
   await sql`truncate artworks, artwork_files, consent_events, reports, report_throttle, requests, card_demand, events cascade`;
   for (const bucket of ["artworks", "consent-evidence"]) {
     const objects = await sql<{ name: string }[]>`select name from storage.objects where bucket_id = ${bucket}`;
-    if (objects.length) await service.storage.from(bucket).remove(objects.map((o) => o.name));
+    if (objects.length) await storage().from(bucket).remove(objects.map((o) => o.name));
   }
 }
 
 // 작가 계정과 로그인 계정을 지운다(작품의 artist_id는 비워진다).
 export async function clearArtists(): Promise<void> {
-  const users = await sql<{ user_id: string }[]>`select user_id from artists`;
-  for (const u of users) await service.auth.admin.deleteUser(u.user_id);
+  const rows = await sql<{ user_id: string }[]>`select user_id from artists`;
+  for (const r of rows) await sql`delete from users where id = ${r.user_id}`;
 }
 
-// 어드민 로그인용 계정. 공개 가입이 꺼져 있어 서비스 키로 만든다.
+// 어드민 로그인용 계정. 공개 가입이 꺼져 있어 CLI/DB로만 만든다.
 export const ADMIN = { email: "admin-e2e@example.com", password: "e2e-admin-password" };
 export const NOT_ADMIN = { email: "visitor-e2e@example.com", password: "e2e-visitor-password" };
 
+// users에 bcrypt 해시로 계정을 넣고, admin이면 admins 허용 목록에도 추가한다(create-admin.mts와 동일).
 export async function ensureUser(user: { email: string; password: string }, admin: boolean): Promise<void> {
-  const { data } = await service.auth.admin.listUsers();
-  let found = data.users.find((u) => u.email === user.email);
-  if (!found) {
-    const created = await service.auth.admin.createUser({ ...user, email_confirm: true });
-    if (created.error) throw created.error;
-    found = created.data.user;
-  }
+  const hash = await bcrypt.hash(user.password, 12);
+  const [row] = await sql<{ id: string }[]>`
+    insert into users (email, password_hash) values (${user.email}, ${hash})
+    on conflict (email) do update set password_hash = excluded.password_hash
+    returning id`;
   if (admin) {
-    await sql`insert into admins (user_id, email) values (${found.id}, ${user.email}) on conflict do nothing`;
+    await sql`insert into admins (user_id, email) values (${row.id}, ${user.email}) on conflict do nothing`;
   }
 }
 
-// 카카오 로그인을 마친 것과 같은 브라우저 세션을 만든다. 실제 카카오 화면은 거치지 않는다.
-// 계정은 비밀번호로 만들어 서버 쪽에서 로그인한 뒤, 공급자를 kakao로 표시하고 세션 쿠키를 넘긴다.
-export async function socialSessionCookies(email: string, baseURL: string) {
-  const password = "e2e-social-password";
-  const { data } = await service.auth.admin.listUsers();
-  let user = data.users.find((u) => u.email === email);
-  if (!user) {
-    const created = await service.auth.admin.createUser({ email, password, email_confirm: true });
-    if (created.error) throw created.error;
-    user = created.data.user;
-  }
-  const updated = await service.auth.admin.updateUserById(user.id, {
-    password,
-    app_metadata: { provider: "kakao", providers: ["kakao"] },
-    user_metadata: { full_name: "카톡닉네임" },
-  });
-  if (updated.error) throw updated.error;
-  return sessionCookies(email, password, baseURL);
-}
-
-// 비밀번호로 서버 쪽에서 로그인하고, 브라우저에 넣을 세션 쿠키를 돌려준다.
+// 비밀번호로 Auth.js Credentials 로그인을 서버 쪽에서 돌리고, 브라우저에 넣을 세션 쿠키를 돌려준다.
+// Auth.js는 CSRF 토큰 → callback/credentials POST → Set-Cookie(authjs.session-token) 순서로 세션을 심는다.
+// (Credentials는 어드민만 authorize한다 — 비어드민 세션은 이 경로로 만들 수 없다.)
 export async function sessionCookies(email: string, password: string, baseURL: string) {
   const jar = new Map<string, string>();
-  const client = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
-    cookies: {
-      getAll: () => [...jar].map(([name, value]) => ({ name, value })),
-      setAll: (list) => list.forEach(({ name, value }) => jar.set(name, value)),
-    },
+  const readSetCookie = (res: Response) => {
+    for (const raw of res.headers.getSetCookie?.() ?? []) {
+      const [pair] = raw.split(";");
+      const eq = pair.indexOf("=");
+      if (eq > 0) jar.set(pair.slice(0, eq).trim(), pair.slice(eq + 1).trim());
+    }
+  };
+  const cookieHeader = () => [...jar].map(([n, v]) => `${n}=${v}`).join("; ");
+
+  const csrfRes = await fetch(new URL("/api/auth/csrf", baseURL), { headers: { cookie: cookieHeader() } });
+  readSetCookie(csrfRes);
+  const { csrfToken } = (await csrfRes.json()) as { csrfToken: string };
+
+  const body = new URLSearchParams({ email, password, csrfToken, callbackUrl: baseURL, json: "true" });
+  const loginRes = await fetch(new URL("/api/auth/callback/credentials", baseURL), {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded", cookie: cookieHeader() },
+    body,
+    redirect: "manual",
   });
-  const { error } = await client.auth.signInWithPassword({ email, password });
-  if (error) throw error;
+  readSetCookie(loginRes);
+
   const url = new URL(baseURL);
   return [...jar].map(([name, value]) => ({ name, value, domain: url.hostname, path: "/" }));
+}
+
+// 카카오/구글 소셜 세션은 OAuth 공급자 콘솔(리다이렉트 URI·시크릿)이 있어야 흉내 낼 수 있다.
+// 환경에 콘솔이 없어 서브 C에서는 막혀 있다 — 이 헬퍼를 쓰는 e2e는 test.skip 처리한다.
+// blocked: needs kakao/google console (sub C follow-up)
+export async function socialSessionCookies(_email: string, _baseURL: string): Promise<never> {
+  throw new Error("socialSessionCookies blocked: needs kakao/google OAuth console (sub C follow-up)");
 }
