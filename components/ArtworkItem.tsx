@@ -3,9 +3,11 @@
 import { Download } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { toast } from "sonner";
+import { trackSourceClick } from "@/domains/artwork/download";
+import { useDownloadArtworkMutation } from "@/domains/artwork/hooks";
 import { Badge } from "@/components/ui/badge";
+import { isApiError } from "@/lib/api/errors";
+import { showErrorToast, showLoginNudge, showNoticeToast } from "@/lib/toast/gr-toast";
 import type { PublicArtwork } from "@/lib/artworks";
 import { FORMAT_INFO } from "@/lib/formats";
 
@@ -77,12 +79,7 @@ export function SourceLink({ artwork }: { artwork: PublicArtwork }) {
         target="_blank"
         rel="noopener noreferrer"
         className="font-medium text-ink-600 underline-offset-2 hover:text-primary hover:underline"
-        onClick={() => {
-          navigator.sendBeacon?.(
-            "/api/events",
-            JSON.stringify({ type: "source_click", artworkId: artwork.id }),
-          );
-        }}
+        onClick={() => trackSourceClick(artwork.id)}
       >
         작가 원본 글 ↗<span className="visually-hidden">(새 탭)</span>
       </a>
@@ -97,7 +94,7 @@ const NOTICE_KEY = "print-notice-shown";
 // 다운로드(회원 전용). 피드백·인쇄안내는 toast.
 export function DownloadAction({ artwork }: { artwork: PublicArtwork }) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const { mutate, isPending: loading } = useDownloadArtworkMutation();
 
   function printNotice() {
     let shown = false;
@@ -113,53 +110,31 @@ export function DownloadAction({ artwork }: { artwork: PublicArtwork }) {
         : artwork.sourceUrl
           ? "작가 원본 글의 인쇄 안내도 확인하세요."
           : `${FORMAT_INFO[artwork.format].label} 규격에 맞춰 인쇄하세요.`;
-    toast.message("인쇄 안내", {
-      description: `‘실제 크기(100%)’로, ‘페이지에 맞추기’는 꺼주세요. ${how}`,
-      duration: 8000,
-    });
+    showNoticeToast("인쇄 안내", `‘실제 크기(100%)’로, ‘페이지에 맞추기’는 꺼주세요. ${how}`);
   }
 
-  async function download() {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/download/${artwork.id}`, { method: "POST" });
-      if (res.status === 401) {
-        toast("다운로드는 로그인 후 받을 수 있어요", {
-          action: { label: "로그인", onClick: () => (window.location.href = "/artist/login") },
-        });
-        return;
-      }
-      if (res.status === 410 || res.status === 404) {
-        toast.error("이 도안은 더 이상 제공되지 않아요");
+  function download() {
+    mutate(artwork.id, {
+      onSuccess: () => {
         router.refresh();
-        return;
-      }
-      if (!res.ok) throw new Error(String(res.status));
-      const a = document.createElement("a");
-      let revoke: string | null = null;
-      if (res.headers.get("content-type")?.includes("application/json")) {
-        // 단일 조각: 서명 URL로.
-        const { url } = await res.json();
-        a.href = url;
-      } else {
-        // 여러 조각: ZIP 바이트를 blob으로 받아 내려받는다.
-        const blob = await res.blob();
-        revoke = URL.createObjectURL(blob);
-        a.href = revoke;
-        a.download = decodeURIComponent(res.headers.get("X-Download-Filename") ?? "도안.zip");
-      }
-      a.rel = "noopener";
-      document.body.append(a);
-      a.click();
-      a.remove();
-      if (revoke) URL.revokeObjectURL(revoke);
-      router.refresh();
-      printNotice();
-    } catch {
-      toast.error("파일을 준비하지 못했어요. 다시 시도해 주세요.");
-    } finally {
-      setLoading(false);
-    }
+        printNotice();
+      },
+      onError: (error) => {
+        const status = isApiError(error) ? error.status : 0;
+        if (status === 401) {
+          showLoginNudge("다운로드는 로그인 후 받을 수 있어요", () =>
+            router.push("/artist/login"),
+          );
+          return;
+        }
+        if (status === 410 || status === 404) {
+          showErrorToast("artwork_gone");
+          router.refresh();
+          return;
+        }
+        showErrorToast();
+      },
+    });
   }
 
   return (

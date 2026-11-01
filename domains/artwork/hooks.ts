@@ -7,6 +7,7 @@ import { showErrorToast } from "@/lib/toast/gr-toast";
 import { fetchArtworkDetail, fetchRecentArtworks } from "./api/actions";
 import { artworkKeys } from "./api/queries";
 import type { ArtworkDetail, RecommendResult } from "./api/types";
+import { downloadArtwork } from "./download";
 
 // ---------------------------------------------------------------------------
 // 도메인 훅. 컴포넌트는 이 훅만 호출한다(actions/apiFetch 직접 호출 금지).
@@ -58,3 +59,10 @@ export const useToggleRecommendMutation = (id: string) => {
     meta: { skipGlobalError: true },
   });
 };
+
+// 도안 다운로드. 성공/실패 UX(인쇄 안내·로그인 유도)는 호출 컴포넌트가 분기.
+export const useDownloadArtworkMutation = () =>
+  useMutation({
+    mutationFn: (artworkId: string) => downloadArtwork(artworkId),
+    meta: { skipGlobalError: true },
+  });

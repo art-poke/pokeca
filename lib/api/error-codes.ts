@@ -20,6 +20,7 @@ export const ERROR_CODES = [
   // 도메인: artwork
   "already_downloaded", // 이미 다운로드해 추천이 반영됨
   "artwork_withdrawn", // 내려간 도안
+  "artwork_gone", // 더 이상 제공되지 않는 도안(410/404)
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];
@@ -37,6 +38,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   network: "네트워크 연결을 확인해 주세요.",
   already_downloaded: "이미 받은 도안이라 추천이 자동으로 반영돼 있어요.",
   artwork_withdrawn: "작가가 내린 도안이에요.",
+  artwork_gone: "이 도안은 더 이상 제공되지 않아요.",
 };
 
 /** code → 유저 문구. 모르는 code면 generic으로 떨어져 절대 빈 값/내부정보가 노출되지 않는다. */

@@ -15,3 +15,7 @@ export const showErrorToast = (codeOrMessage?: string) =>
 /** 비회원 액션 시 로그인 유도 토스트(액션 버튼 포함). */
 export const showLoginNudge = (message: string, onLogin: () => void) =>
   toast(message, { action: { label: "로그인", onClick: onLogin } });
+
+/** 제목 + 설명이 있는 안내 토스트(예: 인쇄 안내). */
+export const showNoticeToast = (message: string, description: string) =>
+  toast.message(message, { description, duration: 8000 });
