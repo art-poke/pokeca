@@ -18,7 +18,7 @@ Supabase Auth → **Auth.js v5**로 교체하고, 동시에 Supabase 데이터 �
 
 브레인스토밍에서 확인된 사실:
 
-- 인증 호출부는 작다(~9곳). 그러나 **데이터 접근 `db()`는 134 call-site / 22 파일**이고 Supabase PostgREST 문법(`db().from("x").select().eq(...)`)에 묶여 있다.
+- 인증 호출부는 작다(~9곳). 그러나 **데이터 접근 `db()`는 134 call-site(소스 ~115 + 테스트/헬퍼 ~19) / 소스 22 파일**이고 Supabase PostgREST 문법(`db().from("x").select().eq(...)`)에 묶여 있다.
 - 모든 auth 헬퍼(`currentArtist`, `currentMember`, `currentAdmin`)는 **세션에서 user id를 얻자마자 곧바로 앱 테이블을 `user_id`로 조회**한다. 예: `lib/artists.ts:83` `db().from("artists").select(COLUMNS).eq("user_id", userId)`.
 - 그 앱 테이블들은 **RDS에 있고 FK `user_id → users.id`** 를 갖는다(`infra/db/01_app.sql`의 admins/artists/members/engagements/comments/posts/requests).
 - 따라서 Auth.js가 RDS의 `users.id`를 돌려주는데 `db()`가 여전히 Supabase를 조회하면 **두 DB 간 split-brain**(id 불일치)으로 모든 조회가 깨진다.
@@ -70,8 +70,9 @@ Supabase Auth → **Auth.js v5**로 교체하고, 동시에 Supabase 데이터 �
 
 소셜 프로필 추출 현행(`lib/artists.ts:74-79`): `user.app_metadata.provider`, `user_metadata.{full_name,name,nickname,preferred_username}` → Auth.js `profile()` 콜백으로 매핑 필요.
 
-### 3.4 데이터 접근 `db()` (134곳 / 22파일, Drizzle로 전환)
-`lib/{admin,admin-data,artists,members,artworks,cards,search,favorites,comments,reviews,community,engagements,reports,requests,ranking,storage,cleanup,art-requests,artist-stats}.ts`, `app/api/{events,avatars/[userId],download/[id]}/route.ts`.
+### 3.4 데이터 접근 `db()` (총 134곳 = 소스 ~115 + 테스트/헬퍼 ~19, Drizzle로 전환)
+- **소스(22파일):** `lib/{admin,admin-data,artists,members,artworks,cards,search,favorites,comments,reviews,community,engagements,reports,requests,ranking,storage,cleanup,art-requests,artist-stats}.ts`, `app/api/{events,avatars/[userId],download/[id],search-requests}/route.ts` (**API 라우트 4개**).
+- **테스트/헬퍼(~19곳):** `tests/integration/*`, `tests/helpers/fixtures.ts`, `tests/e2e/db.ts` 등 — C3에서 함께 전환(테스트 계층 분량을 과소평가하지 말 것).
 
 ### 3.5 세션/미들웨어
 - **`middleware.ts` 없음.** `proxy.ts`가 Next 16의 요청 라우팅/세션 리프레시 담당(`session()` 함수, 56행 `getUser()`). `/admin/*`·`/artist/*` 가드 + `/artist/callback`·`/admin/login` 예외. `visitor_id` 쿠키(1년) 부여 — **유지.**
@@ -106,7 +107,7 @@ Supabase Auth → **Auth.js v5**로 교체하고, 동시에 Supabase 데이터 �
 ### 4.2 데이터 흐름
 - **소셜 로그인:** 버튼 → `signIn("kakao")` → 카카오 리다이렉트 → `/api/auth/callback/kakao` → Auth.js가 `users`/`accounts` upsert(Drizzle adapter) → JWT 쿠키 발급 → `auth()` 세션에 `user.id`.
 - **어드민 로그인:** 이메일/비번 → `signIn("credentials")` → `authorize()`에서 `users.password_hash` **bcrypt 검증** → JWT.
-- **권한:** `admins` 조회로 역할 판정. jwt 콜백에서 role을 심을지(요청당 DB 조회 절감) `requireAdmin`에서 매번 조회할지는 구현 시 성능/단순성 보고 결정(기본: `requireAdmin`에서 조회, 단순).
+- **권한:** `admins` 조회로 역할 판정. **플랜에서 먼저 고정할 것**(이게 `auth.ts`의 jwt/session 콜백 모양을 결정하므로 구현 중 발견 금지): 기본안 = `requireAdmin`에서 매번 `admins` 조회(단순, JWT에 role 미포함). 조회 비용이 문제되면 jwt 콜백에서 role 1회 심기로 전환.
 
 ### 4.3 환경변수(목표)
 `AUTH_SECRET`, `AUTH_KAKAO_ID`/`AUTH_KAKAO_SECRET`, `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET`, `DATABASE_URL`(로컬 Docker `postgres://...@localhost:5432/...` → 배포 시 RDS). Auth.js v5는 `AUTH_*` 규약을 자동 인식. `.env.example` 갱신.
@@ -142,7 +143,7 @@ Supabase Auth → **Auth.js v5**로 교체하고, 동시에 Supabase 데이터 �
 1. ~~Next 16 + Auth.js v5 호환~~ → ✅ 확인됨(peer deps).
 2. **카카오 프로필 매핑** — 카카오는 이름/이메일 필드가 구글·Supabase와 다름(`kakao_account.profile.nickname`, 이메일 동의 범위). `profile()` 콜백으로 정규화.
 3. **134곳 전환 분량** — C2에서 도메인별로 쪼개고 각 전환 후 타입체크. 한 번에 몰지 않음.
-4. **`proxy.ts`(Next 16 미들웨어 대체) Auth.js 연동** — JWT 세션을 미들웨어 레벨에서 읽기. Edge 런타임 제약 확인.
+4. **`proxy.ts`(Next 16 미들웨어 대체) Auth.js 연동** — JWT 세션을 미들웨어 레벨에서 읽기. Edge 런타임 제약 주의: **C1 초반에 값싼 확인 — 미들웨어 경로는 JWT만 읽고 Drizzle/node-postgres(어댑터=Node 전용) import가 없어야 함**(있으면 Edge에서 깨짐). 이 확인이 auth 가드 계층 전체를 디리스크.
 5. **로컬 Postgres ↔ RDS 스키마 드리프트** — 단일 출처 `infra/db/*.sql` 유지. Drizzle `schema.ts`는 미러이며, 변경 시 둘 다 반영.
 6. **RLS** — 현재 service_role로 우회 중. Drizzle은 마스터 유저로 직결 → 동일하게 RLS 우회(현재 OK). 앱 전용 DB 유저 도입 시 정책 재검토(범위 밖).
 7. **bcrypt in serverless** — `bcryptjs`(순수 JS) 권장(네이티브 `bcrypt` 빌드 이슈 회피). 어드민 비번 해시 생성 스크립트 1개 필요.
