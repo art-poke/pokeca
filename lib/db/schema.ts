@@ -233,3 +233,36 @@ export const favorites = pgTable(
   },
   (t) => ({ pk: primaryKey({ columns: [t.userId, t.cardId] }) }),
 );
+
+// 다형 댓글(도안·게시글) + 1단계 대댓글 (infra/db/01_app.sql의 public.comments 거울).
+// target_id/parent_id는 FK 없는 다형 참조. author_name은 작성 시점 표시명 스냅샷.
+export const comments = pgTable("comments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  targetType: text("target_type").notNull(),
+  targetId: uuid("target_id").notNull(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  authorName: text("author_name").notNull(),
+  // 실제 DB는 parent_id가 comments(id) 자기참조 FK(on delete cascade). 거울에서는 평범한 uuid로 둔다.
+  parentId: uuid("parent_id"),
+  body: text("body").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+});
+
+// 작가 후기 (infra/db/01_app.sql의 public.artist_reviews 거울). 회원이 작가에게 남기는 후기.
+export const artistReviews = pgTable("artist_reviews", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  artistId: uuid("artist_id")
+    .notNull()
+    .references(() => artists.userId, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  authorName: text("author_name").notNull(),
+  body: text("body").notNull(),
+  imagePath: text("image_path"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+});
