@@ -2,21 +2,16 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
+import {
+  useCreateCommentMutation,
+  useDeleteCommentMutation,
+} from "@/domains/comment/hooks";
+import type { CommentNode, CommentTarget as Target } from "@/domains/comment/api/types";
+import { isApiError } from "@/lib/api/errors";
+import { showErrorToast, showLoginNudge, showSuccessToast } from "@/lib/toast/gr-toast";
 import { cn } from "@/lib/utils";
 
-export type CommentNode = {
-  id: string;
-  authorName: string;
-  body: string;
-  createdAt: string;
-  parentId: string | null;
-  mine: boolean;
-  deleted: boolean;
-  replies: CommentNode[];
-};
-
-type Target = "artwork" | "post";
+export type { CommentNode };
 
 export const Comments = ({
   target,
@@ -80,15 +75,16 @@ const CommentRow = ({
 }) => {
   const router = useRouter();
   const [replying, setReplying] = useState(false);
+  const { mutate: removeComment } = useDeleteCommentMutation();
 
-  async function remove() {
-    const res = await fetch(`/api/comments/${comment.id}`, { method: "DELETE" });
-    if (res.ok) {
-      toast.success("댓글을 삭제했어요");
-      router.refresh();
-    } else {
-      toast.error("삭제하지 못했어요");
-    }
+  function remove() {
+    removeComment(comment.id, {
+      onSuccess: () => {
+        showSuccessToast("댓글을 삭제했어요");
+        router.refresh();
+      },
+      onError: () => showErrorToast(),
+    });
   }
 
   return (
@@ -138,36 +134,30 @@ const CommentForm = ({
 }) => {
   const router = useRouter();
   const [body, setBody] = useState("");
-  const [pending, setPending] = useState(false);
+  const { mutate: createComment, isPending: pending } = useCreateCommentMutation();
 
-  async function submit() {
+  function submit() {
     const text = body.trim();
     if (!text || pending) return;
-    setPending(true);
-    try {
-      const res = await fetch("/api/comments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ target, targetId, body: text, parentId }),
-      });
-      if (res.status === 401) {
-        toast("댓글을 쓰려면 로그인하세요", {
-          action: { label: "로그인", onClick: () => (window.location.href = "/artist/login") },
-        });
-        return;
-      }
-      if (!res.ok) {
-        toast.error("등록하지 못했어요");
-        return;
-      }
-      setBody("");
-      onDone?.();
-      router.refresh();
-    } catch {
-      toast.error("등록하지 못했어요");
-    } finally {
-      setPending(false);
-    }
+    createComment(
+      { target, targetId, body: text, parentId },
+      {
+        onSuccess: () => {
+          setBody("");
+          onDone?.();
+          router.refresh();
+        },
+        onError: (error) => {
+          if (isApiError(error) && error.status === 401) {
+            showLoginNudge("댓글을 쓰려면 로그인하세요", () =>
+              router.push("/artist/login"),
+            );
+            return;
+          }
+          showErrorToast(isApiError(error) ? error.code ?? undefined : undefined);
+        },
+      },
+    );
   }
 
   return (

@@ -2,7 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
+import { useCreatePostMutation } from "@/domains/community/hooks";
+import { isApiError } from "@/lib/api/errors";
+import { showErrorToast, showInfoToast, showSuccessToast } from "@/lib/toast/gr-toast";
 import { cn } from "@/lib/utils";
 
 type BoardOption = { value: string; label: string };
@@ -13,37 +15,25 @@ export const PostForm = ({ boards }: { boards: BoardOption[] }) => {
   const [board, setBoard] = useState(boards[0]?.value ?? "free");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const [pending, setPending] = useState(false);
+  const { mutate, isPending: pending } = useCreatePostMutation();
 
-  async function submit() {
+  function submit() {
     if (!title.trim() || !body.trim() || pending) return;
-    setPending(true);
-    try {
-      const res = await fetch("/api/community/posts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ board, title, body }),
-      });
-      if (res.status === 401) {
-        toast("로그인이 필요해요");
-        return;
-      }
-      if (res.status === 403) {
-        toast.error("이 게시판에 쓸 권한이 없어요");
-        return;
-      }
-      if (!res.ok) {
-        toast.error("등록하지 못했어요");
-        return;
-      }
-      const { id } = (await res.json()) as { id: string };
-      toast.success("글을 등록했어요");
-      router.push(`/community/${id}`);
-    } catch {
-      toast.error("등록하지 못했어요");
-    } finally {
-      setPending(false);
-    }
+    mutate(
+      { board, title, body },
+      {
+        onSuccess: ({ id }) => {
+          showSuccessToast("글을 등록했어요");
+          router.push(`/community/${id}`);
+        },
+        onError: (error) => {
+          const status = isApiError(error) ? error.status : 0;
+          if (status === 401) return showInfoToast("로그인이 필요해요");
+          if (status === 403) return showErrorToast("forbidden");
+          showErrorToast();
+        },
+      },
+    );
   }
 
   return (
