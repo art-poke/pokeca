@@ -1,4 +1,7 @@
-import { pgTable, uuid, text, timestamp, bigint, primaryKey } from "drizzle-orm/pg-core";
+// 이 파일은 DB 스키마의 Drizzle 거울(mirror)이다. 단일 출처(source of truth)는
+// infra/db/00_authjs.sql(Auth.js 어댑터 테이블) + infra/db/01_app.sql(앱 테이블)이다.
+// SQL을 바꾸면 이 파일도 함께 맞춰 드리프트를 막는다.
+import { pgTable, uuid, text, timestamp, bigint, primaryKey, unique } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -23,7 +26,9 @@ export const accounts = pgTable("accounts", {
   scope: text("scope"),
   id_token: text("id_token"),
   session_state: text("session_state"),
-});
+}, (t) => ({
+  providerUnique: unique().on(t.provider, t.providerAccountId),
+}));
 
 export const sessions = pgTable("sessions", {
   id: uuid("id").primaryKey().defaultRandom(),
