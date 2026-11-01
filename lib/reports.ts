@@ -1,8 +1,24 @@
 import "server-only";
 import { createHmac } from "node:crypto";
-import { db } from "@/lib/supabase/server";
+import { sql } from "drizzle-orm";
+import { db } from "@/lib/db";
 import { setStatus } from "@/lib/artworks";
 import { UUID } from "@/lib/uuid";
+
+// plpgsql의 `raise exception '<code>'`은 pg 에러 message로 올라오고, Drizzle는 그 에러를 .cause 체인에
+// 감싼다. report_submit이 던지는 코드만 추려 ReportError로 올린다.
+const REPORT_RPC_CODES = ["rate_limited", "not_found"] as const;
+function reportRpcCode(e: unknown): string | undefined {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let cur: any = e;
+  for (let i = 0; i < 5 && cur; i++) {
+    if (typeof cur.message === "string" && (REPORT_RPC_CODES as readonly string[]).includes(cur.message)) {
+      return cur.message;
+    }
+    cur = cur.cause;
+  }
+  return undefined;
+}
 
 // 신고·내림 요청 (설계 "신고 흐름", design 14A).
 //   저장 → (같은 작품에 24시간 안 서로 다른 IP 대역 3곳) 자동 숨김 → 어드민 검수
@@ -61,21 +77,26 @@ export function parseReport(input: unknown): NewReport {
 }
 
 export async function submitReport(report: NewReport, ipHash: string): Promise<{ id: string; autoHidden: boolean }> {
-  const { data, error } = await db().rpc("report_submit", {
-    p_report: {
-      artwork_id: report.artworkId,
-      source_url: report.sourceUrl,
-      reason: report.reason,
-      contact: report.contact,
-      message: report.message,
-    },
-    p_ip_hash: ipHash,
-  });
-  if (error) {
-    if (error.message === "rate_limited" || error.message === "not_found") throw new ReportError(error.message);
-    throw error;
+  const pReport = {
+    artwork_id: report.artworkId,
+    source_url: report.sourceUrl,
+    reason: report.reason,
+    contact: report.contact,
+    message: report.message,
+  };
+  let data: { id: string; auto_hide: boolean };
+  try {
+    // 신고 저장·한도·자동숨김 판정은 plpgsql 함수(report_submit)가 한 트랜잭션에서 처리한다.
+    const result = await db.execute(
+      sql`select public.report_submit(${JSON.stringify(pReport)}::jsonb, ${ipHash}) as r`,
+    );
+    data = (result.rows[0] as { r: { id: string; auto_hide: boolean } }).r;
+  } catch (e) {
+    const code = reportRpcCode(e);
+    if (code) throw new ReportError(code);
+    throw e;
   }
-  const { id, auto_hide } = data as { id: string; auto_hide: boolean };
+  const { id, auto_hide } = data;
   let autoHidden = false;
   if (auto_hide && report.artworkId) {
     const result = await setStatus(report.artworkId, "hidden", {
