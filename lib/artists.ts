@@ -1,7 +1,10 @@
 import "server-only";
 import { redirect } from "next/navigation";
-import { authClient } from "@/lib/supabase/auth";
-import { db } from "@/lib/supabase/server";
+import { and, asc, eq, ilike, or } from "drizzle-orm";
+import { auth } from "@/auth";
+import { db } from "@/lib/db";
+import { artists } from "@/lib/db/schema";
+import { db as supabaseDb } from "@/lib/supabase/server";
 import { ArtworkError, setStatus, toPublic, type ArtworkRow, type PublicArtwork, type Status } from "@/lib/artworks";
 import { expectedConfirm, normalizeConfirm } from "@/lib/admin";
 import { UUID } from "@/lib/uuid";
@@ -36,6 +39,7 @@ type ArtistRow = {
   created_at: string;
 };
 
+// C2(Task 2.1)에서 Drizzle 전환되는 4개 함수(artworks/cards 조인)만 쓰는 snake_case 행·매퍼.
 const COLUMNS = "user_id, handle, display_name, email, provider, intro, link_url, status, created_at";
 
 function fromRow(r: ArtistRow): Artist {
@@ -49,6 +53,45 @@ function fromRow(r: ArtistRow): Artist {
     linkUrl: r.link_url,
     status: r.status,
     createdAt: r.created_at,
+  };
+}
+
+// Drizzle select 결과(camelCase)를 Artist로. createdAt은 timestamptz → ISO 문자열로 맞춘다.
+const artistColumns = {
+  userId: artists.userId,
+  handle: artists.handle,
+  displayName: artists.displayName,
+  email: artists.email,
+  provider: artists.provider,
+  intro: artists.intro,
+  linkUrl: artists.linkUrl,
+  status: artists.status,
+  createdAt: artists.createdAt,
+};
+
+type DrizzleArtistRow = {
+  userId: string;
+  handle: string;
+  displayName: string;
+  email: string | null;
+  provider: string;
+  intro: string | null;
+  linkUrl: string | null;
+  status: string;
+  createdAt: Date;
+};
+
+function fromDrizzle(r: DrizzleArtistRow): Artist {
+  return {
+    userId: r.userId,
+    handle: r.handle,
+    displayName: r.displayName,
+    email: r.email,
+    provider: r.provider as SocialProvider,
+    intro: r.intro,
+    linkUrl: r.linkUrl,
+    status: r.status as ArtistStatus,
+    createdAt: r.createdAt.toISOString(),
   };
 }
 
@@ -67,22 +110,17 @@ export type SocialProvider = (typeof SOCIAL_PROVIDERS)[number];
 export type SocialUser = { id: string; email: string | null; provider: SocialProvider; name: string | null };
 
 export async function currentSocialUser(): Promise<SocialUser | null> {
-  const {
-    data: { user },
-  } = await (await authClient()).auth.getUser();
-  if (!user) return null;
-  const provider = user.app_metadata.provider as SocialProvider | undefined;
-  // 어드민의 이메일 계정 등 소셜 로그인이 아닌 계정은 작가 영역에서 로그인하지 않은 것으로 본다.
-  if (!provider || !SOCIAL_PROVIDERS.includes(provider)) return null;
-  const meta = user.user_metadata ?? {};
-  const name = meta.full_name ?? meta.name ?? meta.nickname ?? meta.preferred_username ?? null;
-  return { id: user.id, email: user.email || null, provider, name: typeof name === "string" ? name : null };
+  const session = await auth();
+  const user = session?.user;
+  const provider = (session as { provider?: string } | null)?.provider as SocialProvider | undefined;
+  // 어드민의 이메일(credentials) 계정 등 소셜 로그인이 아닌 계정은 작가 영역에서 로그인하지 않은 것으로 본다.
+  if (!user?.id || !provider || !SOCIAL_PROVIDERS.includes(provider)) return null;
+  return { id: user.id, email: user.email ?? null, provider, name: user.name ?? null };
 }
 
 async function artistByUserId(userId: string): Promise<Artist | null> {
-  const { data, error } = await db().from("artists").select(COLUMNS).eq("user_id", userId).maybeSingle<ArtistRow>();
-  if (error) throw error;
-  return data ? fromRow(data) : null;
+  const rows = await db.select(artistColumns).from(artists).where(eq(artists.userId, userId)).limit(1);
+  return rows[0] ? fromDrizzle(rows[0]) : null;
 }
 
 export async function currentArtist(): Promise<Artist | null> {
@@ -92,15 +130,13 @@ export async function currentArtist(): Promise<Artist | null> {
 
 // 개발 미리보기용: 승인된 작가 아무나 1명(로컬에서 로그인 없이 스튜디오 UI 확인).
 export async function anyApprovedArtist(): Promise<Artist | null> {
-  const { data, error } = await db()
-    .from("artists")
-    .select(COLUMNS)
-    .eq("status", "approved")
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle<ArtistRow>();
-  if (error) throw error;
-  return data ? fromRow(data) : null;
+  const rows = await db
+    .select(artistColumns)
+    .from(artists)
+    .where(eq(artists.status, "approved"))
+    .orderBy(asc(artists.createdAt))
+    .limit(1);
+  return rows[0] ? fromDrizzle(rows[0]) : null;
 }
 
 // 작가 화면과 server action의 첫 줄. 로그인 전이면 로그인으로, 신청 전이면 신청 폼으로 보낸다.
@@ -142,34 +178,35 @@ export async function registerArtist(user: SocialUser, input: ArtistApplication)
   if (intro && intro.length > 300) throw new ArtistError("intro_too_long");
   if (linkUrl && !/^https?:\/\//.test(linkUrl)) throw new ArtistError("invalid_link");
 
-  const { data, error } = await db()
-    .from("artists")
-    .insert({
-      user_id: user.id,
-      handle,
-      display_name: displayName,
-      email: user.email,
-      provider: user.provider,
-      intro,
-      link_url: linkUrl,
-    })
-    .select(COLUMNS)
-    .single<ArtistRow>();
-  if (error) {
-    if (error.code === "23505") {
+  try {
+    const rows = await db
+      .insert(artists)
+      .values({
+        userId: user.id,
+        handle,
+        displayName,
+        email: user.email,
+        provider: user.provider,
+        intro,
+        linkUrl,
+      })
+      .returning(artistColumns);
+    return fromDrizzle(rows[0]);
+  } catch (e) {
+    if ((e as { code?: string })?.code === "23505") {
       // 주소가 겹치거나, 같은 계정이 두 번 신청했다.
       if (await artistByUserId(user.id)) throw new ArtistError("already_registered");
       throw new ArtistError("handle_taken");
     }
-    throw error;
+    throw e;
   }
-  return fromRow(data);
 }
 
 // 어드민 승인 -------------------------------------------------------------------
 
+// C2(Task 2.1)에서 Drizzle 전환 — artworks/cards 조인 의존, 임시 Supabase 유지
 export async function listArtists(): Promise<(Artist & { artworkCount: number })[]> {
-  const { data, error } = await db()
+  const { data, error } = await supabaseDb()
     .from("artists")
     .select(`${COLUMNS}, artworks(count)`)
     .order("created_at", { ascending: false })
@@ -185,33 +222,29 @@ export async function listArtists(): Promise<(Artist & { artworkCount: number })
 export async function setArtistStatus(userId: string, status: ArtistStatus, actor: string): Promise<void> {
   if (!UUID.test(userId)) throw new ArtistError("not_found");
   if (!ARTIST_STATUSES.includes(status)) throw new ArtistError("invalid_status");
-  const { data, error } = await db()
-    .from("artists")
-    .update({ status, reviewed_at: new Date().toISOString(), reviewed_by: actor })
-    .eq("user_id", userId)
-    .select("user_id");
-  if (error) throw error;
-  if (!data.length) throw new ArtistError("not_found");
+  const rows = await db
+    .update(artists)
+    .set({ status, reviewedAt: new Date(), reviewedBy: actor })
+    .where(eq(artists.userId, userId))
+    .returning({ userId: artists.userId });
+  if (!rows.length) throw new ArtistError("not_found");
 }
 
 export async function getArtistById(userId: string): Promise<Artist | null> {
   if (!UUID.test(userId)) return null;
-  const { data, error } = await db().from("artists").select(COLUMNS).eq("user_id", userId).maybeSingle<ArtistRow>();
-  if (error) throw error;
-  return data ? fromRow(data) : null;
+  const rows = await db.select(artistColumns).from(artists).where(eq(artists.userId, userId)).limit(1);
+  return rows[0] ? fromDrizzle(rows[0]) : null;
 }
 
 // 승인 작가의 user_id를 핸들로 찾는다(후기 작성 등). 없거나 미승인이면 null.
 export async function approvedArtistId(handle: string): Promise<string | null> {
   if (!HANDLE.test(handle)) return null;
-  const { data, error } = await db()
-    .from("artists")
-    .select("user_id")
-    .eq("handle", handle)
-    .eq("status", "approved")
-    .maybeSingle<{ user_id: string }>();
-  if (error) throw error;
-  return data?.user_id ?? null;
+  const rows = await db
+    .select({ userId: artists.userId })
+    .from(artists)
+    .where(and(eq(artists.handle, handle), eq(artists.status, "approved")))
+    .limit(1);
+  return rows[0]?.userId ?? null;
 }
 
 export type ArtistHit = { userId: string; handle: string; displayName: string };
@@ -221,16 +254,13 @@ export async function searchArtists(q: string, limit = 8): Promise<ArtistHit[]> 
   const query = q.trim();
   if (!query) return [];
   const like = `%${query.replace(/[%_]/g, (m) => `\\${m}`)}%`;
-  const { data, error } = await db()
-    .from("artists")
-    .select("user_id, handle, display_name")
-    .eq("status", "approved")
-    .or(`display_name.ilike.${like},handle.ilike.${like}`)
-    .order("display_name", { ascending: true })
-    .limit(limit)
-    .returns<{ user_id: string; handle: string; display_name: string }[]>();
-  if (error) throw error;
-  return data.map((r) => ({ userId: r.user_id, handle: r.handle, displayName: r.display_name }));
+  const rows = await db
+    .select({ userId: artists.userId, handle: artists.handle, displayName: artists.displayName })
+    .from(artists)
+    .where(and(eq(artists.status, "approved"), or(ilike(artists.displayName, like), ilike(artists.handle, like))))
+    .orderBy(asc(artists.displayName))
+    .limit(limit);
+  return rows.map((r) => ({ userId: r.userId, handle: r.handle, displayName: r.displayName }));
 }
 
 // 공개 작가 페이지 -----------------------------------------------------------------
@@ -239,10 +269,11 @@ export type PortfolioArtwork = PublicArtwork & { card: { label: string; path: st
 
 type PortfolioRow = ArtworkRow & { cards: { set_code: string; collector_number: string; name_ko: string } };
 
+// C2(Task 2.1)에서 Drizzle 전환 — artworks/cards 조인 의존, 임시 Supabase 유지
 // 승인된 작가만 공개한다. 작품은 공개(active) 상태만, 최신 순.
 export async function getPortfolio(handle: string): Promise<{ artist: Artist; artworks: PortfolioArtwork[] } | null> {
   if (!HANDLE.test(handle)) return null;
-  const found = await db()
+  const found = await supabaseDb()
     .from("artists")
     .select(COLUMNS)
     .eq("handle", handle)
@@ -252,7 +283,7 @@ export async function getPortfolio(handle: string): Promise<{ artist: Artist; ar
   if (!found.data) return null;
   const artist = fromRow(found.data);
 
-  const { data, error } = await db()
+  const { data, error } = await supabaseDb()
     .from("artworks")
     .select(
       "id, title, artist_name, format, source_url, source_visibility, link_status, print_size_verified, cards(set_code, collector_number, name_ko)",
@@ -286,9 +317,10 @@ export type MyArtwork = {
   card: { label: string; path: string; name: string };
 };
 
+// C2(Task 2.1)에서 Drizzle 전환 — artworks/cards 조인 의존, 임시 Supabase 유지
 // 철회한 작품은 빼고, 숨김(어드민이 내린 것)은 보여 준다.
 export async function listMyArtworks(artistId: string): Promise<MyArtwork[]> {
-  const { data, error } = await db()
+  const { data, error } = await supabaseDb()
     .from("artworks")
     .select("id, title, artist_name, format, status, created_at, cards(set_code, collector_number, name_ko)")
     .eq("artist_id", artistId)
@@ -325,11 +357,12 @@ export function artistActor(artist: Artist): string {
   return `artist:${artist.handle}`;
 }
 
+// C2(Task 2.1)에서 Drizzle 전환 — artworks/cards 조인 의존, 임시 Supabase 유지
 // 작가가 자기 작품을 내린다 = 철회(파일 삭제, 되돌릴 수 없음). 어드민 철회와 같이 카드 번호를 확인한다.
 // 숨김·복구는 어드민 몫이다(어드민이 숨긴 작품을 작가가 되살리지 못하게).
 export async function withdrawMyArtwork(artist: Artist, artworkId: string, confirm: string): Promise<void> {
   if (!UUID.test(artworkId)) throw new ArtworkError("not_found");
-  const { data, error } = await db().from("artworks").select("artist_id").eq("id", artworkId).maybeSingle();
+  const { data, error } = await supabaseDb().from("artworks").select("artist_id").eq("id", artworkId).maybeSingle();
   if (error) throw error;
   if (!data || data.artist_id !== artist.userId) throw new ArtworkError("not_found");
   const expected = await expectedConfirm(artworkId);
