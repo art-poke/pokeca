@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useCreateReportMutation } from "@/domains/report/hooks";
+import type { ReportInput } from "@/domains/report/api/types";
+import { isApiError } from "@/lib/api/errors";
 import styles from "./ReportForm.module.css";
 
 // 신고·내림 요청 폼 (design 14A, 6A). 작품 ··· 메뉴의 대화상자와 /takedown 페이지가 함께 쓴다.
@@ -15,24 +18,21 @@ type State = "idle" | "sending" | "sent" | "failed" | "limited";
 
 export function ReportForm({ artworkId, onDone }: { artworkId?: string; onDone?: () => void }) {
   const [state, setState] = useState<State>("idle");
+  const { mutate } = useCreateReportMutation();
 
-  async function submit(event: React.FormEvent<HTMLFormElement>) {
+  function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(event.currentTarget));
     setState("sending");
-    try {
-      const res = await fetch("/api/reports", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, artworkId }),
-      });
-      if (res.status === 429) return setState("limited");
-      if (!res.ok) throw new Error(String(res.status));
-      setState("sent");
-    } catch {
-      // 입력은 그대로 둔다.
-      setState("failed");
-    }
+    mutate(
+      { ...data, artworkId } as ReportInput,
+      {
+        onSuccess: () => setState("sent"),
+        onError: (error) =>
+          // 입력은 그대로 둔다. 하루 한도(429)는 별도 안내.
+          setState(isApiError(error) && error.status === 429 ? "limited" : "failed"),
+      },
+    );
   }
 
   if (state === "sent") {

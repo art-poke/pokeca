@@ -3,28 +3,15 @@
 import { ArrowRight, Search } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-
-type Hit = { userId: string; handle: string; displayName: string };
+import { useArtistSearchQuery } from "@/domains/artist/hooks";
 
 // 커뮤니티 후기: 작가 이름/핸들로 검색 → 작가 페이지로 가서 후기 남기기.
 export function ReviewArtistSearch() {
   const [q, setQ] = useState("");
-  const [hits, setHits] = useState<Hit[] | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState("");
+  const { data: hits, isFetching: loading } = useArtistSearchQuery(submitted);
 
-  async function run(value: string) {
-    if (!value.trim()) {
-      setHits(null);
-      return;
-    }
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/artists/search?q=${encodeURIComponent(value)}`);
-      setHits(res.ok ? await res.json() : []);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const run = (value: string) => setSubmitted(value.trim());
 
   return (
     <div className="space-y-2.5 rounded-2xl border border-border bg-background p-4">
