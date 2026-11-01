@@ -3,8 +3,10 @@
 import { Camera, Check, Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { toast } from "sonner";
+import { useUpdateProfileMutation } from "@/domains/member/hooks";
 import { errorMessage, uploadFile } from "@/components/admin/upload";
+import { isApiError } from "@/lib/api/errors";
+import { showErrorMessage, showLoginNudge, showSuccessToast } from "@/lib/toast/gr-toast";
 import { NICKNAME_MAX } from "@/lib/profile";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +29,7 @@ export function ProfileEdit({
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const { mutateAsync: updateProfile } = useUpdateProfileMutation();
 
   // 표시용 아바타: 새로 고른 파일 > 기존 업로드 > 이니셜.
   const shownAvatar = avatarUrl ?? (hasAvatar ? `/api/avatars/${userId}` : null);
@@ -41,32 +44,25 @@ export function ProfileEdit({
 
   async function save() {
     if (!name.trim()) {
-      toast.error("닉네임을 입력해 주세요.");
+      showErrorMessage("닉네임을 입력해 주세요.");
       return;
     }
     setSaving(true);
     try {
-      let avatarUploadId: string | undefined;
-      if (avatarFile) avatarUploadId = await uploadFile("avatar", avatarFile, "/api/member");
-      const res = await fetch("/api/member/profile", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nickname: name.trim(), avatarUploadId }),
-      });
-      if (res.status === 401) {
-        toast("로그인 후 바꿀 수 있어요", {
-          action: { label: "로그인", onClick: () => router.push("/artist/login") },
-        });
-        return;
-      }
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body.code ?? "failed");
-      toast.success("프로필을 저장했어요");
+      const avatarUploadId = avatarFile
+        ? await uploadFile("avatar", avatarFile, "/api/member")
+        : undefined;
+      await updateProfile({ nickname: name.trim(), avatarUploadId });
+      showSuccessToast("프로필을 저장했어요");
       setEditing(false);
       setAvatarFile(null);
       router.refresh();
     } catch (e) {
-      toast.error(errorMessage(e instanceof Error ? e.message : ""));
+      if (isApiError(e) && e.status === 401) {
+        showLoginNudge("로그인 후 바꿀 수 있어요", () => router.push("/artist/login"));
+        return;
+      }
+      showErrorMessage(errorMessage(e instanceof Error ? e.message : ""));
     } finally {
       setSaving(false);
     }

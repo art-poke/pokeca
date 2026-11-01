@@ -3,8 +3,10 @@
 import { ImagePlus, MessageSquareHeart, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { toast } from "sonner";
+import { useCreateReviewMutation, useDeleteReviewMutation } from "@/domains/review/hooks";
 import { errorMessage, uploadFile } from "@/components/admin/upload";
+import { isApiError } from "@/lib/api/errors";
+import { showErrorMessage, showLoginNudge, showSuccessToast } from "@/lib/toast/gr-toast";
 import { REVIEW_MAX } from "@/lib/profile";
 import type { Review } from "@/lib/reviews";
 import { cn } from "@/lib/utils";
@@ -30,6 +32,8 @@ export function ArtistReviews({
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const { mutateAsync: createReview } = useCreateReviewMutation();
+  const { mutateAsync: deleteReview } = useDeleteReviewMutation();
 
   function pickImage(file: File | null) {
     if (!file) return;
@@ -44,31 +48,23 @@ export function ArtistReviews({
 
   async function submit() {
     if (!body.trim()) {
-      toast.error("후기 내용을 입력해 주세요.");
+      showErrorMessage("후기 내용을 입력해 주세요.");
       return;
     }
     setSaving(true);
     try {
       const imageUploadId = image ? await uploadFile("review", image.file, "/api/member") : undefined;
-      const res = await fetch("/api/reviews", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ artistHandle, body: body.trim(), imageUploadId }),
-      });
-      if (res.status === 401) {
-        toast("후기는 로그인 후 남길 수 있어요", {
-          action: { label: "로그인", onClick: () => router.push("/artist/login") },
-        });
-        return;
-      }
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.code ?? "failed");
-      toast.success("후기를 남겼어요");
+      await createReview({ artistHandle, body: body.trim(), imageUploadId });
+      showSuccessToast("후기를 남겼어요");
       setBody("");
       clearImage();
       router.refresh();
     } catch (e) {
-      toast.error(errorMessage(e instanceof Error ? e.message : "", "후기를 남기지 못했어요."));
+      if (isApiError(e) && e.status === 401) {
+        showLoginNudge("후기는 로그인 후 남길 수 있어요", () => router.push("/artist/login"));
+        return;
+      }
+      showErrorMessage(errorMessage(e instanceof Error ? e.message : "", "후기를 남기지 못했어요."));
     } finally {
       setSaving(false);
     }
@@ -77,12 +73,11 @@ export function ArtistReviews({
   async function remove(id: string) {
     setBusyId(id);
     try {
-      const res = await fetch(`/api/reviews/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error(String(res.status));
-      toast.success("후기를 지웠어요");
+      await deleteReview(id);
+      showSuccessToast("후기를 지웠어요");
       router.refresh();
     } catch {
-      toast.error("후기를 지우지 못했어요.");
+      showErrorMessage("후기를 지우지 못했어요.");
     } finally {
       setBusyId(null);
     }
