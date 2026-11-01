@@ -1,6 +1,7 @@
 "use client";
 
 import { createClient } from "@supabase/supabase-js";
+import { apiFetch } from "@/lib/api/client";
 
 // 어드민·작가 브라우저 업로드 (eng D3). 서버가 발급한 서명 URL로 Supabase Storage에 직접 올린다.
 // 공개 키 클라이언트지만 서명 토큰이 있는 경로에만 쓸 수 있다.
@@ -21,13 +22,14 @@ export async function uploadFile(
   file: File,
   api: "/api/admin" | "/api/artist" | "/api/member" = "/api/admin",
 ): Promise<string> {
-  const res = await fetch(`${api}/uploads`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ kind, mimeType: file.type, sizeBytes: file.size }),
-  });
-  const body = await res.json();
-  if (!res.ok) throw new Error(body.code ?? "upload_failed");
+  // 업로드 URL 발급은 같은 Next의 route. 실패 시 apiFetch가 ApiError(message=code)를 던진다.
+  const body = await apiFetch<{ path: string; token: string; uploadId: string }>(
+    `${api}/uploads`,
+    {
+      method: "POST",
+      body: JSON.stringify({ kind, mimeType: file.type, sizeBytes: file.size }),
+    },
+  );
   const bucket = kind === "evidence" ? "consent-evidence" : "artworks";
   const { error } = await storage.from(bucket).uploadToSignedUrl(body.path, body.token, file, {
     contentType: file.type,

@@ -60,6 +60,16 @@ export const useToggleRecommendMutation = (id: string) => {
   });
 };
 
+// 추천 토글(쿼리 캐시 없이 로컬 상태로 쓰는 화면용 — 서버렌더 상세 페이지 등).
+export const useRecommendArtworkMutation = (artworkId: string) =>
+  useMutation({
+    mutationFn: () =>
+      apiFetch<RecommendResult>(`/api/artworks/${artworkId}/recommend`, {
+        method: "POST",
+      }),
+    meta: { skipGlobalError: true },
+  });
+
 // 도안 다운로드. 성공/실패 UX(인쇄 안내·로그인 유도)는 호출 컴포넌트가 분기.
 export const useDownloadArtworkMutation = () =>
   useMutation({

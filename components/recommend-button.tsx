@@ -3,7 +3,14 @@
 import { ThumbsUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
+import { useRecommendArtworkMutation } from "@/domains/artwork/hooks";
+import { isApiError } from "@/lib/api/errors";
+import {
+  showErrorToast,
+  showInfoToast,
+  showLoginNudge,
+  showSuccessToast,
+} from "@/lib/toast/gr-toast";
 import { cn } from "@/lib/utils";
 
 type State = "download" | "recommend" | null;
@@ -23,47 +30,36 @@ export const RecommendButton = ({
   const router = useRouter();
   const [state, setState] = useState<State>(initialState);
   const [count, setCount] = useState(initialCount);
-  const [pending, setPending] = useState(false);
+  const { mutate, isPending: pending } = useRecommendArtworkMutation(artworkId);
 
   const recommended = state === "recommend";
   const blocked = state === "download";
 
-  async function toggle() {
+  function toggle() {
     if (!isMember) {
-      toast("로그인하면 추천할 수 있어요", {
-        action: { label: "로그인", onClick: () => (window.location.href = "/artist/login") },
-      });
+      showLoginNudge("로그인하면 추천할 수 있어요", () => router.push("/artist/login"));
       return;
     }
     if (blocked) {
-      toast("이미 다운로드로 추천이 반영됐어요");
+      showInfoToast("이미 다운로드로 추천이 반영됐어요");
       return;
     }
     if (pending) return;
-    setPending(true);
-    try {
-      const res = await fetch(`/api/artworks/${artworkId}/recommend`, { method: "POST" });
-      if (res.status === 401) {
-        toast("로그인하면 추천할 수 있어요");
-        return;
-      }
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        toast.error(
-          data.code === "already_downloaded" ? "이미 다운로드로 반영됐어요" : "추천하지 못했어요",
-        );
-        return;
-      }
-      const data = (await res.json()) as { recommended: boolean };
-      setState(data.recommended ? "recommend" : null);
-      setCount((c) => c + (data.recommended ? 1 : -1));
-      toast.success(data.recommended ? "추천했어요" : "추천을 취소했어요");
-      router.refresh();
-    } catch {
-      toast.error("추천하지 못했어요");
-    } finally {
-      setPending(false);
-    }
+    mutate(undefined, {
+      onSuccess: (data) => {
+        setState(data.recommended ? "recommend" : null);
+        setCount((c) => c + (data.recommended ? 1 : -1));
+        showSuccessToast(data.recommended ? "추천했어요" : "추천을 취소했어요");
+        router.refresh();
+      },
+      onError: (error) => {
+        if (isApiError(error) && error.status === 401) {
+          showInfoToast("로그인하면 추천할 수 있어요");
+          return;
+        }
+        showErrorToast(isApiError(error) ? error.code ?? undefined : undefined);
+      },
+    });
   }
 
   return (
