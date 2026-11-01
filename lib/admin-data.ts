@@ -1,5 +1,14 @@
 import "server-only";
-import { db } from "@/lib/supabase/server";
+import { and, asc, desc, eq, ilike, ne, sql } from "drizzle-orm";
+import { db } from "@/lib/db";
+import {
+  artists,
+  artworkFiles,
+  artworks,
+  cards,
+  consentEvents,
+  reports,
+} from "@/lib/db/schema";
 import { ArtworkError, type Format, type Status } from "@/lib/artworks";
 import { signedEvidenceUrl } from "@/lib/storage";
 import { UUID } from "@/lib/uuid";
@@ -38,9 +47,50 @@ type Row = {
   cards: { set_code: string; collector_number: string };
 };
 
-const BASE =
-  "id, artist_name, format, status, source_url, source_visibility, link_status, link_checked_at, created_at";
-const COLUMNS = `${BASE}, cards(set_code, collector_number)`;
+// artworks + cards 조인에서 Row 형태로 뽑는 공통 select. (옛 PostgREST COLUMNS 상수의 Drizzle판.)
+const artworkRowColumns = {
+  id: artworks.id,
+  artist_name: artworks.artistName,
+  format: artworks.format,
+  status: artworks.status,
+  source_url: artworks.sourceUrl,
+  source_visibility: artworks.sourceVisibility,
+  link_status: artworks.linkStatus,
+  link_checked_at: artworks.linkCheckedAt,
+  created_at: artworks.createdAt,
+  set_code: cards.setCode,
+  collector_number: cards.collectorNumber,
+} as const;
+
+type ArtworkRowSelect = {
+  id: string;
+  artist_name: string;
+  format: string;
+  status: string;
+  source_url: string | null;
+  source_visibility: string | null;
+  link_status: string;
+  link_checked_at: Date | null;
+  created_at: Date;
+  set_code: string;
+  collector_number: string;
+};
+
+// Drizzle 평평한 결과(날짜는 Date, 문자열 enum)를 toAdminRow가 받는 Row로 맞춘다.
+function toRow(r: ArtworkRowSelect): Row {
+  return {
+    id: r.id,
+    artist_name: r.artist_name,
+    format: r.format as Format,
+    status: r.status as Status,
+    source_url: r.source_url,
+    source_visibility: r.source_visibility as "public" | "members_only" | null,
+    link_status: r.link_status as LinkStatus,
+    link_checked_at: r.link_checked_at ? r.link_checked_at.toISOString() : null,
+    created_at: r.created_at.toISOString(),
+    cards: { set_code: r.set_code, collector_number: r.collector_number },
+  };
+}
 
 // 점검 필요 = 원본 링크가 있고, 7일 넘게 점검 안 했거나 의심 표시 (eng E6).
 export function needsCheck(r: { source_url: string | null; status: Status; link_status: LinkStatus; link_checked_at: string | null }, now = new Date()) {
@@ -70,22 +120,43 @@ export type ArtworkFilter = { status?: Status; linkStatus?: LinkStatus; needsChe
 
 // 작품 수가 수백 개 수준이라 한 번에 읽고 서버에서 거른다. 점검 필요가 먼저, 그 안에서 최신 순.
 export async function listAdminArtworks(filter: ArtworkFilter = {}, now = new Date()): Promise<AdminArtworkRow[]> {
-  let query = db().from("artworks").select(COLUMNS).order("created_at", { ascending: false }).limit(1000);
-  if (filter.status) query = query.eq("status", filter.status);
-  if (filter.linkStatus) query = query.eq("link_status", filter.linkStatus);
-  const { data, error } = await query.returns<Row[]>();
-  if (error) throw error;
-  const rows = data.map((r) => toAdminRow(r, now));
+  const conds = [
+    filter.status ? eq(artworks.status, filter.status) : undefined,
+    filter.linkStatus ? eq(artworks.linkStatus, filter.linkStatus) : undefined,
+  ].filter(Boolean);
+  const data = await db
+    .select(artworkRowColumns)
+    .from(artworks)
+    .innerJoin(cards, eq(artworks.cardId, cards.id))
+    .where(conds.length ? and(...conds) : undefined)
+    .orderBy(desc(artworks.createdAt))
+    .limit(1000);
+  const rows = data.map((r) => toAdminRow(toRow(r), now));
   return (filter.needsCheck ? rows.filter((r) => r.needsCheck) : rows).sort(
     (a, b) => Number(b.needsCheck) - Number(a.needsCheck),
   );
 }
 
+// plpgsql의 raise exception '<code>' 메시지를 cause 체인에서 찾아 ArtworkError로 매핑한다.
+const LINK_STATUS_ERRORS = ["not_found", "invalid_link_status"];
+
+function linkStatusError(e: unknown): never {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let cur: any = e;
+  for (let i = 0; i < 5 && cur; i++) {
+    if (typeof cur.message === "string" && LINK_STATUS_ERRORS.includes(cur.message)) {
+      throw new ArtworkError(cur.message);
+    }
+    cur = cur.cause;
+  }
+  throw e;
+}
+
 export async function setLinkStatus(id: string, status: LinkStatus): Promise<void> {
-  const { error } = await db().rpc("artwork_set_link_status", { p_id: id, p_status: status });
-  if (error) {
-    if (error.message === "not_found" || error.message === "invalid_link_status") throw new ArtworkError(error.message);
-    throw error;
+  try {
+    await db.execute(sql`select public.artwork_set_link_status(${id}::uuid, ${status})`);
+  } catch (e) {
+    linkStatusError(e);
   }
 }
 
@@ -111,53 +182,76 @@ export type AdminArtworkDetail = AdminArtworkRow & {
 
 export async function getAdminArtwork(id: string, now = new Date()): Promise<AdminArtworkDetail | null> {
   if (!UUID.test(id)) return null;
-  const { data, error } = await db()
-    .from("artworks")
-    .select(
-      `${BASE}, print_size_verified, artists(handle, status), cards(set_code, collector_number, name_ko), artwork_files(kind, mime_type, size_bytes), consent_events(id, kind, before, after, reason, evidence_path, actor, created_at), reports(id, reason, status, created_at)`,
-    )
-    .eq("id", id)
-    .maybeSingle<
-      Row & {
-        print_size_verified: boolean;
-        artists: { handle: string; status: string } | null;
-        cards: { set_code: string; collector_number: string; name_ko: string };
-        artwork_files: { kind: "original" | "thumbnail"; mime_type: string; size_bytes: number }[];
-        consent_events: {
-          id: number;
-          kind: ConsentEvent["kind"];
-          before: Record<string, unknown> | null;
-          after: Record<string, unknown> | null;
-          reason: string | null;
-          evidence_path: string | null;
-          actor: string;
-          created_at: string;
-        }[];
-        reports: { id: string; reason: string; status: string; created_at: string }[];
-      }
-    >();
-  if (error) throw error;
+  // 옛 PostgREST의 중첩 임베드를 작품 1건 + 관련 테이블 각각의 쿼리로 나눈다.
+  const base = await db
+    .select({
+      ...artworkRowColumns,
+      name_ko: cards.nameKo,
+      print_size_verified: artworks.printSizeVerified,
+      artist_handle: artists.handle,
+      artist_status: artists.status,
+    })
+    .from(artworks)
+    .innerJoin(cards, eq(artworks.cardId, cards.id))
+    .leftJoin(artists, eq(artworks.artistId, artists.userId))
+    .where(eq(artworks.id, id))
+    .limit(1);
+  const data = base[0];
   if (!data) return null;
+
+  const [files, events, reportRows] = await Promise.all([
+    db
+      .select({ kind: artworkFiles.kind, mimeType: artworkFiles.mimeType, sizeBytes: artworkFiles.sizeBytes })
+      .from(artworkFiles)
+      .where(eq(artworkFiles.artworkId, id)),
+    db
+      .select({
+        id: consentEvents.id,
+        kind: consentEvents.kind,
+        before: consentEvents.before,
+        after: consentEvents.after,
+        reason: consentEvents.reason,
+        evidence_path: consentEvents.evidencePath,
+        actor: consentEvents.actor,
+        created_at: consentEvents.createdAt,
+      })
+      .from(consentEvents)
+      .where(eq(consentEvents.artworkId, id)),
+    db
+      .select({
+        id: reports.id,
+        reason: reports.reason,
+        status: reports.status,
+        created_at: reports.createdAt,
+      })
+      .from(reports)
+      .where(eq(reports.artworkId, id)),
+  ]);
+
   return {
-    ...toAdminRow(data, now),
-    cardName: data.cards.name_ko,
-    artistAccount: data.artists,
+    ...toAdminRow(toRow(data), now),
+    cardName: data.name_ko,
+    artistAccount: data.artist_handle ? { handle: data.artist_handle, status: data.artist_status ?? "" } : null,
     printSizeVerified: data.print_size_verified,
-    files: data.artwork_files.map((f) => ({ kind: f.kind, mimeType: f.mime_type, sizeBytes: f.size_bytes })),
-    events: data.consent_events
+    files: files.map((f) => ({
+      kind: f.kind as "original" | "thumbnail",
+      mimeType: f.mimeType,
+      sizeBytes: f.sizeBytes,
+    })),
+    events: events
       .map((e) => ({
         id: e.id,
-        kind: e.kind,
-        before: e.before,
-        after: e.after,
+        kind: e.kind as ConsentEvent["kind"],
+        before: e.before as Record<string, unknown> | null,
+        after: e.after as Record<string, unknown> | null,
         reason: e.reason,
         evidencePath: e.evidence_path,
-        actor: e.actor,
-        createdAt: e.created_at,
+        actor: e.actor ?? "",
+        createdAt: e.created_at.toISOString(),
       }))
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt) || b.id - a.id),
-    reports: data.reports
-      .map((r) => ({ id: r.id, reason: r.reason, status: r.status, createdAt: r.created_at }))
+    reports: reportRows
+      .map((r) => ({ id: r.id, reason: r.reason, status: r.status, createdAt: r.created_at.toISOString() }))
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
   };
 }
@@ -165,9 +259,13 @@ export async function getAdminArtwork(id: string, now = new Date()): Promise<Adm
 // 허락 근거 (설계 R3). 이벤트 ID로만 찾는다: 기록된 경로만 서명하고 임의 경로는 받지 않는다.
 export async function evidenceUrl(eventId: string): Promise<string | null> {
   if (!/^[1-9]\d{0,17}$/.test(eventId)) return null;
-  const { data, error } = await db().from("consent_events").select("evidence_path").eq("id", eventId).maybeSingle();
-  if (error) throw error;
-  return data?.evidence_path ? signedEvidenceUrl(data.evidence_path) : null;
+  const rows = await db
+    .select({ evidencePath: consentEvents.evidencePath })
+    .from(consentEvents)
+    .where(eq(consentEvents.id, Number(eventId)))
+    .limit(1);
+  const path = rows[0]?.evidencePath;
+  return path ? signedEvidenceUrl(path) : null;
 }
 
 // 신고 (eng E7) ----------------------------------------------------------------
@@ -189,41 +287,54 @@ export type AdminReport = {
 };
 
 export async function listReports(): Promise<AdminReport[]> {
-  const select =
-    "id, artwork_id, source_url, reason, contact, message, status, resolution_note, resolved_at, created_at, artworks(artist_name, format, cards(set_code, collector_number))";
-  type R = {
-    id: string;
-    artwork_id: string | null;
-    source_url: string | null;
-    reason: string;
-    contact: string | null;
-    message: string | null;
-    status: ReportStatus;
-    resolution_note: string | null;
-    resolved_at: string | null;
-    created_at: string;
-    artworks: { artist_name: string; format: string; cards: { set_code: string; collector_number: string } } | null;
+  const reportColumns = {
+    id: reports.id,
+    artwork_id: reports.artworkId,
+    source_url: reports.sourceUrl,
+    reason: reports.reason,
+    contact: reports.contact,
+    message: reports.message,
+    status: reports.status,
+    resolution_note: reports.resolutionNote,
+    resolved_at: reports.resolvedAt,
+    created_at: reports.createdAt,
+    artwork_artist_name: artworks.artistName,
+    artwork_format: artworks.format,
+    set_code: cards.setCode,
+    collector_number: cards.collectorNumber,
   };
   const [open, closed] = await Promise.all([
-    db().from("reports").select(select).eq("status", "open").order("created_at", { ascending: true }).returns<R[]>(),
-    db().from("reports").select(select).neq("status", "open").order("resolved_at", { ascending: false }).limit(20).returns<R[]>(),
+    db
+      .select(reportColumns)
+      .from(reports)
+      .leftJoin(artworks, eq(reports.artworkId, artworks.id))
+      .leftJoin(cards, eq(artworks.cardId, cards.id))
+      .where(eq(reports.status, "open"))
+      .orderBy(asc(reports.createdAt)),
+    db
+      .select(reportColumns)
+      .from(reports)
+      .leftJoin(artworks, eq(reports.artworkId, artworks.id))
+      .leftJoin(cards, eq(artworks.cardId, cards.id))
+      .where(ne(reports.status, "open"))
+      .orderBy(desc(reports.resolvedAt))
+      .limit(20),
   ]);
-  if (open.error) throw open.error;
-  if (closed.error) throw closed.error;
-  return [...open.data, ...closed.data].map((r) => ({
+  return [...open, ...closed].map((r) => ({
     id: r.id,
     artworkId: r.artwork_id,
-    artworkLabel: r.artworks
-      ? `${r.artworks.cards.set_code} ${r.artworks.cards.collector_number} · @${r.artworks.artist_name} · ${r.artworks.format}`
-      : null,
+    artworkLabel:
+      r.artwork_id && r.set_code !== null
+        ? `${r.set_code} ${r.collector_number} · @${r.artwork_artist_name} · ${r.artwork_format}`
+        : null,
     sourceUrl: r.source_url,
     reason: r.reason,
     contact: r.contact,
     message: r.message,
-    status: r.status,
+    status: r.status as ReportStatus,
     resolutionNote: r.resolution_note,
-    resolvedAt: r.resolved_at,
-    createdAt: r.created_at,
+    resolvedAt: r.resolved_at ? r.resolved_at.toISOString() : null,
+    createdAt: r.created_at.toISOString(),
   }));
 }
 
@@ -236,28 +347,30 @@ export async function findArtworksBySource(url: string): Promise<AdminArtworkRow
   } catch {}
   if (!key) return [];
   const pattern = `%${key.replace(/[%_\\]/g, (c) => `\\${c}`)}%`;
-  const { data, error } = await db().from("artworks").select(COLUMNS).ilike("source_url", pattern).limit(10).returns<Row[]>();
-  if (error) throw error;
+  const data = await db
+    .select(artworkRowColumns)
+    .from(artworks)
+    .innerJoin(cards, eq(artworks.cardId, cards.id))
+    .where(ilike(artworks.sourceUrl, pattern))
+    .limit(10);
   const now = new Date();
-  return data.map((r) => toAdminRow(r, now));
+  return data.map((r) => toAdminRow(toRow(r), now));
 }
 
 export async function linkReport(reportId: string, artworkId: string): Promise<void> {
-  const { error, count } = await db()
-    .from("reports")
-    .update({ artwork_id: artworkId }, { count: "exact" })
-    .eq("id", reportId)
-    .eq("status", "open");
-  if (error) throw error;
-  if (!count) throw new ArtworkError("not_found");
+  const updated = await db
+    .update(reports)
+    .set({ artworkId })
+    .where(and(eq(reports.id, reportId), eq(reports.status, "open")))
+    .returning({ id: reports.id });
+  if (!updated.length) throw new ArtworkError("not_found");
 }
 
 export async function closeReport(reportId: string, status: Exclude<ReportStatus, "open">, note: string): Promise<void> {
-  const { error, count } = await db()
-    .from("reports")
-    .update({ status, resolution_note: note.trim() || null, resolved_at: new Date().toISOString() }, { count: "exact" })
-    .eq("id", reportId)
-    .eq("status", "open");
-  if (error) throw error;
-  if (!count) throw new ArtworkError("not_found");
+  const updated = await db
+    .update(reports)
+    .set({ status, resolutionNote: note.trim() || null, resolvedAt: new Date() })
+    .where(and(eq(reports.id, reportId), eq(reports.status, "open")))
+    .returning({ id: reports.id });
+  if (!updated.length) throw new ArtworkError("not_found");
 }
