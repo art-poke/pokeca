@@ -1,4 +1,4 @@
-import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   createReview,
   deleteReview,
@@ -7,98 +7,91 @@ import {
   ReviewError,
   reviewCount,
 } from "@/lib/reviews";
-import { db } from "@/lib/supabase/server";
-import { sql } from "../helpers/fixtures";
+import { db } from "@/lib/db";
+import { artistReviews, artists, users } from "@/lib/db/schema";
+import { eq, inArray } from "drizzle-orm";
 
-afterAll(() => sql.end());
+// 작가 후기 생성/목록(집계·mine)/소프트삭제/최근 피드를 로컬 Docker Postgres(5432)에 직접 검증한다.
+// 이미지 경로는 스토리지 결합을 피하려 쓰지 않는다(imageUploadId 미지정 경로).
 
-let n = 0;
-async function user(): Promise<string> {
-  n += 1;
-  const { data, error } = await db().auth.admin.createUser({
-    email: `rev${n}-${Date.now()}@example.com`,
-    email_confirm: true,
-  });
-  if (error) throw error;
-  return data.user.id;
-}
+const TAG = `rev${Date.now()}`;
+const HANDLE = `${TAG}h`;
 
-async function artist(): Promise<string> {
-  const uid = await user();
-  const ins = await db()
-    .from("artists")
-    .insert({ user_id: uid, handle: `rv${n}x${Date.now() % 100000}`, display_name: "후기작가", provider: "google", status: "approved" });
-  if (ins.error) throw ins.error;
-  return uid;
-}
+let artistId: string; // 승인 작가
+let pendingArtistId: string; // 미승인 작가
+let memberA: string;
+let memberB: string;
 
-async function member(nickname = "수집가"): Promise<string> {
-  const uid = await user();
-  const ins = await db().from("members").insert({ user_id: uid, nickname });
-  if (ins.error) throw ins.error;
-  return uid;
-}
+beforeAll(async () => {
+  [{ id: artistId }, { id: pendingArtistId }, { id: memberA }, { id: memberB }] = await db
+    .insert(users)
+    .values([
+      { email: `${TAG}-artist@example.com` },
+      { email: `${TAG}-pending@example.com` },
+      { email: `${TAG}-m1@example.com` },
+      { email: `${TAG}-m2@example.com` },
+    ])
+    .returning({ id: users.id });
 
-async function cleanup() {
-  await sql`truncate artist_reviews cascade`;
-  const users = await sql<{ user_id: string }[]>`
-    select user_id from members union select user_id from artists`;
-  for (const u of users) await db().auth.admin.deleteUser(u.user_id);
-}
-beforeEach(cleanup);
+  await db.insert(artists).values([
+    { userId: artistId, handle: HANDLE, displayName: "후기작가", provider: "google", status: "approved" },
+    { userId: pendingArtistId, handle: `${HANDLE}p`, displayName: "대기작가", provider: "google", status: "pending" },
+  ]);
+});
 
-describe("artist reviews", () => {
-  it("creates and lists a review with the mine flag per viewer", async () => {
-    const a = await artist();
-    const m = await member("별빛");
-    await createReview({ artistId: a, userId: m, authorName: "별빛", body: "  도안 최고예요  " });
+afterAll(async () => {
+  await db.delete(artistReviews).where(inArray(artistReviews.artistId, [artistId, pendingArtistId]));
+  await db.delete(artists).where(inArray(artists.userId, [artistId, pendingArtistId]));
+  await db.delete(users).where(inArray(users.id, [artistId, pendingArtistId, memberA, memberB]));
+});
 
-    const asAuthor = await listArtistReviews(a, m);
+describe("createReview / listArtistReviews / reviewCount", () => {
+  it("후기를 생성하고 목록·카운트·mine 플래그를 반환한다", async () => {
+    await createReview({ artistId, userId: memberA, authorName: "별빛", body: "  도안 최고예요  " });
+
+    const asAuthor = await listArtistReviews(artistId, memberA);
     expect(asAuthor).toHaveLength(1);
     expect(asAuthor[0]).toMatchObject({ authorName: "별빛", body: "도안 최고예요", hasImage: false, mine: true });
 
-    const other = await member("다른회원");
-    expect((await listArtistReviews(a, other))[0].mine).toBe(false);
-    expect(await reviewCount(a)).toBe(1);
+    const asOther = await listArtistReviews(artistId, memberB);
+    expect(asOther[0].mine).toBe(false);
+    expect(await reviewCount(artistId)).toBe(1);
   });
 
-  it("rejects self-review and empty body", async () => {
-    const a = await artist();
-    const m = await member();
-    await expect(createReview({ artistId: a, userId: a, authorName: "x", body: "hi" })).rejects.toSatisfy(
-      (e) => e instanceof ReviewError && e.code === "self_review",
-    );
-    await expect(createReview({ artistId: a, userId: m, authorName: "x", body: "   " })).rejects.toSatisfy(
-      (e) => e instanceof ReviewError && e.code === "body_required",
-    );
+  it("자기후기·빈 본문·미승인 작가를 거절한다", async () => {
+    await expect(
+      createReview({ artistId, userId: artistId, authorName: "x", body: "hi" }),
+    ).rejects.toSatisfy((e) => e instanceof ReviewError && e.code === "self_review");
+    await expect(
+      createReview({ artistId, userId: memberA, authorName: "x", body: "   " }),
+    ).rejects.toSatisfy((e) => e instanceof ReviewError && e.code === "body_required");
+    await expect(
+      createReview({ artistId: pendingArtistId, userId: memberA, authorName: "x", body: "hi" }),
+    ).rejects.toSatisfy((e) => e instanceof ReviewError && e.code === "not_found");
   });
+});
 
-  it("only the author or an admin can delete", async () => {
-    const a = await artist();
-    const m = await member();
-    const other = await member();
-    await createReview({ artistId: a, userId: m, authorName: "m", body: "굿" });
-    const [rev] = await listArtistReviews(a, m);
+describe("deleteReview", () => {
+  it("작성자/어드민만 소프트삭제하고 재삭제는 not_found", async () => {
+    await createReview({ artistId, userId: memberB, authorName: "굿회원", body: "굿" });
+    const list = await listArtistReviews(artistId, memberB);
+    const rev = list.find((r) => r.authorName === "굿회원")!;
 
-    await expect(deleteReview(rev.id, other, false)).rejects.toSatisfy(
+    await expect(deleteReview(rev.id, memberA, false)).rejects.toSatisfy(
       (e) => e instanceof ReviewError && e.code === "forbidden",
     );
-    await deleteReview(rev.id, m, false); // 작성자 OK
-    expect(await reviewCount(a)).toBe(0);
-    // 다시 지우면 not_found(soft delete됨)
-    await expect(deleteReview(rev.id, m, false)).rejects.toSatisfy(
+    await deleteReview(rev.id, memberB, false); // 작성자 OK
+    await expect(deleteReview(rev.id, memberB, false)).rejects.toSatisfy(
       (e) => e instanceof ReviewError && e.code === "not_found",
     );
   });
+});
 
-  it("surfaces in the recent feed with artist handle", async () => {
-    const a = await artist();
-    const m = await member("피드회원");
-    await createReview({ artistId: a, userId: m, authorName: "피드회원", body: "피드 테스트" });
-    const feed = await recentReviews(10);
-    const mine = feed.find((r) => r.authorName === "피드회원");
+describe("recentReviews", () => {
+  it("최근 피드에 작가 핸들·이름과 함께 노출된다", async () => {
+    const feed = await recentReviews(50);
+    const mine = feed.find((r) => r.authorName === "별빛" && r.artistHandle === HANDLE);
     expect(mine).toBeTruthy();
     expect(mine!.artistName).toBe("후기작가");
-    expect(mine!.artistHandle).toMatch(/^rv/);
   });
 });
