@@ -123,8 +123,8 @@ Supabase Auth → **Auth.js v5**로 교체하고, 동시에 Supabase 데이터 �
 
 - **C0 — 토대:** Drizzle(`drizzle-orm`, `drizzle-kit`, `pg`) 설치·설정, `lib/db/`(client+schema), `docker-compose.yml`(Postgres 5432) + `infra/db/*.sql` 적용 + 시드. Drizzle `db` 연결 스모크.
 - **C1 — 인증 코어:** `auth.ts` + `app/api/auth/[...nextauth]/route.ts` + env. Kakao/Google/Credentials 설정. auth 헬퍼(`admin.ts`/`artists.ts`/`members.ts`)·서버액션(artist/admin)·`proxy.ts` 재작성. auth 인접 데이터 접근(admins/artists/members)만 Drizzle. `app/artist/callback/route.ts` 삭제. **목표: 로컬에서 로그인 end-to-end 동작.**
-- **C2 — 데이터 계층 나머지:** 남은 ~120 `db()` 사이트를 도메인별로 Drizzle 전환(artworks/cards/search/comments/community/favorites/reviews/engagements/reports/requests/ranking/storage/cleanup/art-requests/artist-stats + `app/api/*`). 시드 스크립트(`scripts/seed-*.mts`, `demo:*`)도 `DATABASE_URL` 기반으로 갱신.
-- **C3 — 정리:** `@supabase/ssr`·`@supabase/supabase-js` 제거, `lib/supabase/` 삭제, `.env.example` 정리, `tests/e2e/db.ts` Auth.js 기반 갱신, 전체 타입체크·테스트 녹색.
+- **C2 — 데이터 계층 나머지:** 남은 `db().from()`/`db().rpc()` 사이트를 도메인별로 Drizzle 전환(artworks/cards/search/comments/community/favorites/reviews/engagements/reports/requests/ranking/storage/cleanup/art-requests/artist-stats + `app/api/*`). `db().storage.*`는 `lib/storage-client.ts`로 격리(서브 D). 시드 스크립트(`scripts/seed-*.mts`, `demo:*`)도 `DATABASE_URL` 기반으로 갱신(이미지 업로드는 서브 D까지 stub).
+- **C3 — 정리:** `@supabase/ssr` 제거(`@supabase/supabase-js`는 스토리지용 서브 D까지 유지), `lib/supabase/{auth,server}.ts` 삭제, `.env.example` 정리, `tests/e2e/db.ts` Auth.js 기반 갱신, 타입체크·테스트 녹색(스토리지 의존 제외).
 
 ---
 

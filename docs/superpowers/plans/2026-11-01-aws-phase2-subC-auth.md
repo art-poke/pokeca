@@ -39,7 +39,7 @@
 ### 삭제
 - `app/artist/callback/route.ts` (C1, Auth.js가 대체)
 - `lib/supabase/auth.ts`, `lib/supabase/server.ts`, `lib/supabase/` (C3)
-- `@supabase/ssr`, `@supabase/supabase-js` 의존성 (C3)
+- `@supabase/ssr` 의존성 (C3). ⚠️ `@supabase/supabase-js`는 스토리지용으로 **서브 D까지 유지**(삭제 안 함).
 
 ---
 
