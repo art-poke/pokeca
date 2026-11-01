@@ -1,8 +1,8 @@
 "use server";
 
 import { refresh } from "next/cache";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { signIn, signOut } from "@/auth";
 import {
   ArtistError,
   registerArtist,
@@ -13,7 +13,6 @@ import {
   type SocialProvider,
 } from "@/lib/artists";
 import { ArtworkError } from "@/lib/artworks";
-import { authClient } from "@/lib/supabase/auth";
 
 // 작가 server action. 로그인이 필요한 action은 requireArtist()로 시작한다.
 
@@ -27,18 +26,11 @@ const APPLY_ERRORS: Record<string, string> = {
   invalid_link: "링크는 http(s)://로 시작해야 해요.",
 };
 
-// 카카오·구글 로그인 시작. 공급자 화면을 거쳐 /artist/callback으로 돌아온다(PKCE 코드는 쿠키에 남는다).
+// 카카오·구글 로그인 시작. Auth.js가 공급자 화면과 /api/auth/callback/[provider]을 처리한다.
 export async function socialLogin(form: FormData) {
   const provider = String(form.get("provider"));
   if (!SOCIAL_PROVIDERS.includes(provider as SocialProvider)) redirect("/artist/login");
-  const h = await headers();
-  const origin = `${h.get("x-forwarded-proto") ?? "http"}://${h.get("x-forwarded-host") ?? h.get("host")}`;
-  const { data, error } = await (await authClient()).auth.signInWithOAuth({
-    provider: provider as SocialProvider,
-    options: { redirectTo: `${origin}/artist/callback` },
-  });
-  if (error || !data.url) redirect("/artist/login?error=1");
-  redirect(data.url);
+  await signIn(provider, { redirectTo: "/artist" });
 }
 
 // 처음 로그인한 사람의 작가 신청. 어드민이 승인하면 도안을 올릴 수 있다.
@@ -62,8 +54,7 @@ export async function apply(_prev: FormState, form: FormData): Promise<FormState
 }
 
 export async function logout() {
-  await (await authClient()).auth.signOut();
-  redirect("/artist/login");
+  await signOut({ redirectTo: "/artist/login" });
 }
 
 // 내 도안 내리기(철회). 카드 번호를 그대로 입력해야 한다.
