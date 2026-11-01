@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useCardRequestsQuery, useRequestFormatMutation } from "@/domains/card-request/hooks";
 import type { PublicArtwork } from "@/lib/artworks";
 import { FORMAT_INFO, FORMATS, type Format } from "@/lib/formats";
 import { cn } from "@/lib/utils";
@@ -15,34 +16,16 @@ type Pending = { format: Format; phase: "sending" | "failed" } | null;
 
 export function FormatResults({ cardId, artworks }: { cardId: string; artworks: PublicArtwork[] }) {
   const [filter, setFilter] = useState<Filter>("all");
-  const [requests, setRequests] = useState<Record<Format, RequestStatus> | null>(null);
   const [pending, setPending] = useState<Pending>(null);
+  const { data: requests } = useCardRequestsQuery(cardId);
+  const { mutate: requestFormat } = useRequestFormatMutation(cardId);
 
-  useEffect(() => {
-    let cancelled = false;
-    fetch(`/api/cards/${cardId}/requests`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => !cancelled && data && setRequests(data))
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [cardId]);
-
-  async function request(format: Format) {
+  function request(format: Format) {
     setPending({ format, phase: "sending" });
-    try {
-      const res = await fetch(`/api/cards/${cardId}/requests`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ format }),
-      });
-      if (!res.ok) throw new Error(String(res.status));
-      setRequests(await res.json());
-      setPending(null);
-    } catch {
-      setPending({ format, phase: "failed" });
-    }
+    requestFormat(format, {
+      onSuccess: () => setPending(null), // 캐시 갱신은 훅이 처리
+      onError: () => setPending({ format, phase: "failed" }),
+    });
   }
 
   const counts = Object.fromEntries(
@@ -104,7 +87,7 @@ export function FormatResults({ cardId, artworks }: { cardId: string; artworks: 
 
       {shown.length === 0 ? (
         filter === "all" ? (
-          <FindRequestAny requests={requests} pending={pending} onRequest={request} />
+          <FindRequestAny requests={requests ?? null} pending={pending} onRequest={request} />
         ) : (
           <FindRequest
             format={filter}

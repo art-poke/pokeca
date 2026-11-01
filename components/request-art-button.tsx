@@ -1,8 +1,11 @@
 "use client";
 
 import { Megaphone } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
+import { useRequestArtMutation } from "@/domains/card-request/hooks";
+import { isApiError } from "@/lib/api/errors";
+import { showErrorToast, showLoginNudge, showSuccessToast } from "@/lib/toast/gr-toast";
 import { FORMAT_INFO, type Format } from "@/lib/formats";
 
 // 도안이 없는 규격만 요청 버튼으로 보여준다. 회원 규격별 요청(피드백은 toast).
@@ -17,41 +20,28 @@ export const RequestArtButton = ({
   missingFormats: Format[];
   requestedFormats: Format[];
 }) => {
+  const router = useRouter();
   const [requested, setRequested] = useState<Format[]>(requestedFormats);
-  const [pending, setPending] = useState<Format | null>(null);
+  const { mutate, isPending, variables: sendingFormat } = useRequestArtMutation(cardId);
 
   if (missingFormats.length === 0) return null;
 
-  async function request(format: Format) {
-    if (!isMember) {
-      toast("로그인하면 요청할 수 있어요", {
-        action: { label: "로그인", onClick: () => (window.location.href = "/artist/login") },
-      });
-      return;
-    }
-    if (requested.includes(format) || pending) return;
-    setPending(format);
-    try {
-      const res = await fetch(`/api/cards/${cardId}/request`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ format }),
-      });
-      if (res.status === 401) {
-        toast("로그인이 필요해요");
-        return;
-      }
-      if (res.ok) {
+  const nudge = () =>
+    showLoginNudge("로그인하면 요청할 수 있어요", () => router.push("/artist/login"));
+
+  function request(format: Format) {
+    if (!isMember) return nudge();
+    if (requested.includes(format) || isPending) return;
+    mutate(format, {
+      onSuccess: () => {
         setRequested((r) => [...r, format]);
-        toast.success(`${FORMAT_INFO[format].label} 도안을 요청했어요`);
-      } else {
-        toast.error("요청하지 못했어요");
-      }
-    } catch {
-      toast.error("요청하지 못했어요");
-    } finally {
-      setPending(null);
-    }
+        showSuccessToast(`${FORMAT_INFO[format].label} 도안을 요청했어요`);
+      },
+      onError: (error) => {
+        if (isApiError(error) && error.status === 401) return nudge();
+        showErrorToast(isApiError(error) ? error.code ?? undefined : undefined);
+      },
+    });
   }
 
   return (
@@ -67,7 +57,7 @@ export const RequestArtButton = ({
             key={f}
             type="button"
             onClick={() => request(f)}
-            disabled={done || pending === f}
+            disabled={done || (isPending && sendingFormat === f)}
             className="rounded-full border border-border bg-background px-3 py-1.5 text-sm font-semibold text-ink-700 transition-colors hover:border-primary hover:text-primary disabled:opacity-70"
           >
             {FORMAT_INFO[f].label} {done ? "요청함" : "요청"}
