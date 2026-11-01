@@ -457,7 +457,7 @@ export async function requireAdmin(): Promise<Admin> {
 | `.update(patch).eq("a",v).select("x")` | `db.update(t).set(patch).where(eq(t.a,v)).returning({x:t.x})` |
 | `.or("a.ilike.x,b.ilike.y")` | `or(ilike(t.a,x), ilike(t.b,y))` |
 | `.order("c",{ascending:true}).limit(n)` | `.orderBy(asc(t.c)).limit(n)` |
-| 에러코드 `23505`(unique) | `try/catch` → `err.code === "23505"`(pg 에러) |
+| 에러코드 `23505`(unique) | ⚠️ **Drizzle는 pg 에러를 `DrizzleQueryError`로 감싸 실제 code가 `.cause`에 있음.** `err.code === "23505"` 직접 비교 금지 → **`import { isUniqueViolation, pgErrorCode } from "@/lib/db/errors"`** 사용(C1b에서 cause 체인 순회 헬퍼로 공유화됨). 현재 raw `error.code === "23505"` 쓰는 곳: favorites.ts, engagements.ts(×2), art-requests.ts — 전환 시 반드시 이 헬퍼로 교체. |
 | **`db().rpc("fn", {a,b})`** | `import { sql } from "drizzle-orm"` → `const r = await db.execute(sql\`select * from fn(${a}, ${b})\`)` → `r.rows` |
 
 - [ ] **Step 1: `currentSocialUser`를 Auth.js 세션으로**
@@ -642,6 +642,8 @@ import { describe, it, expect, beforeAll } from "vitest";
 
 ## 스테이지 C2 — 데이터 계층 나머지 Drizzle 전환
 
+> **⚠️ 통합 테스트 로딩(next/server):** 기존 `tests/integration/*.test.ts`(artists/favorites/admin-actions 등)는 lib 파일이 `@/auth`→next-auth→`next/server`를 끌어와 vitest에서 **로드 실패**(`Cannot find module 'next/server'`)한다(C1a 이전부터 잠재, 이제 표면화). 각 도메인 테스트를 돌리기 전에 그 suite 상단에 **`vi.mock("@/auth")`**(auth.test.ts/artists-auth.test.ts 선례)로 세션을 목킹해 로드 가능하게 만들 것. (대안: vitest config에 `server.deps.inline`/alias로 next/server 중앙 처리 — 리스크↑, 비권장.)
+>
 > **방법:** Task 1.6의 PostgREST→Drizzle 패턴을 각 파일에 적용. **파일 1개 = 1 태스크 = 1 커밋**, 각 태스크 끝에 해당 도메인 통합 테스트 실행. 필요한 테이블은 전환 시 `lib/db/schema.ts`에 추가(01_app.sql 대조). 각 태스크 공통 스텝:
 > 1. schema.ts에 이 도메인 테이블 추가(없으면)
 > 2. 파일의 `db().from()` 전부 Drizzle로
