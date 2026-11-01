@@ -2,6 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  useAttachArtworkFileMutation,
+  useUpdateArtworkMutation,
+} from "@/domains/admin/hooks";
 import { errorMessage, uploadFile } from "./upload";
 import styles from "@/app/admin/admin.module.css";
 
@@ -27,6 +31,8 @@ export function ArtworkControls(props: Props) {
   const evidenceInput = useRef<HTMLInputElement>(null);
   // 같은 근거 파일로 다시 저장하면 다시 올리지 않는다(확인 실패 후 재시도 등).
   const evidenceUpload = useRef<{ file: File; uploadId: string } | null>(null);
+  const { mutateAsync: updateArtwork } = useUpdateArtworkMutation(props.id);
+  const { mutateAsync: attachFile } = useAttachArtworkFileMutation(props.id);
 
   async function patch(body: Record<string, unknown>, evidence?: File) {
     setBusy(true);
@@ -38,13 +44,7 @@ export function ArtworkControls(props: Props) {
         }
         body = { ...body, evidenceUploadId: evidenceUpload.current.uploadId };
       }
-      const res = await fetch(`/api/admin/artworks/${props.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.code ?? "failed");
+      const data = await updateArtwork(body);
       setMessage({
         ok: true,
         text: data.purged === false ? "저장했어요. 파일 삭제는 정리 작업이 다시 시도해요." : "저장했어요.",
@@ -66,12 +66,7 @@ export function ArtworkControls(props: Props) {
     setMessage(null);
     try {
       const uploadId = await uploadFile(kind, file);
-      const res = await fetch(`/api/admin/artworks/${props.id}/files`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kind, uploadId }),
-      });
-      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).code ?? "failed");
+      await attachFile({ kind, uploadId });
       setMessage({ ok: true, text: kind === "original" ? "원본을 바꾸고 미리보기를 새로 만들었어요." : "미리보기를 바꿨어요." });
       router.refresh();
     } catch (e) {

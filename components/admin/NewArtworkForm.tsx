@@ -3,6 +3,8 @@
 import { CreditCard, FileText, UploadCloud, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
+import { useCreateArtworkMutation, useSearchCardsMutation } from "@/domains/admin/hooks";
+import type { AdminCardHit as Card } from "@/domains/admin/api/types";
 import { FORMAT_INFO, FORMAT_PIECES, FORMATS, type Format } from "@/lib/formats";
 import { cn } from "@/lib/utils";
 import { errorMessage, uploadFile } from "./upload";
@@ -11,7 +13,6 @@ import { errorMessage, uploadFile } from "./upload";
 // mode "artist"는 승인 작가가 자기 도안을 올리는 화면(작가 이름=계정, 출처·허락 단계 없음, 바로 공개).
 // 9포켓은 (1) 낱개 8칸을 원하는 자리에 배치하거나 (2) 8칸이 모인 조립본 한 장으로 올릴 수 있다.
 
-type Card = { cardId: string; label: string; name: string; setName: string };
 type Piece = { file: File; url: string | null };
 type NineMode = "pieces" | "single";
 
@@ -328,6 +329,8 @@ export function NewArtworkForm({ mode = "admin" }: { mode?: "admin" | "artist" }
   const artist = mode === "artist";
   const api = artist ? "/api/artist" : "/api/admin";
   const router = useRouter();
+  const { mutateAsync: searchCardsReq } = useSearchCardsMutation(api);
+  const { mutateAsync: createArtwork } = useCreateArtworkMutation(api);
   const [id] = useState(() => crypto.randomUUID());
   const [cards, setCards] = useState<Card[] | null>(null);
   const [card, setCard] = useState<Card | null>(null);
@@ -366,8 +369,7 @@ export function NewArtworkForm({ mode = "admin" }: { mode?: "admin" | "artist" }
     if (!q.trim()) return;
     setSearching(true);
     try {
-      const res = await fetch(`${api}/cards?q=${encodeURIComponent(q)}`);
-      const hits: Card[] = res.ok ? await res.json() : [];
+      const hits = await searchCardsReq(q).catch(() => [] as Card[]);
       setCards(hits);
       if (hits.length === 1) setCard(hits[0]);
     } finally {
@@ -414,23 +416,17 @@ export function NewArtworkForm({ mode = "admin" }: { mode?: "admin" | "artist" }
       const thumbnail = single ? await upload("thumbnail", form.get("thumbnail") as File | null) : undefined;
       const evidence = artist ? undefined : await upload("evidence", form.get("evidence") as File | null);
       setSaving("저장 중…");
-      const res = await fetch(`${api}/artworks`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id,
-          cardId: card.cardId,
-          artistName: form.get("artistName"),
-          title: form.get("title"),
-          format,
-          sourceUrl: sourceUrl || null,
-          sourceVisibility: sourceUrl ? form.get("sourceVisibility") : null,
-          printSizeVerified: form.get("printSizeVerified") === "on",
-          uploads: { originals, thumbnail, evidence },
-        }),
+      const body = await createArtwork({
+        id,
+        cardId: card.cardId,
+        artistName: form.get("artistName"),
+        title: form.get("title"),
+        format,
+        sourceUrl: sourceUrl || null,
+        sourceVisibility: sourceUrl ? form.get("sourceVisibility") : null,
+        printSizeVerified: form.get("printSizeVerified") === "on",
+        uploads: { originals, thumbnail, evidence },
       });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body.code ?? "failed");
       router.push(artist ? "/artist?uploaded=1" : `/admin/artworks/${body.id}`);
     } catch (e) {
       setError(errorMessage(e instanceof Error ? e.message : ""));
