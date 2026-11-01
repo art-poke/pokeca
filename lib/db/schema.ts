@@ -1,13 +1,21 @@
 // 이 파일은 DB 스키마의 Drizzle 거울(mirror)이다. 단일 출처(source of truth)는
 // infra/db/00_authjs.sql(Auth.js 어댑터 테이블) + infra/db/01_app.sql(앱 테이블)이다.
 // SQL을 바꾸면 이 파일도 함께 맞춰 드리프트를 막는다.
-import { pgTable, uuid, text, timestamp, bigint, boolean, smallint, jsonb, date, primaryKey, unique } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, timestamp, bigint, boolean, smallint, numeric, jsonb, date, primaryKey, unique } from "drizzle-orm/pg-core";
 
 // 세트(확장팩) (infra/db/01_app.sql의 public.sets 거울). 정본 키 code.
 export const sets = pgTable("sets", {
   code: text("code").primaryKey(),
   nameKo: text("name_ko").notNull(),
   releasedOn: date("released_on"),
+});
+
+// 규격 프로필 (infra/db/01_app.sql의 public.spec_profiles 거울). code CHECK는 마이그레이션에서 제거됨.
+export const specProfiles = pgTable("spec_profiles", {
+  code: text("code").primaryKey(),
+  nameKo: text("name_ko").notNull(),
+  widthMm: numeric("width_mm"),
+  heightMm: numeric("height_mm"),
 });
 
 export const users = pgTable("users", {
@@ -248,6 +256,70 @@ export const comments = pgTable("comments", {
   parentId: uuid("parent_id"),
   body: text("body").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+});
+
+// 찾기/도안 요청 (infra/db/01_app.sql의 public.requests 거울).
+// 익명 규격별 "찾기요청"(visitor_id) 과 회원 카드/규격 요청(user_id)이 한 테이블에 들어온다.
+// 마이그레이션으로 format·visitor_id는 nullable, user_id·resolved_at·resolved_by 추가됨.
+export const requests = pgTable("requests", {
+  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+  cardId: uuid("card_id")
+    .notNull()
+    .references(() => cards.id),
+  format: text("format").references(() => specProfiles.code),
+  visitorId: uuid("visitor_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  resolvedBy: uuid("resolved_by").references(() => users.id),
+});
+
+// 카드는 있으나 해당 규격 active 도안이 0개였던 방문 (infra/db/01_app.sql의 public.card_demand 거울).
+export const cardDemand = pgTable("card_demand", {
+  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+  cardId: uuid("card_id")
+    .notNull()
+    .references(() => cards.id),
+  format: text("format").references(() => specProfiles.code),
+  visitorId: uuid("visitor_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// 신고·내림 요청 (infra/db/01_app.sql의 public.reports 거울). report_submit 함수가 저장한다.
+export const reports = pgTable("reports", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  artworkId: uuid("artwork_id").references(() => artworks.id),
+  sourceUrl: text("source_url"),
+  reason: text("reason").notNull(),
+  contact: text("contact"),
+  message: text("message"),
+  status: text("status").notNull().default("open"),
+  resolutionNote: text("resolution_note"),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// 신고 남용 방지 카운터 (infra/db/01_app.sql의 public.report_throttle 거울). IP 대역 HMAC만 남긴다.
+export const reportThrottle = pgTable("report_throttle", {
+  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+  ipHash: text("ip_hash").notNull(),
+  artworkId: uuid("artwork_id").references(() => artworks.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// 커뮤니티 게시판 (infra/db/01_app.sql의 public.posts 거울). 공지=어드민, 건의·자유=회원.
+export const posts = pgTable("posts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  board: text("board").notNull(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  authorName: text("author_name").notNull(),
+  title: text("title").notNull(),
+  body: text("body").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
 });
 
