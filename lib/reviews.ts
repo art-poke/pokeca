@@ -1,7 +1,9 @@
 import "server-only";
+import { and, count, desc, eq, isNull } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { artistReviews, artists } from "@/lib/db/schema";
 import { REVIEW_MAX } from "@/lib/profile";
 import { promoteReviewImage, StorageInputError } from "@/lib/storage";
-import { db } from "@/lib/supabase/server";
 import { UUID } from "@/lib/uuid";
 
 // 작가 후기 (20261031000007). 회원이 작가에게 남기는 이미지+텍스트 후기.
@@ -22,44 +24,37 @@ export type Review = {
   mine: boolean; // 보는 사람이 작성자인가(삭제 버튼 노출)
 };
 
-type Row = {
-  id: string;
-  user_id: string;
-  author_name: string;
-  body: string;
-  image_path: string | null;
-  created_at: string;
-};
-
 export async function listArtistReviews(artistId: string, viewerUserId: string | null): Promise<Review[]> {
   if (!UUID.test(artistId)) return [];
-  const { data, error } = await db()
-    .from("artist_reviews")
-    .select("id, user_id, author_name, body, image_path, created_at")
-    .eq("artist_id", artistId)
-    .is("deleted_at", null)
-    .order("created_at", { ascending: false })
-    .returns<Row[]>();
-  if (error) throw error;
+  const data = await db
+    .select({
+      id: artistReviews.id,
+      userId: artistReviews.userId,
+      authorName: artistReviews.authorName,
+      body: artistReviews.body,
+      imagePath: artistReviews.imagePath,
+      createdAt: artistReviews.createdAt,
+    })
+    .from(artistReviews)
+    .where(and(eq(artistReviews.artistId, artistId), isNull(artistReviews.deletedAt)))
+    .orderBy(desc(artistReviews.createdAt));
   return data.map((r) => ({
     id: r.id,
-    authorName: r.author_name,
+    authorName: r.authorName,
     body: r.body,
-    hasImage: !!r.image_path,
-    createdAt: r.created_at,
-    mine: !!viewerUserId && r.user_id === viewerUserId,
+    hasImage: !!r.imagePath,
+    createdAt: r.createdAt.toISOString(),
+    mine: !!viewerUserId && r.userId === viewerUserId,
   }));
 }
 
 export async function reviewCount(artistId: string): Promise<number> {
   if (!UUID.test(artistId)) return 0;
-  const { count, error } = await db()
-    .from("artist_reviews")
-    .select("*", { count: "exact", head: true })
-    .eq("artist_id", artistId)
-    .is("deleted_at", null);
-  if (error) throw error;
-  return count ?? 0;
+  const rows = await db
+    .select({ n: count() })
+    .from(artistReviews)
+    .where(and(eq(artistReviews.artistId, artistId), isNull(artistReviews.deletedAt)));
+  return rows[0]?.n ?? 0;
 }
 
 export async function createReview(input: {
@@ -71,13 +66,13 @@ export async function createReview(input: {
 }): Promise<string> {
   if (!UUID.test(input.artistId)) throw new ReviewError("not_found");
   // 작가가 있고 승인 상태인지 확인(후기는 공개 작가에게만).
-  const artist = await db()
-    .from("artists")
-    .select("user_id, status")
-    .eq("user_id", input.artistId)
-    .maybeSingle<{ user_id: string; status: string }>();
-  if (artist.error) throw artist.error;
-  if (!artist.data || artist.data.status !== "approved") throw new ReviewError("not_found");
+  const artistRows = await db
+    .select({ userId: artists.userId, status: artists.status })
+    .from(artists)
+    .where(eq(artists.userId, input.artistId))
+    .limit(1);
+  const artist = artistRows[0] ?? null;
+  if (!artist || artist.status !== "approved") throw new ReviewError("not_found");
   if (input.userId === input.artistId) throw new ReviewError("self_review");
 
   const body = input.body.trim();
@@ -94,50 +89,42 @@ export async function createReview(input: {
     }
   }
 
-  const { data, error } = await db()
-    .from("artist_reviews")
-    .insert({
-      artist_id: input.artistId,
-      user_id: input.userId,
-      author_name: input.authorName,
+  const inserted = await db
+    .insert(artistReviews)
+    .values({
+      artistId: input.artistId,
+      userId: input.userId,
+      authorName: input.authorName,
       body,
-      image_path: imagePath,
+      imagePath,
     })
-    .select("id")
-    .single<{ id: string }>();
-  if (error) throw error;
-  return data.id;
+    .returning({ id: artistReviews.id });
+  return inserted[0].id;
 }
 
 // 작성자 본인 또는 어드민만. soft delete.
 export async function deleteReview(id: string, userId: string, isAdmin: boolean): Promise<void> {
   if (!UUID.test(id)) throw new ReviewError("not_found");
-  const { data, error } = await db()
-    .from("artist_reviews")
-    .select("user_id, deleted_at")
-    .eq("id", id)
-    .maybeSingle<{ user_id: string; deleted_at: string | null }>();
-  if (error) throw error;
-  if (!data || data.deleted_at) throw new ReviewError("not_found");
-  if (!isAdmin && data.user_id !== userId) throw new ReviewError("forbidden");
-  const { error: delError } = await db()
-    .from("artist_reviews")
-    .update({ deleted_at: new Date().toISOString() })
-    .eq("id", id);
-  if (delError) throw delError;
+  const rows = await db
+    .select({ userId: artistReviews.userId, deletedAt: artistReviews.deletedAt })
+    .from(artistReviews)
+    .where(eq(artistReviews.id, id))
+    .limit(1);
+  const data = rows[0] ?? null;
+  if (!data || data.deletedAt) throw new ReviewError("not_found");
+  if (!isAdmin && data.userId !== userId) throw new ReviewError("forbidden");
+  await db.update(artistReviews).set({ deletedAt: new Date() }).where(eq(artistReviews.id, id));
 }
 
 // 이미지 서빙용: 후기의 image_path(없으면 null).
 export async function reviewImageOf(id: string): Promise<string | null> {
   if (!UUID.test(id)) return null;
-  const { data, error } = await db()
-    .from("artist_reviews")
-    .select("image_path")
-    .eq("id", id)
-    .is("deleted_at", null)
-    .maybeSingle<{ image_path: string | null }>();
-  if (error) throw error;
-  return data?.image_path ?? null;
+  const rows = await db
+    .select({ imagePath: artistReviews.imagePath })
+    .from(artistReviews)
+    .where(and(eq(artistReviews.id, id), isNull(artistReviews.deletedAt)))
+    .limit(1);
+  return rows[0]?.imagePath ?? null;
 }
 
 export type RecentReview = {
@@ -152,23 +139,30 @@ export type RecentReview = {
 
 // 커뮤니티 "작가 후기" 피드: 최근 후기(작가 정보 포함).
 export async function recentReviews(limit = 12): Promise<RecentReview[]> {
-  const { data, error } = await db()
-    .from("artist_reviews")
-    .select("id, author_name, body, image_path, created_at, artists(handle, display_name)")
-    .is("deleted_at", null)
-    .order("created_at", { ascending: false })
-    .limit(limit)
-    .returns<(Row & { artists: { handle: string; display_name: string } | null })[]>();
-  if (error) throw error;
-  return data
-    .filter((r) => r.artists)
+  const rows = await db
+    .select({
+      id: artistReviews.id,
+      authorName: artistReviews.authorName,
+      body: artistReviews.body,
+      imagePath: artistReviews.imagePath,
+      createdAt: artistReviews.createdAt,
+      artistHandle: artists.handle,
+      artistName: artists.displayName,
+    })
+    .from(artistReviews)
+    .leftJoin(artists, eq(artistReviews.artistId, artists.userId))
+    .where(isNull(artistReviews.deletedAt))
+    .orderBy(desc(artistReviews.createdAt))
+    .limit(limit);
+  return rows
+    .filter((r) => r.artistHandle !== null && r.artistName !== null)
     .map((r) => ({
       id: r.id,
-      authorName: r.author_name,
+      authorName: r.authorName,
       body: r.body,
-      hasImage: !!r.image_path,
-      createdAt: r.created_at,
-      artistHandle: r.artists!.handle,
-      artistName: r.artists!.display_name,
+      hasImage: !!r.imagePath,
+      createdAt: r.createdAt.toISOString(),
+      artistHandle: r.artistHandle!,
+      artistName: r.artistName!,
     }));
 }
