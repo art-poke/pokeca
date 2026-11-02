@@ -80,9 +80,9 @@ Supabase Object Storage → **S3**. 서브 C에서 격리해둔 `lib/storage-cli
 - `npm run typecheck`·`npm run build` 녹색.
 
 ## 8. 리스크 / 함정
-1. 로컬 presigned 생성 **AWS 자격** 필요(실 S3 선택 → `AWS_PROFILE=artpoke` 또는 env). CI/테스트 자격 전략 확정.
+1. 로컬/테스트 presigned 생성 **AWS 자격** 필요 → **확정: 실 S3 dev prefix + `AWS_PROFILE=artpoke`**(§7). 자격 없는 환경은 해당 테스트 skip.
 2. **CORS**: 브라우저 PUT 실패의 흔한 원인. Origin/헤더 정확히.
-3. **consent-evidence 버킷** Phase1에 없을 수 있음 → Terraform 추가.
+3. **consent-evidence 버킷**: 현재 infra에 **없음(확인됨)** → Terraform 신규 생성(§3.4).
 4. presigned **Content-Type 불일치**(클라가 서명 때와 다른 헤더로 PUT하면 403).
 5. 서브 A에서 CloudFront 붙일 때 서빙 URL을 CloudFront로 재전환해야 함(지금은 presigned GET).
 
