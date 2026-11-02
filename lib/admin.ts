@@ -1,5 +1,6 @@
 import "server-only";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
@@ -11,6 +12,9 @@ import { UUID } from "@/lib/uuid";
 export type Admin = { userId: string; email: string };
 
 export async function currentAdmin(): Promise<Admin | null> {
+  // auth()는 JWT 검증에 불안정값(crypto/Date)을 써서 프리렌더 시 "unstable value" 오류를 낸다.
+  // 옛 authClient()처럼 동적 렌더를 강제해 프리렌더-리로드 루프를 막는다.
+  await connection();
   const session = await auth();
   const userId = session?.user?.id;
   if (!userId) return null;

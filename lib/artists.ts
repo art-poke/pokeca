@@ -1,5 +1,6 @@
 import "server-only";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { and, asc, count, desc, eq, ilike, ne, or } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
@@ -81,6 +82,9 @@ export type SocialProvider = (typeof SOCIAL_PROVIDERS)[number];
 export type SocialUser = { id: string; email: string | null; provider: SocialProvider; name: string | null };
 
 export async function currentSocialUser(): Promise<SocialUser | null> {
+  // auth()는 JWT 검증에 불안정값(crypto/Date)을 써서 프리렌더 시 "unstable value" 오류 → 리로드 루프.
+  // 옛 authClient()처럼 동적 렌더를 강제한다.
+  await connection();
   const session = await auth();
   const user = session?.user;
   const provider = (session as { provider?: string } | null)?.provider as SocialProvider | undefined;
