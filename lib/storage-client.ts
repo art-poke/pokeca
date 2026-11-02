@@ -23,12 +23,19 @@ if (process.env.NODE_ENV !== "production") g.__s3 = s3;
 export const uploadUrl = (logical: string, key: string, contentType: string, ttl = 300) =>
   getSignedUrl(s3, new PutObjectCommand({ Bucket: bucket(logical), Key: key, ContentType: contentType }), { expiresIn: ttl });
 
+// 비ASCII 파일명(한글 등)은 RFC 5987로 인코딩한다. S3는 response-content-disposition에 날 비ASCII가
+// 들어오면 400을 돌려주므로(Supabase 클라이언트와 달리) filename*=UTF-8'' 형태가 필수다.
+const contentDisposition = (name: string): string => {
+  const ascii = name.replace(/[^\x20-\x7e]/g, "_").replace(/["\\]/g, "_");
+  return `attachment; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(name)}`;
+};
+
 export const viewUrl = (logical: string, key: string, opts: { download?: string; ttl?: number } = {}) =>
   getSignedUrl(
     s3,
     new GetObjectCommand({
       Bucket: bucket(logical), Key: key,
-      ...(opts.download ? { ResponseContentDisposition: `attachment; filename="${opts.download}"` } : {}),
+      ...(opts.download ? { ResponseContentDisposition: contentDisposition(opts.download) } : {}),
     }),
     { expiresIn: opts.ttl ?? 300 },
   );

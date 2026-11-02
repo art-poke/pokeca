@@ -20,7 +20,7 @@ import {
   type NewArtwork,
 } from "@/lib/artworks";
 import { createUpload } from "@/lib/storage";
-import { storageClient } from "@/lib/storage-client";
+import { getObject } from "@/lib/storage-client";
 import {
   ART_PNG,
   cardId,
@@ -67,7 +67,7 @@ async function files(id: string) {
     select kind, mime_type, path from artwork_files where artwork_id = ${id} order by kind`;
 }
 
-describe.skip("upload and create", () => {
+describe("upload and create", () => {
   it("moves uploads out of pending and serves the original as a download", async () => {
     const id = await stored();
     const paths = await storedPaths();
@@ -105,8 +105,8 @@ describe.skip("upload and create", () => {
       ["original", "image/png"],
       ["thumbnail", "image/webp"],
     ]);
-    const { data } = await storageClient().from("artworks").download(rows[1].path);
-    const meta = await sharp(new Uint8Array(await data!.arrayBuffer())).metadata();
+    const data = await getObject("artworks", rows[1].path);
+    const meta = await sharp(data).metadata();
     expect(meta).toMatchObject({ format: "webp", hasAlpha: true, height: 1600 });
     expect(meta.width).toBeLessThan(1600);
   });
@@ -162,7 +162,7 @@ describe.skip("upload and create", () => {
   });
 });
 
-describe.skip("replacing files", () => {
+describe("replacing files", () => {
   it("regenerates the preview when an image original replaces the old one", async () => {
     const id = await stored();
     const [, oldThumb] = await files(id);
@@ -178,7 +178,7 @@ describe.skip("replacing files", () => {
   });
 });
 
-describe.skip("status", () => {
+describe("status", () => {
   it("hides, restores, then withdraws and deletes files", async () => {
     const id = await stored();
 
@@ -219,7 +219,7 @@ describe.skip("status", () => {
 });
 
 // 여러 조각(9포켓 등): 조각마다 원본+미리보기를 position으로 저장하고, 다운로드는 ZIP으로 묶는다.
-describe.skip("multiple pieces (9pocket)", () => {
+describe("multiple pieces (9pocket)", () => {
   async function storedMulti(count: number, overrides: Partial<NewArtwork> = {}) {
     const input = await base(overrides);
     const originals = await Promise.all(
