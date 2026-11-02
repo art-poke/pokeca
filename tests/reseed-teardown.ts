@@ -6,8 +6,9 @@ import { existsSync } from "node:fs";
 // .env.local이 없는 환경(CI 등)에서는 건너뛴다.
 //
 // ⚠️ 이 teardown은 절대 테스트 실행을 실패시키면 안 된다(종료 코드는 테스트 결과만 반영).
-// 데모 시드 스크립트(scripts/*.mts)는 아직 Supabase를 가리키고 node 20에선 .mts 로딩이 깨진다 →
-// 복구는 best-effort로만 돌리고, 어떤 오류든 삼켜 경고만 남긴다(데모 스크립트 전환은 서브 D로 이월).
+// 데모 시드 스크립트(scripts/*.mts)는 여전히 Supabase를 가리키고 node 20에선 .mts 로딩이 깨진다 →
+// 즉 지금은 `npm run demo`가 깨진 상태다. 서브 D(스토리지)는 끝났지만 시드 스크립트 포팅은
+// 거기 포함되지 않았다(서브 D 이후로 남은 빚). 복구는 best-effort로만 돌리고, 어떤 오류든 삼켜 경고만 남긴다.
 export function setup() {}
 
 export async function teardown() {

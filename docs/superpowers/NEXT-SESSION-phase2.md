@@ -1,6 +1,6 @@
 # 다음 세션 핸드오프 — AWS 이전 Phase 2 이어하기
 
-> 이 파일만 읽으면 다음 세션에서 바로 이어갈 수 있다. 최종 갱신: 2026-11-01
+> 이 파일만 읽으면 다음 세션에서 바로 이어갈 수 있다. 최종 갱신: 2026-11-02
 
 ## 0. 세션 시작하는 법 (복붙용 킥오프 프롬프트)
 
@@ -9,7 +9,7 @@
 ```
 art-poke AWS 이전 Phase 2 이어서 한다. docs/superpowers/NEXT-SESSION-phase2.md 와
 docs/superpowers/specs/2026-11-01-aws-phase2-design.md 읽고,
-서브 C(인증+데이터계층)는 완료(브랜치 feat/aws-phase2-subC-auth, PR). 서브 D(스토리지 이전: Supabase Storage→S3+CloudFront)부터 시작하자. AWS는 반드시 --profile artpoke (계정 138681986450, 회사 gr-readonly 금지).
+서브 C(인증+데이터계층)·서브 D(스토리지 이전: Supabase Storage→S3)는 완료. 다음은 서브 A(앱 배포: OpenNext+Lambda+CloudFront)다. AWS는 반드시 --profile artpoke (계정 138681986450, 회사 gr-readonly 금지).
 먼저 /gstack 으로 brainstorming→writing-plans 거쳐 진행.
 ```
 
@@ -35,6 +35,15 @@ docs/superpowers/specs/2026-11-01-aws-phase2-design.md 읽고,
   - **로컬 개발 DB**: Docker Postgres(5432) `docker-compose.yml` + `infra/db/*.sql`. 어드민 생성 `npm run admin:create -- <email> <pw>`. ⚠️ **테스트/시드는 Node 22 필요**(node 20이면 reseed 데모만 비치명 실패).
   - ⚠️ **서브 D로 이월된 것**: ① **스토리지** — `db().storage.*`는 `lib/storage-client.ts`(얇은 Supabase storage 래퍼)로 격리. `@supabase/supabase-js`·`NEXT_PUBLIC_SUPABASE_URL`·`SUPABASE_SECRET_KEY`는 그래서 **아직 남겨둠**(서브 D=S3 전환 때 제거). ② 스토리지 결합 통합테스트 4개 `describe.skip`(`// blocked until sub D`), `tests/helpers/fixtures.ts` 미이전. ③ 시드 스크립트(`scripts/seed-*.mts`, `demo:*`)는 아직 Supabase 대상 — 5432로 미이전(self-seeding 테스트로 대체).
   - ⚠️ **사용자 액션 대기(소셜 로그인 브라우저 검증)**: 카카오/구글 콘솔에 콜백 `http://localhost:3000/api/auth/callback/{kakao,google}` 등록 + `.env.local`에 `AUTH_KAKAO_ID/SECRET`·`AUTH_GOOGLE_ID/SECRET` 입력 필요 → ego-lite로. 어드민 로그인은 콘솔 불필요(이미 검증).
+- ✅ **서브 D (스토리지 이전: Supabase Storage → S3) 완료 (2026-11-02, 브랜치 `feat/aws-phase2-subD-storage`).**
+  - **스토리지 클라이언트**: `lib/storage-client.ts`를 `@aws-sdk/client-s3`+`s3-request-presigner`로 전면 재작성. 논리버킷(`artworks`/`consent-evidence`)→실 S3 버킷 매핑. export `uploadUrl/viewUrl/head/getRange/getObject/putObject/copy/remove/list/listWithMeta`.
+  - **흐름**: 업로드=presigned PUT(클라 직접 fetch) → 서버 `promote`(HeadObject 크기 강제 + Range 매직바이트 검증 → copy+delete). 서빙=presigned GET. `viewUrl`은 한글 파일명을 RFC 5987(`filename*=UTF-8''`)로 인코딩(S3는 날 비ASCII content-disposition에 400을 돌려줌 — Supabase와 다름).
+  - **인프라**: `infra/s3.tf`에 consent-evidence 버킷(+public-access-block·versioning), 두 버킷 CORS(dev origin)·lifecycle(pending/ 1일 만료) apply 완료. `terraform plan` No changes.
+  - **테스트**: fixtures/e2e 스토리지 헬퍼를 S3 list/putObject/remove로 이전, `DATABASE_URL`(5432) 단일 DB 사용. skip 해제 10블록(artworks/cleanup/admin-actions/consent-evidence) 전부 실 S3 대상 녹색. `promote` 검증 통합테스트 신규.
+  - **검증**: `npm run typecheck`·`AWS_PROFILE=artpoke npm test`(178 pass, exit 0, node v20.20.1)·`npm run build` **전부 녹색**.
+  - **제거**: `@supabase/supabase-js`·`supabase` npm 제거, `db:start`/`db:reset` 스크립트 제거, `.env`의 `NEXT_PUBLIC_SUPABASE_URL`/`PUBLISHABLE_KEY`/`SECRET_KEY`/`SUPABASE_DB_URL` 제거. `supabase` grep=주석 + e2e artist 소셜가입(OAuth 콘솔 대기 skip)뿐.
+  - ⚠️ **서브 A가 반드시 추가할 것(이 플랜 범위 밖)**: ① **CloudFront + OAC** — 작품 이미지 서빙을 CloudFront 도메인으로(현재는 presigned GET만, OAC로 S3 비공개 유지). ② **프로드 CORS origin** — `infra/s3.tf`의 CORS `allowed_origins`에 프로드 도메인 추가(현재 localhost만). ③ **Lambda S3 IAM 역할** — app Lambda 실행 역할에 두 버킷 Get/Put/Delete/List/Copy 권한 부여(로컬은 `AWS_PROFILE=artpoke`로 돌지만 프로드 Lambda는 IAM 역할 필요).
+  - ⚠️ **여전히 이월**: 데모 시드 스크립트(`scripts/seed-*.mts`, `demo:*`)는 아직 Supabase 대상·node20에서 `.mts` 로딩 깨짐 → tsconfig 타입체크 제외. reseed teardown은 비치명 실패(테스트 exit code에 영향 없음). 통합테스트는 self-seeding + 로컬 DB에 카드 시드 복사로 동작.
 
 ## 2. 확정된 결정 (재논의 금지)
 
@@ -63,19 +72,20 @@ docs/superpowers/specs/2026-11-01-aws-phase2-design.md 읽고,
 6. env: `AUTH_SECRET`, `KAKAO_CLIENT_ID/SECRET`, `GOOGLE_CLIENT_ID/SECRET`, `DATABASE_URL`
 주의: 기존 `db()`(service_role 키)로 하던 데이터 접근은 RDS 직결(`DATABASE_URL`)로 바꿔야 함 — 이것도 서브 C/D에 걸침.
 
-### 서브 D — 스토리지 이전 (🟡)
-- 업로드: 서버에서 S3 presigned PUT 발급 → 클라 직접 업로드. 현 Supabase Storage 사용처 교체.
-- 서빙: S3 비공개 + CloudFront(OAC). 작품 이미지 URL을 CloudFront 도메인으로.
-- 버킷은 이미 있음: `pokeca-uploads-138681986450`
+### ✅ 서브 D — 스토리지 이전 (완료, 위 §1 참조)
+- 업로드=presigned PUT, 서빙=presigned GET, promote=head+range 검증. Supabase 완전 제거.
+- **서브 A로 넘어간 잔여**: CloudFront(OAC)로 작품 이미지 서빙 + 프로드 CORS origin(`infra/s3.tf`) + app Lambda 실행 역할에 S3 권한. (위 §1 서브 D의 ⚠️ 항목 참조.)
 
 ### 데이터 이전 (🟢)
 - 데이터 거의 없음. `npm run demo`(seed 스크립트)를 RDS 대상으로 돌리거나, Supabase에서 `pg_dump --schema=public --data-only` → migration Lambda/psql로 적재.
+- **데모 시드 스크립트 포팅: `scripts/seed-*.mts`/`import-cards.mts`를 Supabase→pg(DATABASE_URL)+S3(putObject)로 이전 + `.mts` 로딩을 tsx로(현재 node20에서 깨짐). 현재 tsconfig 타입체크 제외 상태. `npm run demo` 복구 필요.** (서브 D는 끝났지만 시드 스크립트 포팅은 포함되지 않은 잔여 작업.)
 
 ### 서브 A — 앱 배포 (🔴)
 - OpenNext 빌드 → Lambda(server)+S3(static)+CloudFront. (SST 또는 OpenNext CLI + Terraform)
 - Lambda VPC 연결(RDS) + **NAT 인스턴스**(인터넷=카카오/구글 토큰).
 - 도메인: **ACM 인증서는 us-east-1**(CloudFront 요건), CloudFront 대체도메인 + DNS 레코드.
 - env/시크릿 주입.
+- **서브 D 잔여(필수)**: ① 작품 이미지용 **CloudFront + OAC**(S3 비공개 유지한 채 서빙), ② `infra/s3.tf` CORS에 **프로드 도메인 origin 추가**(현재 localhost만), ③ **app Lambda 실행 역할에 S3 IAM 권한**(두 버킷 Get/Put/Delete/List/Copy) — 로컬은 `AWS_PROFILE=artpoke`로 돌지만 프로드 Lambda는 역할 필요.
 
 ### 서브 E — 컷오버 (🟢)
 - 스모크(소셜로그인·업로드·어드민·주요플로우) → DNS를 CloudFront로 → Vercel·Supabase 해지.

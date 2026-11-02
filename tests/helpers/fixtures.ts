@@ -1,9 +1,12 @@
-import { createClient } from "@supabase/supabase-js";
 import postgres from "postgres";
 import sharp from "sharp";
 import { createUpload, type UploadKind } from "@/lib/storage";
+import { list, putObject, remove } from "@/lib/storage-client";
 
-export const sql = postgres(process.env.SUPABASE_DB_URL!, { onnotice: () => {} });
+export const sql = postgres(process.env.DATABASE_URL!, { onnotice: () => {} });
+
+// createUpload의 논리 버킷명(lib/storage.ts와 동일). evidence만 consent-evidence로 간다.
+const logicalBucket = (kind: UploadKind) => (kind === "evidence" ? "consent-evidence" : "artworks");
 
 export const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 1, 2, 3, 4]);
 export const PDF = new TextEncoder().encode("%PDF-1.7\n%test\n");
@@ -15,23 +18,10 @@ export const ART_PNG = new Uint8Array(
     .toBuffer(),
 );
 
-// 브라우저처럼 공개 키 클라이언트로 서명 업로드 URL에 올린다.
-// 지연 생성: supabase-js는 import 시 realtime(WebSocket)을 건드려 node 20에서 모듈 로드가 깨진다.
-// 이 헬퍼를 실제로 쓰는 스위트는 전부 서브 D까지 skip이라, 호출될 때만 클라이언트를 만든다.
-let browserClient: ReturnType<typeof createClient> | undefined;
-const browser = () =>
-  (browserClient ??= createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    { auth: { persistSession: false } },
-  ));
-
+// 브라우저 업로드(presigned PUT)를 흉내 낸다. createUpload로 pending 키를 받아 그 자리에 바로 올린다.
 export async function uploadAsBrowser(kind: UploadKind, bytes: Uint8Array, mimeType: string): Promise<string> {
-  const { uploadId, path, token } = await createUpload({ kind, mimeType, sizeBytes: bytes.length });
-  const { error } = await browser()
-    .storage.from(kind === "evidence" ? "consent-evidence" : "artworks")
-    .uploadToSignedUrl(path, token, new Blob([new Uint8Array(bytes)], { type: mimeType }), { contentType: mimeType });
-  if (error) throw error;
+  const { uploadId, key } = await createUpload({ kind, mimeType, sizeBytes: bytes.length });
+  await putObject(logicalBucket(kind), key, bytes, mimeType);
   return uploadId;
 }
 
@@ -43,23 +33,17 @@ export async function cardId(setCode = "sv2a", number = "201/165"): Promise<stri
 
 export async function resetArtworks(): Promise<void> {
   await sql`truncate artworks, artwork_files, consent_events, reports, report_throttle, requests, card_demand, events cascade`;
-  for (const bucket of ["artworks", "consent-evidence"]) {
-    const objects = await sql<{ name: string }[]>`select name from storage.objects where bucket_id = ${bucket}`;
-    if (objects.length) {
-      const { storageClient } = await import("@/lib/storage-client");
-      await storageClient().from(bucket).remove(objects.map((o) => o.name));
-    }
+  for (const bucket of ["artworks", "consent-evidence"] as const) {
+    const keys = await list(bucket, "");
+    if (keys.length) await remove(bucket, keys);
   }
 }
 
 export async function storedPaths(): Promise<string[]> {
-  const rows = await sql<{ name: string }[]>`
-    select name from storage.objects where bucket_id = 'artworks' order by name`;
-  return rows.map((r) => r.name);
+  // 버킷 전체(pending/ 포함)를 사전순으로 — 기존 `order by name`과 동일(S3 list도 사전순).
+  return list("artworks", "");
 }
 
 export async function evidencePaths(): Promise<string[]> {
-  const rows = await sql<{ name: string }[]>`
-    select name from storage.objects where bucket_id = 'consent-evidence' order by name`;
-  return rows.map((r) => r.name);
+  return list("consent-evidence", "");
 }

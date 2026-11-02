@@ -1,16 +1,52 @@
-import { createClient } from "@supabase/supabase-js";
+import {
+  DeleteObjectsCommand,
+  ListObjectsV2Command,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import bcrypt from "bcryptjs";
 import postgres from "postgres";
 import sharp from "sharp";
 
 // E2E 테스트 데이터 준비. 앱 코드(lib/)를 거치지 않고 로컬 DB·저장소에 직접 넣는다.
-// 데이터는 Drizzle 직결 DB(DATABASE_URL, 5432)로. 스토리지는 아직 Supabase(sub D)다 —
-// lib/storage-client.ts는 "server-only"라 Playwright(순수 node)에서 못 읽으므로 여기서 직접 만든다.
+// 데이터는 Drizzle 직결 DB(DATABASE_URL, 5432)로. 스토리지는 S3(서브 D) —
+// lib/storage-client.ts는 "server-only"라 Playwright(순수 node)에서 못 읽으므로 여기서 S3 SDK를 직접 쓴다.
 export const sql = postgres(process.env.DATABASE_URL!, { onnotice: () => {} });
-const storage = () =>
-  createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SECRET_KEY!, {
-    auth: { persistSession: false },
-  }).storage;
+
+// 논리 버킷명(artworks/consent-evidence) → 실제 S3 버킷명.
+const S3_BUCKET: Record<string, string | undefined> = {
+  artworks: process.env.S3_BUCKET_UPLOADS,
+  "consent-evidence": process.env.S3_BUCKET_EVIDENCE,
+};
+let s3Client: S3Client | undefined;
+const s3 = () => (s3Client ??= new S3Client({ region: process.env.AWS_REGION ?? "ap-northeast-1" }));
+const realBucket = (logical: string): string => {
+  const b = S3_BUCKET[logical];
+  if (!b) throw new Error(`unknown bucket: ${logical} (S3_BUCKET_* env 확인)`);
+  return b;
+};
+
+async function s3Put(logical: string, key: string, bytes: Uint8Array, contentType: string): Promise<void> {
+  await s3().send(new PutObjectCommand({ Bucket: realBucket(logical), Key: key, Body: bytes, ContentType: contentType }));
+}
+
+async function s3List(logical: string): Promise<string[]> {
+  const out: string[] = [];
+  let token: string | undefined;
+  do {
+    const r = await s3().send(new ListObjectsV2Command({ Bucket: realBucket(logical), ContinuationToken: token }));
+    for (const o of r.Contents ?? []) if (o.Key) out.push(o.Key);
+    token = r.IsTruncated ? r.NextContinuationToken : undefined;
+  } while (token);
+  return out;
+}
+
+async function s3Remove(logical: string, keys: string[]): Promise<void> {
+  if (keys.length === 0) return;
+  await s3().send(
+    new DeleteObjectsCommand({ Bucket: realBucket(logical), Delete: { Objects: keys.map((Key) => ({ Key })) } }),
+  );
+}
 
 export const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 1, 2, 3, 4]);
 // 화면에 실제로 그려지는 작은 이미지(카드 비율). 서버가 미리보기를 만들 수 있는 진짜 PNG다.
@@ -47,8 +83,7 @@ export async function seedArtwork(s: Seed = {}): Promise<string> {
   const bytes = await previewPng();
   for (const kind of ["original", "thumbnail"]) {
     const path = `artworks/${id}/${kind}-e2e`;
-    const { error } = await storage().from("artworks").upload(path, bytes, { contentType: "image/png" });
-    if (error) throw error;
+    await s3Put("artworks", path, bytes, "image/png");
     await sql`insert into artwork_files (artwork_id, kind, path, mime_type, size_bytes)
       values (${id}, ${kind}, ${path}, 'image/png', ${bytes.length})`;
   }
@@ -58,8 +93,7 @@ export async function seedArtwork(s: Seed = {}): Promise<string> {
 export async function clearArtworks(): Promise<void> {
   await sql`truncate artworks, artwork_files, consent_events, reports, report_throttle, requests, card_demand, events cascade`;
   for (const bucket of ["artworks", "consent-evidence"]) {
-    const objects = await sql<{ name: string }[]>`select name from storage.objects where bucket_id = ${bucket}`;
-    if (objects.length) await storage().from(bucket).remove(objects.map((o) => o.name));
+    await s3Remove(bucket, await s3List(bucket));
   }
 }
 

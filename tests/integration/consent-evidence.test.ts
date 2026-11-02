@@ -1,12 +1,12 @@
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { createClient } from "@supabase/supabase-js";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { applyAdminAction } from "@/lib/admin";
 import { evidenceUrl } from "@/lib/admin-data";
 import { ArtworkError, createArtwork, type NewArtwork } from "@/lib/artworks";
 import { cleanup } from "@/lib/cleanup";
 import { createUpload, StorageInputError } from "@/lib/storage";
+import { putObject } from "@/lib/storage-client";
 import { GET as viewEvidence } from "@/app/api/admin/evidence/[eventId]/route";
 import {
   cardId,
@@ -20,7 +20,7 @@ import {
   uploadAsBrowser,
 } from "../helpers/fixtures";
 
-// blocked until sub D (storage): 허락 근거 업로드·열람·삭제가 전부 Supabase 스토리지에 의존한다.
+// 실 S3(AWS_PROFILE=artpoke) 대상 통합 테스트: 허락 근거 업로드·열람·삭제가 전부 스토리지를 탄다.
 // evidenceUrl의 비스토리지 부분("경로 없음→null")은 admin-data-drizzle.test.ts가 커버한다.
 
 // @/auth는 node 전용 next-auth를 끌어와 테스트 환경에서 import가 깨진다(artists-auth.test.ts와 동일).
@@ -64,7 +64,7 @@ async function events(id: string) {
 
 const later = () => new Date(Date.now() + 24 * 60 * 60 * 1000 + 60_000);
 
-describe.skip("evidence upload validation", () => {
+describe("evidence upload validation", () => {
   it("accepts png, jpeg, pdf up to 20 MB and rejects anything else", async () => {
     await expect(createUpload({ kind: "evidence", mimeType: "image/gif", sizeBytes: 10 })).rejects.toThrow(
       "bad_file_type",
@@ -73,7 +73,7 @@ describe.skip("evidence upload validation", () => {
       createUpload({ kind: "evidence", mimeType: "image/png", sizeBytes: 20 * 1024 * 1024 + 1 }),
     ).rejects.toSatisfy((e) => e instanceof StorageInputError && e.message === "file_too_large");
     expect(await createUpload({ kind: "evidence", mimeType: "application/pdf", sizeBytes: 20 * 1024 * 1024 }))
-      .toMatchObject({ path: expect.stringMatching(/^pending\//) });
+      .toMatchObject({ key: expect.stringMatching(/^pending\//) });
   });
 
   it("uploads into the private evidence bucket, not the artworks bucket", async () => {
@@ -93,7 +93,7 @@ describe.skip("evidence upload validation", () => {
   });
 });
 
-describe.skip("evidence_path is recorded", () => {
+describe("evidence_path is recorded", () => {
   it("on create, under the artwork in the evidence bucket", async () => {
     const a = await input();
     const evidence = await uploadAsBrowser("evidence", PDF, "application/pdf");
@@ -137,12 +137,11 @@ describe.skip("evidence_path is recorded", () => {
   });
 });
 
-describe.skip("cleanup of evidence", () => {
+describe("cleanup of evidence", () => {
   it("removes stale pending evidence and moved evidence that no event recorded", async () => {
     await uploadAsBrowser("evidence", PNG, "image/png");
-    const { storageClient } = await import("@/lib/storage-client");
     const orphan = `artworks/${crypto.randomUUID()}/${crypto.randomUUID()}`;
-    await storageClient().from("consent-evidence").upload(orphan, PNG, { contentType: "image/png" });
+    await putObject("consent-evidence", orphan, PNG, "image/png");
 
     expect(await cleanup()).toMatchObject({ evidence: 0 });
     expect(await cleanup(later())).toMatchObject({ evidence: 2 });
@@ -150,7 +149,7 @@ describe.skip("cleanup of evidence", () => {
   });
 });
 
-describe.skip("evidence view is admin only", () => {
+describe("evidence view is admin only", () => {
   async function recorded() {
     const a = await input();
     const evidence = await uploadAsBrowser("evidence", PNG, "image/png");
@@ -171,7 +170,8 @@ describe.skip("evidence view is admin only", () => {
   it("signs only paths recorded on an event, for a short time", async () => {
     const eventId = await recorded();
     const url = await evidenceUrl(eventId);
-    expect(url).toContain("/consent-evidence/");
+    // S3 presigned URL은 버킷을 서브도메인에 둔다(pokeca-consent-evidence-….s3.…amazonaws.com).
+    expect(url).toContain("consent-evidence");
     const res = await fetch(url!);
     expect(new Uint8Array(await res.arrayBuffer())).toEqual(PNG);
 
@@ -180,16 +180,18 @@ describe.skip("evidence view is admin only", () => {
     expect(await evidenceUrl("../artworks")).toBeNull();
   });
 
-  it("cannot be read with the publishable key", async () => {
+  it("cannot be read without a signed URL (private bucket blocks anonymous access)", async () => {
     await recorded();
     const [path] = await evidencePaths();
-    const anon = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
-      auth: { persistSession: false },
-    });
-    const { data } = await anon.storage.from("consent-evidence").download(path);
-    expect(data).toBeNull();
-    const signed = await anon.storage.from("consent-evidence").createSignedUrl(path, 60);
-    expect(signed.data).toBeNull();
+    // 서명 없는 평문 GET은 비공개 버킷(public-access-block)이 거부해야 한다.
+    const region = process.env.AWS_REGION ?? "ap-northeast-1";
+    const raw = `https://${process.env.S3_BUCKET_EVIDENCE}.s3.${region}.amazonaws.com/${path
+      .split("/")
+      .map(encodeURIComponent)
+      .join("/")}`;
+    const res = await fetch(raw);
+    expect(res.ok).toBe(false);
+    expect([401, 403]).toContain(res.status);
   });
 
   it("is not reachable from any public route", () => {
