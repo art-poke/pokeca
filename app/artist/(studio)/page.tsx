@@ -5,7 +5,7 @@ import { ArtistReviews } from "@/components/artist-reviews";
 import { ArtworkGridSkeleton } from "@/components/skeletons";
 import { Skeleton } from "@/components/ui/skeleton";
 import { artistStats } from "@/lib/artist-stats";
-import { anyApprovedArtist, type Artist, currentArtist, listMyArtworks } from "@/lib/artists";
+import { anyApprovedArtist, type Artist, currentArtist, currentSocialUser, listMyArtworks } from "@/lib/artists";
 import { listArtistReviews } from "@/lib/reviews";
 import { StudioArtworks } from "./StudioArtworks";
 
@@ -44,7 +44,9 @@ async function resolveArtist(): Promise<{ artist: Artist; preview: boolean }> {
     const demo = await anyApprovedArtist();
     if (demo) return { artist: demo, preview: true };
   }
-  redirect("/artist/login");
+  // 로그인했지만 아직 작가가 아니면 신청 폼으로, 로그인조차 안 했으면 로그인으로.
+  const user = await currentSocialUser();
+  redirect(user ? "/artist/signup" : "/artist/login");
 }
 
 async function Studio({ searchParams }: { searchParams: PageProps<"/artist">["searchParams"] }) {
