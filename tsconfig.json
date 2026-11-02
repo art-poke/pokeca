@@ -31,5 +31,16 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "scripts/import-cards.mts",
+    "scripts/resolve-demo.mts",
+    "scripts/seed-artists.mts",
+    "scripts/seed-community.mts",
+    "scripts/seed-demo.mts",
+    "scripts/seed-favorites.mts",
+    "scripts/seed-requests-fix.mts",
+    "scripts/seed-requests-format.mts",
+    "scripts/seed-reviews.mts"
+  ]
 }
