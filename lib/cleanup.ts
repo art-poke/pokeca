@@ -2,7 +2,7 @@ import "server-only";
 import { and, eq, isNotNull, lt } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { artworkFiles, artworks, consentEvents, reportThrottle } from "@/lib/db/schema";
-import { storageClient } from "@/lib/storage-client";
+import { listWithMeta, remove as removeObjects } from "@/lib/storage-client";
 import { BUCKET, EVIDENCE_BUCKET, removeFiles } from "@/lib/storage";
 
 // 하루 한 번 도는 정리 작업 (eng D4, D9). Vercel Cron이 /api/cron/cleanup을 부른다.
@@ -13,21 +13,10 @@ import { BUCKET, EVIDENCE_BUCKET, removeFiles } from "@/lib/storage";
 //   4. 24시간 지난 신고 남용 방지 카운터(report_throttle)
 //   5. consent-evidence 버킷: 24시간 지난 pending/, consent_events에 기록되지 않은 artworks/ 파일
 //      (확정 후 이벤트 기록 실패). 기록된 근거는 철회 뒤에도 남긴다(허락 이력의 증거).
-// Supabase Storage 파일은 SQL로 지울 수 없어서 pg_cron 대신 앱 경로로 돈다.
+// S3 파일은 SQL로 지울 수 없어서 pg_cron 대신 앱 경로로 돈다. 객체 목록은 listWithMeta로 받는다
+// (S3 ListObjectsV2는 재귀 나열이라 Supabase처럼 폴더를 걷지 않고 prefix 아래 전체를 바로 얻는다).
 
 const PAGE = 1000;
-
-type Listed = { name: string; id: string | null; created_at: string | null };
-
-async function listAll(prefix: string, bucket = BUCKET): Promise<Listed[]> {
-  const out: Listed[] = [];
-  for (let offset = 0; ; offset += PAGE) {
-    const { data, error } = await storageClient().from(bucket).list(prefix, { limit: PAGE, offset });
-    if (error) throw error;
-    out.push(...data);
-    if (data.length < PAGE) return out;
-  }
-}
 
 // 추적 중인 경로 집합. 테이블·열을 받아 PAGE 단위로 페이지네이션한다(원래 Supabase .range()와 동일).
 type TrackedTable = typeof artworkFiles | typeof consentEvents;
@@ -51,27 +40,24 @@ async function trackedPaths(
   }
 }
 
-// 버킷의 pending/과 artworks/<작품>/ 아래에서 24시간 지난 파일을 찾는다.
+// 버킷의 pending/과 artworks/ 아래에서 24시간 지난 파일을 찾는다.
+// (S3 재귀 나열이라 artworks/<작품>/ 하위 파일이 prefix 한 번으로 모두 잡힌다.)
 async function staleFiles(bucket: string, cutoff: Date) {
-  const pending = (await listAll("pending", bucket))
-    .filter((f) => f.id && isOlder(f.created_at, cutoff))
-    .map((f) => `pending/${f.name}`);
-  const moved: string[] = [];
-  for (const folder of (await listAll("artworks", bucket)).filter((f) => !f.id)) {
-    for (const f of await listAll(`artworks/${folder.name}`, bucket)) {
-      if (f.id && isOlder(f.created_at, cutoff)) moved.push(`artworks/${folder.name}/${f.name}`);
-    }
-  }
+  const pending = (await listWithMeta(bucket, "pending/"))
+    .filter((f) => isOlder(f.lastModified, cutoff))
+    .map((f) => f.key);
+  const moved = (await listWithMeta(bucket, "artworks/"))
+    .filter((f) => isOlder(f.lastModified, cutoff))
+    .map((f) => f.key);
   return { pending, moved };
 }
 
 async function remove(bucket: string, paths: string[]) {
   if (!paths.length) return;
-  const { error } = await storageClient().from(bucket).remove(paths);
-  if (error) throw error;
+  await removeObjects(bucket, paths);
 }
 
-const isOlder = (createdAt: string | null, cutoff: Date) => !!createdAt && new Date(createdAt) < cutoff;
+const isOlder = (lastModified: Date | null, cutoff: Date) => !!lastModified && lastModified < cutoff;
 
 export type CleanupReport = {
   pending: number;

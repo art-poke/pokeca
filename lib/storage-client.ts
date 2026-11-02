@@ -79,3 +79,19 @@ export const list = async (logical: string, prefix: string): Promise<string[]> =
   } while (token);
   return out;
 };
+
+// 정리 작업(lib/cleanup.ts)용 — prefix 아래 모든 key를 LastModified와 함께 재귀 나열(페이지네이션).
+// Supabase `.list()`가 주던 created_at(24시간 cutoff 판정)을 S3 LastModified로 대체한다.
+export const listWithMeta = async (
+  logical: string,
+  prefix: string,
+): Promise<{ key: string; lastModified: Date | null }[]> => {
+  const out: { key: string; lastModified: Date | null }[] = [];
+  let token: string | undefined;
+  do {
+    const r = await s3.send(new ListObjectsV2Command({ Bucket: bucket(logical), Prefix: prefix, ContinuationToken: token }));
+    for (const o of r.Contents ?? []) if (o.Key) out.push({ key: o.Key, lastModified: o.LastModified ?? null });
+    token = r.IsTruncated ? r.NextContinuationToken : undefined;
+  } while (token);
+  return out;
+};
