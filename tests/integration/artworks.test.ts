@@ -1,8 +1,8 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import sharp from "sharp";
 
-// blocked until sub D (storage): 이 스위트 전체가 Supabase 스토리지(업로드·다운로드·미리보기 생성)에
-// 의존한다. 비스토리지 로직(목록/상태/엔게이지먼트)은 *-drizzle.test.ts가 커버한다.
+// 실 S3(AWS_PROFILE=artpoke) 대상 통합 테스트: 이 스위트 전체가 스토리지(업로드·다운로드·미리보기 생성)를 탄다.
+// 비스토리지 로직(목록/상태/엔게이지먼트)은 *-drizzle.test.ts가 커버한다.
 
 // @/auth는 node 전용 next-auth를 끌어와 테스트 환경에서 import가 깨진다(artists-auth.test.ts와 동일).
 // 이 스위트는 세션을 쓰지 않으므로 전체를 모킹만 해 둔다.

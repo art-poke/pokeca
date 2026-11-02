@@ -6,9 +6,9 @@ import { UUID } from "@/lib/uuid";
 
 // 파일 경로 규칙과 업로드 확정 (eng D3, D4, D9).
 //
-//   [admin browser] ─1. createUpload ─> 서명 업로드 URL (pending/<uploadId>)
-//   [admin browser] ─2. PUT 파일 ─> Supabase Storage (버킷이 100 MB·MIME 제한을 강제)
-//   [server] promoteUpload(uploadId):
+//   [admin browser] ─1. createUpload ─> S3 presigned PUT URL (pending/<uploadId>)
+//   [admin browser] ─2. PUT 파일 ─> S3에 직접 업로드 (presigned PUT은 크기를 강제하지 못한다)
+//   [server] promoteUpload(uploadId): 크기·MIME을 여기서 서버측으로 강제한다.
 //       pending 있음 ─ 첫 16바이트 매직 바이트 확인 ─ 불일치 → pending 삭제, bad_file_type
 //                    └ 일치 → artworks/<artworkId>/<kind>-<uploadId> 로 이동
 //       pending 없음 + 대상 있음 → 이미 이동됨(재시도), 대상 정보 반환

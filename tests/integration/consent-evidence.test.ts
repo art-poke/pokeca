@@ -20,7 +20,7 @@ import {
   uploadAsBrowser,
 } from "../helpers/fixtures";
 
-// blocked until sub D (storage): 허락 근거 업로드·열람·삭제가 전부 Supabase 스토리지에 의존한다.
+// 실 S3(AWS_PROFILE=artpoke) 대상 통합 테스트: 허락 근거 업로드·열람·삭제가 전부 스토리지를 탄다.
 // evidenceUrl의 비스토리지 부분("경로 없음→null")은 admin-data-drizzle.test.ts가 커버한다.
 
 // @/auth는 node 전용 next-auth를 끌어와 테스트 환경에서 import가 깨진다(artists-auth.test.ts와 동일).

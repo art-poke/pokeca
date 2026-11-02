@@ -25,7 +25,7 @@ async function hostedArtwork() {
   return id;
 }
 
-// blocked until sub D (storage): cleanup()의 파일 삭제·고아 탐지는 Supabase 스토리지에 의존한다.
+// 실 S3(AWS_PROFILE=artpoke) 대상 통합 테스트: cleanup()의 파일 삭제·고아 탐지가 스토리지를 탄다.
 // 비스토리지 선별 쿼리(withdrawn/untracked/throttle cutoff)는 cleanup-drizzle.test.ts가 커버한다.
 describe("cleanup", () => {
   it("keeps fresh pending uploads and removes ones older than 24 hours", async () => {

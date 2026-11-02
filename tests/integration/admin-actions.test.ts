@@ -31,7 +31,7 @@ async function expectMismatch(p: Promise<unknown>) {
   await expect(p).rejects.toSatisfy((e) => e instanceof ArtworkError && e.code === "confirm_mismatch");
 }
 
-// blocked until sub D (storage): uploadAsBrowser/storedPaths/resolveDownload 전부 Supabase 스토리지에 의존.
+// 실 S3(AWS_PROFILE=artpoke) 대상 통합 테스트: uploadAsBrowser/storedPaths/resolveDownload가 스토리지를 탄다.
 // applyAdminAction의 비스토리지 로직(consent_events 등)은 admin-data-drizzle.test.ts가 커버한다.
 describe("admin destructive actions need the card number on the server (eng E1)", () => {
   it("refuses to withdraw without a matching confirm and changes nothing", async () => {

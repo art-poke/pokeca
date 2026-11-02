@@ -78,6 +78,7 @@ docs/superpowers/specs/2026-11-01-aws-phase2-design.md 읽고,
 
 ### 데이터 이전 (🟢)
 - 데이터 거의 없음. `npm run demo`(seed 스크립트)를 RDS 대상으로 돌리거나, Supabase에서 `pg_dump --schema=public --data-only` → migration Lambda/psql로 적재.
+- **데모 시드 스크립트 포팅: `scripts/seed-*.mts`/`import-cards.mts`를 Supabase→pg(DATABASE_URL)+S3(putObject)로 이전 + `.mts` 로딩을 tsx로(현재 node20에서 깨짐). 현재 tsconfig 타입체크 제외 상태. `npm run demo` 복구 필요.** (서브 D는 끝났지만 시드 스크립트 포팅은 포함되지 않은 잔여 작업.)
 
 ### 서브 A — 앱 배포 (🔴)
 - OpenNext 빌드 → Lambda(server)+S3(static)+CloudFront. (SST 또는 OpenNext CLI + Terraform)
