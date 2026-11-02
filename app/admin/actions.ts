@@ -1,28 +1,32 @@
 "use server";
 
 import { refresh } from "next/cache";
-import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin";
 import { closeReport, LINK_STATUSES, linkReport, setLinkStatus, type LinkStatus } from "@/lib/admin-data";
 import { setArtistStatus, type ArtistStatus } from "@/lib/artists";
-import { authClient } from "@/lib/supabase/auth";
+import { signIn, signOut } from "@/auth";
+import { AuthError } from "next-auth";
 
 // 어드민 server action. 각 action은 requireAdmin()으로 시작한다(화면 보호와 별개로 직접 호출도 막는다).
 
 export type LoginState = { error: string } | null;
 
 export async function login(_prev: LoginState, form: FormData): Promise<LoginState> {
-  const { error } = await (await authClient()).auth.signInWithPassword({
-    email: String(form.get("email") ?? ""),
-    password: String(form.get("password") ?? ""),
-  });
-  if (error) return { error: "이메일 또는 비밀번호가 맞지 않아요." };
-  redirect("/admin/artworks");
+  try {
+    await signIn("credentials", {
+      email: String(form.get("email") ?? ""),
+      password: String(form.get("password") ?? ""),
+      redirectTo: "/admin/artworks",
+    });
+  } catch (e) {
+    if (e instanceof AuthError) return { error: "이메일 또는 비밀번호가 맞지 않아요." };
+    throw e; // Next redirect()는 예외로 동작한다 — 반드시 다시 던진다.
+  }
+  return null;
 }
 
 export async function logout() {
-  await (await authClient()).auth.signOut();
-  redirect("/admin/login");
+  await signOut({ redirectTo: "/admin/login" });
 }
 
 // 수동 링크 점검 기록 (eng E6).

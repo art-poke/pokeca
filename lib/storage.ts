@@ -1,5 +1,7 @@
 import "server-only";
-import { db } from "@/lib/supabase/server";
+import { sql } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { storageClient } from "@/lib/storage-client";
 import { UUID } from "@/lib/uuid";
 
 // 파일 경로 규칙과 업로드 확정 (eng D3, D4, D9).
@@ -102,7 +104,7 @@ export async function createUpload(input: { kind: UploadKind; mimeType: string; 
     throw new StorageInputError("file_too_large");
   }
   const uploadId = crypto.randomUUID();
-  const { data, error } = await db().storage.from(bucketOf(input.kind)).createSignedUploadUrl(pendingPath(uploadId));
+  const { data, error } = await storageClient().from(bucketOf(input.kind)).createSignedUploadUrl(pendingPath(uploadId));
   if (error) throw error;
   return { uploadId, path: data.path, token: data.token };
 }
@@ -110,7 +112,7 @@ export async function createUpload(input: { kind: UploadKind; mimeType: string; 
 export type StoredFile = { kind: FileKind; path: string; mimeType: MimeType; sizeBytes: number };
 
 async function readHead(bucket: string, path: string): Promise<Uint8Array> {
-  const { data, error } = await db().storage.from(bucket).createSignedUrl(path, 60);
+  const { data, error } = await storageClient().from(bucket).createSignedUrl(path, 60);
   if (error) throw error;
   // 최대 100 MB 파일을 통째로 받지 않고 앞부분만 읽는다.
   const res = await fetch(data.signedUrl, { headers: { Range: "bytes=0-15" } });
@@ -119,7 +121,7 @@ async function readHead(bucket: string, path: string): Promise<Uint8Array> {
 }
 
 async function fileInfo(bucket: string, path: string) {
-  const { data, error } = await db().storage.from(bucket).info(path);
+  const { data, error } = await storageClient().from(bucket).info(path);
   return error ? null : data;
 }
 
@@ -135,11 +137,11 @@ async function promote(kind: UploadKind, from: string, to: string) {
 
   const mime = detectMime(await readHead(name, from));
   if (!mime || !ALLOWED[kind].includes(mime)) {
-    await db().storage.from(name).remove([from]);
+    await storageClient().from(name).remove([from]);
     throw new StorageInputError("bad_file_type");
   }
 
-  const { error } = await db().storage.from(name).move(from, to);
+  const { error } = await storageClient().from(name).move(from, to);
   if (error) throw error;
   return { path: to, mimeType: mime, sizeBytes: pending.size ?? 0 };
 }
@@ -151,13 +153,13 @@ export async function promoteUpload(uploadId: string, artworkId: string, kind: F
 // 서버가 만든 파일(원본에서 만든 미리보기)을 최종 경로에 바로 올린다. 업로드 ID 자리에는 새 UUID를 쓴다.
 export async function storeGenerated(artworkId: string, kind: FileKind, bytes: Uint8Array, mimeType: MimeType): Promise<StoredFile> {
   const path = finalPath(artworkId, kind, crypto.randomUUID());
-  const { error } = await db().storage.from(BUCKET).upload(path, bytes, { contentType: mimeType });
+  const { error } = await storageClient().from(BUCKET).upload(path, bytes, { contentType: mimeType });
   if (error) throw error;
   return { kind, path, mimeType, sizeBytes: bytes.byteLength };
 }
 
 export async function readFile(path: string): Promise<Uint8Array> {
-  const { data, error } = await db().storage.from(BUCKET).download(path);
+  const { data, error } = await storageClient().from(BUCKET).download(path);
   if (error) throw error;
   return new Uint8Array(await data.arrayBuffer());
 }
@@ -179,26 +181,26 @@ export async function promoteReviewImage(uploadId: string): Promise<string> {
 
 // 아바타 교체 시 옛 파일 정리(artwork_files 테이블과 무관하므로 저장소만 지운다).
 export async function removeAvatar(path: string): Promise<void> {
-  if (path) await db().storage.from(BUCKET).remove([path]);
+  if (path) await storageClient().from(BUCKET).remove([path]);
 }
 
 // 어드민 전용(/api/admin/evidence). 공개 라우트에서 부르지 않는다.
 export async function signedEvidenceUrl(path: string): Promise<string> {
-  const { data, error } = await db().storage.from(EVIDENCE_BUCKET).createSignedUrl(path, EVIDENCE_TTL_SECONDS);
+  const { data, error } = await storageClient().from(EVIDENCE_BUCKET).createSignedUrl(path, EVIDENCE_TTL_SECONDS);
   if (error) throw error;
   return data.signedUrl;
 }
 
 export async function signedDownloadUrl(path: string, filename: string): Promise<string> {
-  const { data, error } = await db()
-    .storage.from(BUCKET)
+  const { data, error } = await storageClient()
+    .from(BUCKET)
     .createSignedUrl(path, DOWNLOAD_TTL_SECONDS, { download: filename });
   if (error) throw error;
   return data.signedUrl;
 }
 
 export async function signedViewUrl(path: string): Promise<string> {
-  const { data, error } = await db().storage.from(BUCKET).createSignedUrl(path, DOWNLOAD_TTL_SECONDS);
+  const { data, error } = await storageClient().from(BUCKET).createSignedUrl(path, DOWNLOAD_TTL_SECONDS);
   if (error) throw error;
   return data.signedUrl;
 }
@@ -206,8 +208,7 @@ export async function signedViewUrl(path: string): Promise<string> {
 // 저장소에서 지운 뒤 DB에 반영한다. 실패하면 행이 남아 정리 작업이 다시 시도한다.
 export async function removeFiles(paths: string[]): Promise<void> {
   if (paths.length === 0) return;
-  const { error } = await db().storage.from(BUCKET).remove(paths);
+  const { error } = await storageClient().from(BUCKET).remove(paths);
   if (error) throw error;
-  const { error: dbError } = await db().rpc("artwork_files_removed", { p_paths: paths });
-  if (dbError) throw dbError;
+  await db.execute(sql`select public.artwork_files_removed(${sql.param(paths)}::text[])`);
 }

@@ -1,5 +1,8 @@
 import "server-only";
-import { db } from "@/lib/supabase/server";
+import { and, eq, isNotNull, lt } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { artworkFiles, artworks, consentEvents, reportThrottle } from "@/lib/db/schema";
+import { storageClient } from "@/lib/storage-client";
 import { BUCKET, EVIDENCE_BUCKET, removeFiles } from "@/lib/storage";
 
 // 하루 한 번 도는 정리 작업 (eng D4, D9). Vercel Cron이 /api/cron/cleanup을 부른다.
@@ -19,26 +22,32 @@ type Listed = { name: string; id: string | null; created_at: string | null };
 async function listAll(prefix: string, bucket = BUCKET): Promise<Listed[]> {
   const out: Listed[] = [];
   for (let offset = 0; ; offset += PAGE) {
-    const { data, error } = await db().storage.from(bucket).list(prefix, { limit: PAGE, offset });
+    const { data, error } = await storageClient().from(bucket).list(prefix, { limit: PAGE, offset });
     if (error) throw error;
     out.push(...data);
     if (data.length < PAGE) return out;
   }
 }
 
-async function trackedPaths(table = "artwork_files", column = "path"): Promise<Set<string>> {
+// 추적 중인 경로 집합. 테이블·열을 받아 PAGE 단위로 페이지네이션한다(원래 Supabase .range()와 동일).
+type TrackedTable = typeof artworkFiles | typeof consentEvents;
+type TrackedColumn = typeof artworkFiles.path | typeof consentEvents.evidencePath;
+
+async function trackedPaths(
+  table: TrackedTable = artworkFiles,
+  column: TrackedColumn = artworkFiles.path,
+): Promise<Set<string>> {
   const out = new Set<string>();
   for (let from = 0; ; from += PAGE) {
-    const { data, error } = await db()
+    const rows = await db
+      .select({ path: column })
       .from(table)
-      .select(column)
-      .not(column, "is", null)
-      .order(column)
-      .range(from, from + PAGE - 1)
-      .returns<Record<string, string>[]>();
-    if (error) throw error;
-    for (const r of data) out.add(r[column]);
-    if (data.length < PAGE) return out;
+      .where(isNotNull(column))
+      .orderBy(column)
+      .limit(PAGE)
+      .offset(from);
+    for (const r of rows) if (r.path !== null) out.add(r.path);
+    if (rows.length < PAGE) return out;
   }
 }
 
@@ -58,7 +67,7 @@ async function staleFiles(bucket: string, cutoff: Date) {
 
 async function remove(bucket: string, paths: string[]) {
   if (!paths.length) return;
-  const { error } = await db().storage.from(bucket).remove(paths);
+  const { error } = await storageClient().from(bucket).remove(paths);
   if (error) throw error;
 }
 
@@ -84,30 +93,29 @@ export async function cleanup(now = new Date()): Promise<CleanupReport> {
   await remove(BUCKET, orphaned);
 
   const evidenceFiles = await staleFiles(EVIDENCE_BUCKET, cutoff);
-  const recorded = await trackedPaths("consent_events", "evidence_path");
+  const recorded = await trackedPaths(consentEvents, consentEvents.evidencePath);
   const evidence = [...evidenceFiles.pending, ...evidenceFiles.moved.filter((path) => !recorded.has(path))];
   await remove(EVIDENCE_BUCKET, evidence);
 
-  const { data: leftovers, error: leftoverError } = await db()
-    .from("artwork_files")
-    .select("path, artworks!inner(status, files_purged)")
-    .eq("artworks.status", "withdrawn")
-    .eq("artworks.files_purged", false);
-  if (leftoverError) throw leftoverError;
-  const withdrawn = leftovers.map((f) => f.path as string);
+  const leftovers = await db
+    .select({ path: artworkFiles.path })
+    .from(artworkFiles)
+    .innerJoin(artworks, eq(artworkFiles.artworkId, artworks.id))
+    .where(and(eq(artworks.status, "withdrawn"), eq(artworks.filesPurged, false)));
+  const withdrawn = leftovers.map((f) => f.path);
   await removeFiles(withdrawn);
 
-  const { count: throttle, error: throttleError } = await db()
-    .from("report_throttle")
-    .delete({ count: "exact" })
-    .lt("created_at", cutoff.toISOString());
-  if (throttleError) throw throttleError;
+  const throttleRows = await db
+    .delete(reportThrottle)
+    .where(lt(reportThrottle.createdAt, cutoff))
+    .returning({ id: reportThrottle.id });
+  const throttle = throttleRows.length;
 
   return {
     pending: files.pending.length,
     orphaned: orphaned.length,
     withdrawn: withdrawn.length,
-    throttle: throttle ?? 0,
+    throttle,
     evidence: evidence.length,
   };
 }

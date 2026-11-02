@@ -16,16 +16,20 @@ export const ART_PNG = new Uint8Array(
 );
 
 // 브라우저처럼 공개 키 클라이언트로 서명 업로드 URL에 올린다.
-const browser = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-  { auth: { persistSession: false } },
-);
+// 지연 생성: supabase-js는 import 시 realtime(WebSocket)을 건드려 node 20에서 모듈 로드가 깨진다.
+// 이 헬퍼를 실제로 쓰는 스위트는 전부 서브 D까지 skip이라, 호출될 때만 클라이언트를 만든다.
+let browserClient: ReturnType<typeof createClient> | undefined;
+const browser = () =>
+  (browserClient ??= createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    { auth: { persistSession: false } },
+  ));
 
 export async function uploadAsBrowser(kind: UploadKind, bytes: Uint8Array, mimeType: string): Promise<string> {
   const { uploadId, path, token } = await createUpload({ kind, mimeType, sizeBytes: bytes.length });
-  const { error } = await browser.storage
-    .from(kind === "evidence" ? "consent-evidence" : "artworks")
+  const { error } = await browser()
+    .storage.from(kind === "evidence" ? "consent-evidence" : "artworks")
     .uploadToSignedUrl(path, token, new Blob([new Uint8Array(bytes)], { type: mimeType }), { contentType: mimeType });
   if (error) throw error;
   return uploadId;
@@ -42,8 +46,8 @@ export async function resetArtworks(): Promise<void> {
   for (const bucket of ["artworks", "consent-evidence"]) {
     const objects = await sql<{ name: string }[]>`select name from storage.objects where bucket_id = ${bucket}`;
     if (objects.length) {
-      const { db } = await import("@/lib/supabase/server");
-      await db().storage.from(bucket).remove(objects.map((o) => o.name));
+      const { storageClient } = await import("@/lib/storage-client");
+      await storageClient().from(bucket).remove(objects.map((o) => o.name));
     }
   }
 }

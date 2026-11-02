@@ -1,9 +1,12 @@
 import "server-only";
 import { redirect } from "next/navigation";
+import { asc, desc, eq } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { isUniqueViolation } from "@/lib/db/errors";
+import { artists, favorites, members } from "@/lib/db/schema";
 import { currentSocialUser } from "@/lib/artists";
 import { NICKNAME_MAX } from "@/lib/profile";
 import { promoteAvatar, removeAvatar, StorageInputError } from "@/lib/storage";
-import { db } from "@/lib/supabase/server";
 
 // 일반 회원(member): 로그인한 소셜 유저. 작가 신청 전일 수 있다.
 // 추천·다운로드·댓글·커뮤니티·도안 요청·즐겨찾기의 주체. 첫 참여 때 소셜 이름으로 member 행을 만든다.
@@ -23,73 +26,69 @@ export class MemberError extends Error {
 }
 
 async function artistDisplayName(userId: string): Promise<string | null> {
-  const { data, error } = await db()
-    .from("artists")
-    .select("display_name")
-    .eq("user_id", userId)
-    .maybeSingle<{ display_name: string }>();
-  if (error) throw error;
-  return data?.display_name ?? null;
+  const rows = await db
+    .select({ displayName: artists.displayName })
+    .from(artists)
+    .where(eq(artists.userId, userId))
+    .limit(1);
+  return rows[0]?.displayName ?? null;
 }
 
 async function withDisplayName(row: {
-  user_id: string;
+  userId: string;
   nickname: string;
-  avatar_path: string | null;
+  avatarPath: string | null;
 }): Promise<Member> {
-  const artistName = await artistDisplayName(row.user_id);
+  const artistName = await artistDisplayName(row.userId);
   return {
-    userId: row.user_id,
+    userId: row.userId,
     nickname: row.nickname,
     displayName: artistName ?? row.nickname,
-    avatarPath: row.avatar_path,
+    avatarPath: row.avatarPath,
   };
 }
+
+const memberColumns = {
+  userId: members.userId,
+  nickname: members.nickname,
+  avatarPath: members.avatarPath,
+};
 
 // member 행을 보장(없으면 소셜 이름으로 생성)하고 표시명과 함께 돌려준다.
 export async function currentMember(): Promise<Member | null> {
   const user = await currentSocialUser();
   if (!user) return null;
-  const client = db();
 
-  const existing = await client
-    .from("members")
-    .select("user_id, nickname, avatar_path")
-    .eq("user_id", user.id)
-    .maybeSingle<{ user_id: string; nickname: string; avatar_path: string | null }>();
-  if (existing.error) throw existing.error;
-
-  if (existing.data) return withDisplayName(existing.data);
+  const existing = await db.select(memberColumns).from(members).where(eq(members.userId, user.id)).limit(1);
+  if (existing[0]) return withDisplayName(existing[0]);
 
   const nickname = (user.name?.trim() || `수집가-${user.id.slice(0, 4)}`).slice(0, 40);
-  const created = await client.from("members").insert({ user_id: user.id, nickname });
-  // 동시 첫 요청 경합: 이미 생겼으면 그대로 둔다.
-  if (created.error && created.error.code !== "23505") throw created.error;
-  return withDisplayName({ user_id: user.id, nickname, avatar_path: null });
+  try {
+    await db.insert(members).values({ userId: user.id, nickname });
+  } catch (e) {
+    // 동시 첫 요청 경합: 이미 생겼으면 그대로 둔다.
+    if (!isUniqueViolation(e)) throw e;
+  }
+  return withDisplayName({ userId: user.id, nickname, avatarPath: null });
 }
 
 // 개발 미리보기용: 회원 아무나 1명(로컬에서 로그인 없이 마이프로필 UI 확인).
 // 즐겨찾기가 있는 회원을 먼저 고른다(미리보기에서 목록이 보이게). 없으면 가장 먼저 만든 회원.
 export async function anyMember(): Promise<Member | null> {
-  const select = "user_id, nickname, avatar_path";
-  const fav = await db()
-    .from("favorites")
-    .select("user_id")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle<{ user_id: string }>();
-  if (fav.error) throw fav.error;
+  const fav = await db
+    .select({ userId: favorites.userId })
+    .from(favorites)
+    .orderBy(desc(favorites.createdAt))
+    .limit(1);
 
-  let row: { user_id: string; nickname: string; avatar_path: string | null } | null = null;
-  if (fav.data) {
-    const r = await db().from("members").select(select).eq("user_id", fav.data.user_id).maybeSingle();
-    if (r.error) throw r.error;
-    row = r.data as typeof row;
+  let row: { userId: string; nickname: string; avatarPath: string | null } | undefined;
+  if (fav[0]) {
+    const r = await db.select(memberColumns).from(members).where(eq(members.userId, fav[0].userId)).limit(1);
+    row = r[0];
   }
   if (!row) {
-    const r = await db().from("members").select(select).order("created_at", { ascending: true }).limit(1).maybeSingle();
-    if (r.error) throw r.error;
-    row = r.data as typeof row;
+    const r = await db.select(memberColumns).from(members).orderBy(asc(members.createdAt)).limit(1);
+    row = r[0];
   }
   return row ? withDisplayName(row) : null;
 }
@@ -110,28 +109,26 @@ export async function updateProfile(
   if (!nickname) throw new MemberError("nickname_required");
   if (nickname.length > NICKNAME_MAX) throw new MemberError("nickname_too_long");
 
-  const patch: { nickname: string; avatar_path?: string } = { nickname };
+  const patch: { nickname: string; avatarPath?: string } = { nickname };
   let oldPath: string | null = null;
   if (input.avatarUploadId) {
-    const prev = await db()
-      .from("members")
-      .select("avatar_path")
-      .eq("user_id", userId)
-      .maybeSingle<{ avatar_path: string | null }>();
-    if (prev.error) throw prev.error;
-    oldPath = prev.data?.avatar_path ?? null;
+    const prev = await db
+      .select({ avatarPath: members.avatarPath })
+      .from(members)
+      .where(eq(members.userId, userId))
+      .limit(1);
+    oldPath = prev[0]?.avatarPath ?? null;
     try {
-      patch.avatar_path = await promoteAvatar(input.avatarUploadId, userId);
+      patch.avatarPath = await promoteAvatar(input.avatarUploadId, userId);
     } catch (e) {
       if (e instanceof StorageInputError) throw new MemberError(e.message);
       throw e;
     }
   }
 
-  const { error } = await db().from("members").update(patch).eq("user_id", userId);
-  if (error) throw error;
+  await db.update(members).set(patch).where(eq(members.userId, userId));
   // 새 이미지로 바꿨으면 옛 이미지 정리(실패해도 무시).
-  if (oldPath && patch.avatar_path && oldPath !== patch.avatar_path) {
+  if (oldPath && patch.avatarPath && oldPath !== patch.avatarPath) {
     await removeAvatar(oldPath).catch(() => {});
   }
 }
