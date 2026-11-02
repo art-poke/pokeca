@@ -13,7 +13,7 @@
 ---
 
 ## 파일 구조 (생성/수정)
-- **수정** `lib/storage-client.ts` — Supabase→S3 SDK 전면 재작성. export: `uploadUrl/viewUrl/head/getRange/getObject/putObject/copy/remove` + 논리→실버킷 매핑.
+- **수정** `lib/storage-client.ts` — Supabase→S3 SDK 전면 재작성. export: `uploadUrl/viewUrl/head/getRange/getObject/putObject/copy/remove/list` + 논리→실버킷 매핑. (`list`=테스트 fixtures용, 리뷰 반영.)
 - **수정** `lib/storage.ts` — 각 함수 새 클라이언트로 재배선. `createUpload` 반환 shape 변경, `promote` 크기+매직 검증.
 - **수정** `components/admin/upload.ts` — `uploadFile` 내부 업로드를 `fetch(PUT)`로. Supabase 클라/`PUBLISHABLE_KEY` 제거.
 - **수정** `app/api/{admin,artist,member}/uploads/route.ts`(실제 경로 grep) — createUpload 새 응답(`{uploadId, uploadUrl}`) 전달.
@@ -121,7 +121,7 @@ S3_BUCKET_EVIDENCE=pokeca-consent-evidence-138681986450
 import "server-only";
 import {
   S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand,
-  DeleteObjectsCommand, CopyObjectCommand,
+  DeleteObjectsCommand, CopyObjectCommand, ListObjectsV2Command,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -187,7 +187,20 @@ export const remove = async (logical: string, keys: string[]): Promise<void> => 
   if (keys.length === 0) return;
   await s3.send(new DeleteObjectsCommand({ Bucket: bucket(logical), Delete: { Objects: keys.map((Key) => ({ Key })) } }));
 };
+
+// 테스트 fixtures/정리용 — prefix로 key 나열(페이지네이션). (Supabase storage.objects SELECT 대체)
+export const list = async (logical: string, prefix: string): Promise<string[]> => {
+  const out: string[] = [];
+  let token: string | undefined;
+  do {
+    const r = await s3.send(new ListObjectsV2Command({ Bucket: bucket(logical), Prefix: prefix, ContinuationToken: token }));
+    for (const o of r.Contents ?? []) if (o.Key) out.push(o.Key);
+    token = r.IsTruncated ? r.NextContinuationToken : undefined;
+  } while (token);
+  return out;
+};
 ```
+> **`list`는 fixtures의 `storedPaths()`/`evidencePaths()`/`resetArtworks()`와 e2e `clearArtworks()`가 쓰던 Supabase `select … from storage.objects`를 대체하는 핵심 프리미티브**(리뷰 지적). 반드시 포함.
 - [ ] **Step 2: 통합 스모크 테스트** (실 S3 dev prefix; 자격 없으면 skip)
 ```ts
 import { describe, it, expect, afterAll } from "vitest";
@@ -318,11 +331,21 @@ export async function uploadFile(kind, file, api = "/api/admin"): Promise<string
 
 ### Task 2.2: fixtures + e2e 스토리지 이전
 **Files:** `tests/helpers/fixtures.ts`, `tests/e2e/db.ts`
-- [ ] `fixtures.ts`의 Supabase 업로드/`SUPABASE_DB_URL`/`PUBLISHABLE_KEY` → S3(`putObject`)·`DATABASE_URL`로. `e2e/db.ts`의 `SUPABASE_SECRET_KEY`+storage → S3. 커밋.
+> ⚠️ 리뷰 지적: 이 헬퍼들은 Supabase 전용 Postgres 테이블 `storage.objects`를 `select name from storage.objects where bucket_id=...`로 조회한다(S3엔 없음). `storage-client`의 새 **`list(logical, prefix)`** 로 재작성.
+- [ ] **Step 1 `fixtures.ts`:**
+  - `uploadAsBrowser`(또는 업로드 헬퍼) → `putObject(logical, key, bytes, contentType)`.
+  - `storedPaths()`(line 47) → `list("artworks", "artworks/")` (+필요 필터), `evidencePaths()`(line 57) → `list("consent-evidence", "artworks/")`, `resetArtworks()`(line 63) → `list(...)` 후 `remove(...)`. 기존 하드 단언(`toEqual`/`startsWith('artworks/${id}/')`/`['pending/${upload}']`)이 통과하도록 반환 형태 유지.
+  - `postgres()` 연결 `SUPABASE_DB_URL`(line 6) → **`DATABASE_URL`**(테스트 DB 연결, 스토리지 아님 — 빠뜨리지 말 것). `PUBLISHABLE_KEY`/Supabase import 제거.
+- [ ] **Step 2 `tests/e2e/db.ts`:** Playwright(순수 node)라 **`lib/storage-client`(server-only) import 불가** → 테스트 파일 안에서 `@aws-sdk/client-s3`를 **직접 인스턴스화**. `storage.objects`(line 61)·`.upload`(50)·`.remove`(62) → 직접 S3 `PutObject`/`ListObjectsV2`/`DeleteObjects`. `SUPABASE_SECRET_KEY` 제거.
+- [ ] **Step 3: 타입체크 + 커밋.**
 
-### Task 2.3: skip 해제 (4파일/10블록)
+### Task 2.3: skip 해제 (4파일/10블록) + 잔존 storageClient 호출 포팅
 **Files:** `tests/integration/{artworks,consent-evidence,admin-actions,cleanup}.test.ts`
-- [ ] 각 `describe.skip`→`describe`. `consent-evidence.test.ts:186` anon Supabase 클라 → S3로. 실 S3 dev 대상 녹색(자격 없으면 그 파일은 skip 유지하되 이유 주석). 커밋.
+> ⚠️ 리뷰 지적: 이 파일들엔 `storageClient().from(...).upload()/download()` 직접 호출이 남아 있는데(0.3에서 `storageClient` 삭제됨) 안 고치면 **컴파일 실패**.
+- [ ] **Step 1: 잔존 호출 포팅** — `artworks.test.ts:108` `.download` → `getObject`; `cleanup.test.ts:42,71` `.upload` → `putObject`; `consent-evidence.test.ts:145` `.upload` → `putObject`; `consent-evidence.test.ts:186` anon Supabase 클라 → S3/`getObject`. (전부 `@/lib/storage-client`의 새 export 사용.)
+- [ ] **Step 2: skip 해제** — 각 `describe.skip`→`describe`(10블록).
+- [ ] **Step 3: 실행** — 실 S3 dev 대상 녹색(`AWS_PROFILE=artpoke`). 자격 없으면 해당 파일 상단 `describe.skip` 유지 + `// AWS 자격 필요(서브 D)` 주석.
+- [ ] **Step 4: 커밋.**
 
 ### Task 2.4: Supabase 완전 제거
 **Files:** `package.json`, `.env.example`, `.env.local`
