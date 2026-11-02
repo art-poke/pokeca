@@ -334,7 +334,7 @@ export async function uploadFile(kind, file, api = "/api/admin"): Promise<string
 > ⚠️ 리뷰 지적: 이 헬퍼들은 Supabase 전용 Postgres 테이블 `storage.objects`를 `select name from storage.objects where bucket_id=...`로 조회한다(S3엔 없음). `storage-client`의 새 **`list(logical, prefix)`** 로 재작성.
 - [ ] **Step 1 `fixtures.ts`:**
   - `uploadAsBrowser`(또는 업로드 헬퍼) → `putObject(logical, key, bytes, contentType)`.
-  - `storedPaths()`(line 47) → `list("artworks", "artworks/")` (+필요 필터), `evidencePaths()`(line 57) → `list("consent-evidence", "artworks/")`, `resetArtworks()`(line 63) → `list(...)` 후 `remove(...)`. 기존 하드 단언(`toEqual`/`startsWith('artworks/${id}/')`/`['pending/${upload}']`)이 통과하도록 반환 형태 유지.
+  - `storedPaths()`(line 47) → **`list("artworks", "")` (전체 버킷 — `pending/`도 포함해야 함: `cleanup.test.ts:95`가 `toEqual(['pending/${upload}'])` 단언. 좁은 `artworks/` prefix로 하면 깨짐)**, `evidencePaths()`(line 57) → `list("consent-evidence", "")`, `resetArtworks()`(line 63) → `list("artworks","")` 후 `remove(...)`. 기존 SQL `order by name`과 맞게 반환 정렬(S3 lexicographic = 동일). 하드 단언(`toEqual`/`startsWith('artworks/${id}/')`/`['pending/${upload}']`) 통과하도록 반환 형태 유지.
   - `postgres()` 연결 `SUPABASE_DB_URL`(line 6) → **`DATABASE_URL`**(테스트 DB 연결, 스토리지 아님 — 빠뜨리지 말 것). `PUBLISHABLE_KEY`/Supabase import 제거.
 - [ ] **Step 2 `tests/e2e/db.ts`:** Playwright(순수 node)라 **`lib/storage-client`(server-only) import 불가** → 테스트 파일 안에서 `@aws-sdk/client-s3`를 **직접 인스턴스화**. `storage.objects`(line 61)·`.upload`(50)·`.remove`(62) → 직접 S3 `PutObject`/`ListObjectsV2`/`DeleteObjects`. `SUPABASE_SECRET_KEY` 제거.
 - [ ] **Step 3: 타입체크 + 커밋.**
