@@ -9,19 +9,10 @@ import { cn } from "@/lib/utils";
 const itemCls =
   "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-ink-700 outline-none transition-colors hover:bg-gray-100 focus:bg-gray-100 data-[highlighted]:bg-gray-100";
 
-export const UserMenu = ({
-  name,
-  handle,
-  approved,
-  registered,
-}: {
-  name: string;
-  handle: string | null;
-  approved: boolean;
-  registered: boolean;
-}) => {
+// 로그인하면 누구나 프로필(=작가). handle이 있으면 발행자(공개 작가 페이지 보유).
+export const UserMenu = ({ name, handle }: { name: string; handle: string | null }) => {
   const initial = name.trim()[0] ?? "작";
-  const statusLabel = !registered ? "작가 신청 전" : approved ? `@${handle}` : "승인 대기 중";
+  const statusLabel = handle ? `@${handle}` : "주소 이름 미설정";
 
   return (
     <DropdownMenu.Root>
@@ -46,16 +37,16 @@ export const UserMenu = ({
           <DropdownMenu.Item asChild>
             <Link href="/me" className={itemCls}>
               <User className="size-4" aria-hidden />
-              마이프로필
+              마이페이지
             </Link>
           </DropdownMenu.Item>
           <DropdownMenu.Item asChild>
-            <Link href={registered ? "/artist" : "/artist/signup"} className={itemCls}>
+            <Link href="/artist/new" className={itemCls}>
               <Palette className="size-4" aria-hidden />
-              {registered ? "내 스튜디오" : "작가 신청"}
+              도안 올리기
             </Link>
           </DropdownMenu.Item>
-          {approved && handle && (
+          {handle && (
             <DropdownMenu.Item asChild>
               <Link href={`/artists/${handle}`} className={itemCls}>
                 <User className="size-4" aria-hidden />

@@ -7,7 +7,6 @@ import {
   Megaphone,
   Menu,
   MessagesSquare,
-  Palette,
   Search,
   Trophy,
   User,
@@ -26,8 +25,7 @@ const NAV = [
   { href: "/ranking", label: "랭킹", icon: Trophy },
   { href: "/requests", label: "도안 요청해요", icon: Megaphone },
   { href: "/community", label: "커뮤니티", icon: MessagesSquare },
-  { href: "/artist", label: "작가 스튜디오", icon: Palette },
-  { href: "/me", label: "마이프로필", icon: User },
+  { href: "/me", label: "마이페이지", icon: User },
 ] as const;
 
 // usePathname이 요청 데이터라 PPR에서 AppShell은 Suspense 안에 있어야 한다. 그 동안 보여줄 셸.

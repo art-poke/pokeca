@@ -20,11 +20,11 @@ export default function NewArtistArtworkPage() {
   );
 }
 
-// 승인된 작가만. dev에서는 로그인 없이도 폼 UI를 미리본다(카드 검색 등 인증 필요한 동작은 로그인 후).
+// 발행 자격(handle 보유)만. dev에서는 로그인 없이도 폼 UI를 미리본다(카드 검색·업로드는 로그인 후).
 async function Gate() {
   const artist = await currentArtist();
   if (artist) {
-    if (artist.status !== "approved") redirect("/artist");
+    if (!artist.handle) redirect("/me?setup=handle");
     return <NewArtworkForm mode="artist" />;
   }
   if (process.env.NODE_ENV === "development") {

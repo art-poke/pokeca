@@ -10,21 +10,27 @@ import { showErrorMessage, showLoginNudge, showSuccessToast } from "@/lib/toast/
 import { NICKNAME_MAX } from "@/lib/profile";
 import { cn } from "@/lib/utils";
 
-// 마이프로필 수정: 아바타(이미지 업로드) + 닉네임. 저장하면 PATCH /api/member/profile.
+// 마이프로필 수정: 아바타(이미지 업로드) + 표시명 + 발행용 주소 이름(handle).
+// handle을 설정해야 도안 발행·공개가 열린다(없으면 발행 전 상태).
 export function ProfileEdit({
   userId,
-  nickname,
+  displayName,
+  handle,
   hasAvatar,
   preview: devPreview,
+  setupHandle = false,
 }: {
   userId: string;
-  nickname: string;
+  displayName: string;
+  handle: string | null;
   hasAvatar: boolean;
   preview: boolean;
+  setupHandle?: boolean;
 }) {
   const router = useRouter();
-  const [editing, setEditing] = useState(false);
-  const [name, setName] = useState(nickname);
+  const [editing, setEditing] = useState(setupHandle);
+  const [name, setName] = useState(displayName);
+  const [handleInput, setHandleInput] = useState(handle ?? "");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -34,6 +40,7 @@ export function ProfileEdit({
   // 표시용 아바타: 새로 고른 파일 > 기존 업로드 > 이니셜.
   const shownAvatar = avatarUrl ?? (hasAvatar ? `/api/avatars/${userId}` : null);
   const initial = name.trim()[0] ?? "수";
+  const handleLocked = !!handle; // 이미 설정된 handle은 바꾸지 않는다(공개 URL 안정).
 
   function pickAvatar(file: File | null) {
     if (!file) return;
@@ -44,7 +51,12 @@ export function ProfileEdit({
 
   async function save() {
     if (!name.trim()) {
-      showErrorMessage("닉네임을 입력해 주세요.");
+      showErrorMessage("이름을 입력해 주세요.");
+      return;
+    }
+    const nextHandle = handleLocked ? undefined : handleInput.trim() || undefined;
+    if (nextHandle && !/^[a-z0-9_]{2,30}$/.test(nextHandle)) {
+      showErrorMessage("주소 이름은 영문 소문자·숫자·밑줄(_)로 2~30자예요.");
       return;
     }
     setSaving(true);
@@ -52,7 +64,7 @@ export function ProfileEdit({
       const avatarUploadId = avatarFile
         ? await uploadFile("avatar", avatarFile, "/api/member")
         : undefined;
-      await updateProfile({ nickname: name.trim(), avatarUploadId });
+      await updateProfile({ displayName: name.trim(), handle: nextHandle, avatarUploadId });
       showSuccessToast("프로필을 저장했어요");
       setEditing(false);
       setAvatarFile(null);
@@ -62,7 +74,9 @@ export function ProfileEdit({
         showLoginNudge("로그인 후 바꿀 수 있어요", () => router.push("/artist/login"));
         return;
       }
-      showErrorMessage(errorMessage(e instanceof Error ? e.message : ""));
+      const code = e instanceof Error ? e.message : "";
+      if (code === "handle_taken") showErrorMessage("이미 쓰는 주소 이름이에요. 다른 이름을 골라 주세요.");
+      else showErrorMessage(errorMessage(code));
     } finally {
       setSaving(false);
     }
@@ -107,9 +121,28 @@ export function ProfileEdit({
               value={name}
               onChange={(e) => setName(e.target.value)}
               maxLength={NICKNAME_MAX}
-              placeholder="닉네임"
+              placeholder="이름"
               className="h-11 w-full max-w-xs rounded-lg border border-input bg-background px-3.5 text-base text-foreground outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
             />
+            {handleLocked ? (
+              <p className="text-sm text-muted-foreground">작가 주소 @{handle} (변경 불가)</p>
+            ) : (
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-muted-foreground">@</span>
+                  <input
+                    value={handleInput}
+                    onChange={(e) => setHandleInput(e.target.value.toLowerCase())}
+                    maxLength={30}
+                    placeholder="주소이름 (영문·숫자·_)"
+                    className="h-11 w-full max-w-xs rounded-lg border border-input bg-background px-3.5 text-base text-foreground outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  주소 이름을 정하면 도안을 올리고 내 작가 페이지(/artists/주소이름)가 생겨요.
+                </p>
+              </div>
+            )}
             <div className="flex items-center justify-center gap-2 sm:justify-start">
               <button
                 type="button"
@@ -124,7 +157,8 @@ export function ProfileEdit({
                 type="button"
                 onClick={() => {
                   setEditing(false);
-                  setName(nickname);
+                  setName(displayName);
+                  setHandleInput(handle ?? "");
                   setAvatarFile(null);
                   setAvatarUrl(null);
                 }}
@@ -136,7 +170,12 @@ export function ProfileEdit({
           </div>
         ) : (
           <div className="space-y-1">
-            <h1 className="font-display text-2xl font-bold text-foreground">{nickname}</h1>
+            <h1 className="font-display text-2xl font-bold text-foreground">{displayName}</h1>
+            {handle ? (
+              <p className="text-sm text-muted-foreground">@{handle}</p>
+            ) : (
+              <p className="text-sm text-amber-600">주소 이름을 정하면 도안을 올릴 수 있어요.</p>
+            )}
             <button
               type="button"
               onClick={() => setEditing(true)}

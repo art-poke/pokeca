@@ -25,10 +25,10 @@ const SLIDES: Slide[] = [
     gradient: "from-red-500 via-red-600 to-ink-900",
   },
   {
-    tag: "작가 모집",
+    tag: "누구나 작가",
     title: "내 확장 아트를\n카드 번호로 공유하세요",
-    subtitle: "승인된 작가는 도안을 올리고 작가 페이지를 가져요.",
-    cta: "작가 신청하기",
+    subtitle: "로그인하고 주소 이름만 정하면 도안을 올리고 작가 페이지를 가져요.",
+    cta: "도안 올리기",
     href: "/artist/new",
     gradient: "from-ink-900 via-ink-800 to-red-700",
   },

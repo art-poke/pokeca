@@ -85,7 +85,7 @@ async function Portfolio({ params }: Pick<PageProps<"/artists/[handle]">, "param
       </section>
 
       <ArtistReviews
-        artistHandle={artist.handle}
+        artistHandle={artist.handle ?? handle ?? ""}
         reviews={reviews}
         canWrite={!!member && !isSelf}
         canModerate={!!admin}

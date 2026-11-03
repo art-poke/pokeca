@@ -1,17 +1,21 @@
-import { Star } from "lucide-react";
+import { Download, Megaphone, Star, ThumbsUp, Trophy } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { ArtistReviews } from "@/components/artist-reviews";
 import { ProfileEdit } from "@/components/profile-edit";
 import { RowsSkeleton } from "@/components/skeletons";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { anyMember, currentArtist, listMyArtworks, type Artist } from "@/lib/artists";
+import { artistStats } from "@/lib/artist-stats";
 import { listFavoriteCards } from "@/lib/favorites";
-import { anyMember, currentMember, type Member } from "@/lib/artists";
+import { listArtistReviews } from "@/lib/reviews";
+import { StudioArtworks } from "@/app/artist/(studio)/StudioArtworks";
 
-export const metadata = { title: "마이프로필 · 확장 아트 아카이브" };
+export const metadata = { title: "마이페이지 · 확장 아트 아카이브" };
 
-export default function MyProfilePage() {
+export default function MyProfilePage(props: PageProps<"/me">) {
   return (
     <Suspense
       fallback={
@@ -22,34 +26,71 @@ export default function MyProfilePage() {
         </div>
       }
     >
-      <Profile />
+      <Profile searchParams={props.searchParams} />
     </Suspense>
   );
 }
 
-// 로그인한 회원, 없으면 dev에서 데모 회원으로 미리보기, 그 외 로그인으로.
-async function resolveMember(): Promise<{ member: Member; preview: boolean }> {
-  const real = await currentMember();
-  if (real) return { member: real, preview: false };
+// 로그인한 프로필, 없으면 dev에서 데모 프로필로 미리보기, 그 외 로그인으로.
+async function resolveProfile(): Promise<{ profile: Artist; preview: boolean }> {
+  const real = await currentArtist();
+  if (real) return { profile: real, preview: false };
   if (process.env.NODE_ENV === "development") {
     const demo = await anyMember();
-    if (demo) return { member: demo, preview: true };
+    if (demo) return { profile: demo, preview: true };
   }
   redirect("/artist/login");
 }
 
-async function Profile() {
-  const { member, preview } = await resolveMember();
-  const favorites = await listFavoriteCards(member.userId);
+async function Profile({ searchParams }: { searchParams: PageProps<"/me">["searchParams"] }) {
+  const { profile, preview } = await resolveProfile();
+  const { setup, uploaded } = await searchParams;
+
+  const [favorites, works, stats] = await Promise.all([
+    listFavoriteCards(profile.userId),
+    listMyArtworks(profile.userId),
+    artistStats(profile.userId),
+  ]);
+  const reviews = profile.handle ? await listArtistReviews(profile.userId, null) : [];
+
+  const statCards = [
+    { label: "올린 도안", value: works.length, icon: Trophy },
+    { label: "받은 추천", value: stats.recommends, icon: ThumbsUp },
+    { label: "다운로드", value: stats.downloads, icon: Download },
+    { label: "해결한 요청", value: stats.resolved, icon: Megaphone },
+  ];
 
   return (
     <div className="enter space-y-8">
       <ProfileEdit
-        userId={member.userId}
-        nickname={member.nickname}
-        hasAvatar={!!member.avatarPath}
+        userId={profile.userId}
+        displayName={profile.displayName}
+        handle={profile.handle}
+        hasAvatar={!!profile.avatarPath}
         preview={preview}
+        setupHandle={setup === "handle"}
       />
+
+      {uploaded && (
+        <p role="status" className="rounded-xl bg-success/10 px-4 py-2.5 text-sm font-medium text-success">
+          도안을 올렸어요. 카드 페이지와 작가 페이지에 공개됐어요.
+        </p>
+      )}
+
+      {/* 통계 2x2 */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {statCards.map((s) => (
+          <div key={s.label} className="flex items-center gap-3 rounded-2xl border border-border bg-background p-4">
+            <s.icon className="size-5 shrink-0 text-primary" aria-hidden />
+            <div>
+              <div className="tabular text-2xl font-bold leading-none text-foreground">{s.value}</div>
+              <div className="mt-1 text-xs text-muted-foreground">{s.label}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <StudioArtworks works={works} />
 
       <section aria-labelledby="favs" className="space-y-4">
         <div className="flex items-center gap-2">
@@ -82,9 +123,7 @@ async function Profile() {
                       {c.label} · {c.setName}
                     </p>
                     <div className="mt-1.5">
-                      <Badge variant={c.artworkCount > 0 ? "soft" : "muted"}>
-                        도안 {c.artworkCount}개
-                      </Badge>
+                      <Badge variant={c.artworkCount > 0 ? "soft" : "muted"}>도안 {c.artworkCount}개</Badge>
                     </div>
                   </div>
                 </Link>
@@ -93,6 +132,15 @@ async function Profile() {
           </ul>
         )}
       </section>
+
+      {profile.handle && (
+        <ArtistReviews
+          artistHandle={profile.handle}
+          reviews={reviews}
+          canWrite={false}
+          selfNotice="방문자가 남긴 후기예요. 작가 공개 페이지에도 함께 보여요."
+        />
+      )}
     </div>
   );
 }

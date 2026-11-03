@@ -68,7 +68,7 @@ async function RecentArtworks() {
   if (items.length === 0) {
     return (
       <p className="mt-4 rounded-2xl border border-dashed border-border bg-background px-3 py-12 text-center text-sm text-muted-foreground">
-        아직 올라온 도안이 없어요. 작가 스튜디오에서 첫 도안을 올려보세요.
+        아직 올라온 도안이 없어요. 마이페이지에서 주소 이름을 정하고 첫 도안을 올려보세요.
       </p>
     );
   }
