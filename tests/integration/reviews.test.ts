@@ -9,7 +9,7 @@ import {
 } from "@/lib/reviews";
 import { db } from "@/lib/db";
 import { artistReviews, artists, users } from "@/lib/db/schema";
-import { eq, inArray } from "drizzle-orm";
+import { inArray } from "drizzle-orm";
 
 // 작가 후기 생성/목록(집계·mine)/소프트삭제/최근 피드를 로컬 Docker Postgres(5432)에 직접 검증한다.
 // 이미지 경로는 스토리지 결합을 피하려 쓰지 않는다(imageUploadId 미지정 경로).

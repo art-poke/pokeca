@@ -2,7 +2,8 @@ import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { ADMIN, clearArtists, clearArtworks, ensureUser, previewPng, sessionCookies, socialSessionCookies, sql } from "./db";
 
-// 작가 계정: 카카오·구글 로그인 → 작가 신청 → 어드민 승인 → 직접 올리기(바로 공개) → 작가 페이지 → 내리기.
+// 유저=작가 통합: 카카오·구글 로그인 → 마이페이지에서 주소 이름(handle) 설정 → 직접 올리기(바로 공개) → 작가 페이지 → 내리기.
+// (승인 플로우 제거됨. 아래 테스트들은 OAuth 콘솔·Supabase 세션 의존으로 test.skip 상태 — OAuth 연동 시 새 플로우로 본문 재작성 필요.)
 // 공급자 화면은 테스트에서 거칠 수 없어서, 로그인 버튼은 공급자로 보내는지만 보고 세션은 쿠키로 넣는다. 데스크톱에서 순서대로.
 test.describe.configure({ mode: "serial" });
 test.skip(({ isMobile }) => isMobile, "artist flow runs on desktop");
@@ -56,7 +57,8 @@ test.skip("a failed provider round trip comes back to the login with a message",
 });
 
 // blocked: needs kakao/google console (sub C follow-up) — 소셜 세션(loginArtist)이 필요하다
-test.skip("first login applies as an artist, waits for approval, then uploads straight to the card page", async ({
+// TODO(OAuth): 새 플로우로 본문 재작성 — 로그인 → 마이페이지 handle 설정 → 바로 업로드(승인 단계 없음).
+test.skip("first login sets a handle in my-page, then uploads straight to the card page", async ({
   page,
   browser,
   baseURL,
