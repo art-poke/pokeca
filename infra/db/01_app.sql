@@ -1374,3 +1374,29 @@ create index artist_reviews_recent on public.artist_reviews (created_at desc) wh
 -- RLS: 켜고 정책 없음(= anon 차단, 서버 service_role만).
 alter table public.artist_reviews enable row level security;
 
+-- ========== 20261103000000_user_is_artist.sql ==========
+-- 유저=작가 통합: 승인 제거, members 흡수, handle 발행 전 null 허용.
+-- 런칭 전·데이터 폐기 가능 → members는 그냥 drop(데이터 이전 안 함).
+
+-- 1) 승인 흔적 제거
+drop index if exists artists_status;
+alter table public.artists drop constraint if exists artists_status_check;
+alter table public.artists drop column if exists status;
+alter table public.artists drop column if exists reviewed_at;
+alter table public.artists drop column if exists reviewed_by;
+
+-- 2) handle: 발행 전엔 없음(null 허용). unique·형식 체크는 유지(null은 통과).
+alter table public.artists alter column handle drop not null;
+alter table public.artists drop constraint if exists artists_handle_check;
+alter table public.artists add constraint artists_handle_check
+  check (handle is null or handle ~ '^[a-z0-9_]{2,30}$');
+
+-- 3) 프로필 흡수: 아바타 컬럼(= 옛 members.avatar_path)
+alter table public.artists add column if not exists avatar_path text;
+
+-- 4) members 폐기(FK는 users만 참조했고 engagements/comments/favorites는 users 직참조)
+drop table if exists public.members cascade;
+
+-- 5) 공개/발행 조회용 인덱스(handle 보유 프로필)
+create index if not exists artists_published on public.artists (handle) where handle is not null;
+
