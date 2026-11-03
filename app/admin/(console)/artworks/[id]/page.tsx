@@ -45,7 +45,7 @@ async function Detail({ params }: { params: PageProps<"/admin/artworks/[id]">["p
         </p>
         {a.artistAccount && (
           <p>
-            작가가 직접 올린 작품 · <Link href="/admin/artists">작가 계정 /artists/{a.artistAccount.handle}</Link>
+            작가가 직접 올린 작품 · <Link href={`/artists/${a.artistAccount.handle}`}>작가 페이지 /artists/{a.artistAccount.handle}</Link>
           </p>
         )}
       </header>

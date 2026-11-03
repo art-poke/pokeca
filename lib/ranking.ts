@@ -63,7 +63,6 @@ export async function artistRanking(period: RankPeriod, limit = 20): Promise<Art
       user_id: artists.userId,
       display_name: artists.displayName,
       handle: artists.handle,
-      status: artists.status,
     })
     .from(artists)
     .where(
@@ -80,7 +79,7 @@ export async function artistRanking(period: RankPeriod, limit = 20): Promise<Art
       rank: i + 1,
       userId,
       name: a?.display_name ?? "작가",
-      handle: a?.status === "approved" ? (a?.handle ?? null) : null,
+      handle: a?.handle ?? null,
       score,
     };
   });

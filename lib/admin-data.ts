@@ -173,7 +173,7 @@ export type ConsentEvent = {
 
 export type AdminArtworkDetail = AdminArtworkRow & {
   cardName: string;
-  artistAccount: { handle: string; status: string } | null; // 작가가 직접 올린 작품
+  artistAccount: { handle: string } | null; // 발행자(handle 보유)가 직접 올린 작품
   printSizeVerified: boolean;
   files: { kind: "original" | "thumbnail"; mimeType: string; sizeBytes: number }[];
   events: ConsentEvent[];
@@ -189,7 +189,6 @@ export async function getAdminArtwork(id: string, now = new Date()): Promise<Adm
       name_ko: cards.nameKo,
       print_size_verified: artworks.printSizeVerified,
       artist_handle: artists.handle,
-      artist_status: artists.status,
     })
     .from(artworks)
     .innerJoin(cards, eq(artworks.cardId, cards.id))
@@ -231,7 +230,7 @@ export async function getAdminArtwork(id: string, now = new Date()): Promise<Adm
   return {
     ...toAdminRow(toRow(data), now),
     cardName: data.name_ko,
-    artistAccount: data.artist_handle ? { handle: data.artist_handle, status: data.artist_status ?? "" } : null,
+    artistAccount: data.artist_handle ? { handle: data.artist_handle } : null,
     printSizeVerified: data.print_size_verified,
     files: files.map((f) => ({
       kind: f.kind as "original" | "thumbnail",

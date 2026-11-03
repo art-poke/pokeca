@@ -65,14 +65,14 @@ export async function createReview(input: {
   imageUploadId?: string | null;
 }): Promise<string> {
   if (!UUID.test(input.artistId)) throw new ReviewError("not_found");
-  // 작가가 있고 승인 상태인지 확인(후기는 공개 작가에게만).
+  // 발행자(handle 보유)인지 확인(후기는 공개 작가에게만).
   const artistRows = await db
-    .select({ userId: artists.userId, status: artists.status })
+    .select({ userId: artists.userId, handle: artists.handle })
     .from(artists)
     .where(eq(artists.userId, input.artistId))
     .limit(1);
   const artist = artistRows[0] ?? null;
-  if (!artist || artist.status !== "approved") throw new ReviewError("not_found");
+  if (!artist || !artist.handle) throw new ReviewError("not_found");
   if (input.userId === input.artistId) throw new ReviewError("self_review");
 
   const body = input.body.trim();

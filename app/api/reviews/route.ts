@@ -1,4 +1,4 @@
-import { approvedArtistId } from "@/lib/artists";
+import { publishedArtistId } from "@/lib/artists";
 import { memberRoute } from "@/lib/artist-route";
 import { createReview, ReviewError } from "@/lib/reviews";
 
@@ -6,7 +6,7 @@ import { createReview, ReviewError } from "@/lib/reviews";
 export const POST = memberRoute(async (request, _ctx, member) => {
   const body = await request.json();
   const handle = String(body.artistHandle ?? "");
-  const artistId = await approvedArtistId(handle);
+  const artistId = await publishedArtistId(handle);
   if (!artistId) throw new ReviewError("not_found");
   const id = await createReview({
     artistId,
