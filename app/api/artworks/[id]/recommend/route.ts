@@ -1,5 +1,5 @@
 import { toggleRecommend } from "@/lib/engagements";
-import { memberRoute } from "@/lib/member-route";
+import { memberRoute } from "@/lib/artist-route";
 
 // 도안 추천 토글(회원 전용). 이미 다운로드로 반영된 도안은 400 {code:'already_downloaded'}.
 export const POST = memberRoute(

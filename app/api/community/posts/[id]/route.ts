@@ -1,6 +1,6 @@
 import { currentAdmin } from "@/lib/admin";
 import { deletePost, PostError } from "@/lib/community";
-import { memberRoute } from "@/lib/member-route";
+import { memberRoute } from "@/lib/artist-route";
 
 // 게시글 삭제(본인 또는 어드민). soft delete.
 export const DELETE = memberRoute(

@@ -1,5 +1,5 @@
 import { CommentError, createComment } from "@/lib/comments";
-import { memberRoute } from "@/lib/member-route";
+import { memberRoute } from "@/lib/artist-route";
 
 // 댓글 작성(회원). body: { target: 'artwork'|'post', targetId, body, parentId? }
 export const POST = memberRoute(async (request, _ctx, member) => {

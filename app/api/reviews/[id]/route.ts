@@ -1,5 +1,5 @@
 import { currentAdmin } from "@/lib/admin";
-import { memberRoute } from "@/lib/member-route";
+import { memberRoute } from "@/lib/artist-route";
 import { deleteReview } from "@/lib/reviews";
 
 // 후기 삭제: 작성자 본인 또는 어드민.

@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { currentAdmin } from "@/lib/admin";
 import { listComments } from "@/lib/comments";
 import { BOARD_LABEL, getPost } from "@/lib/community";
-import { currentMember } from "@/lib/members";
+import { currentMember } from "@/lib/artists";
 
 export default function PostPage(props: PageProps<"/community/[id]">) {
   return (

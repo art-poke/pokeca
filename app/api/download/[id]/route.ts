@@ -3,7 +3,7 @@ import { resolveDownload } from "@/lib/artworks";
 import { db } from "@/lib/db";
 import { events } from "@/lib/db/schema";
 import { recordDownloadEngagement } from "@/lib/engagements";
-import { currentMember } from "@/lib/members";
+import { currentMember } from "@/lib/artists";
 import { visitorId } from "@/lib/visitor";
 
 // 다운로드는 회원 전용(에픽 결정). 서명 URL은 5분 뒤 만료되므로 화면에 남기지 않는다.

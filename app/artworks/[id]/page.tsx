@@ -12,7 +12,7 @@ import { getArtworkDetail } from "@/lib/artworks";
 import { listComments } from "@/lib/comments";
 import { getEngagement } from "@/lib/engagements";
 import { FORMAT_INFO } from "@/lib/formats";
-import { currentMember } from "@/lib/members";
+import { currentMember } from "@/lib/artists";
 
 export default function ArtworkPage(props: PageProps<"/artworks/[id]">) {
   return (

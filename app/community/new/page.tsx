@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { PostForm } from "@/components/post-form";
 import { currentAdmin } from "@/lib/admin";
 import { BOARD_LABEL } from "@/lib/community";
-import { requireMember } from "@/lib/members";
+import { requireMember } from "@/lib/artists";
 
 export const metadata = { title: "글쓰기 · 커뮤니티" };
 

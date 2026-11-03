@@ -7,7 +7,7 @@ import { ArtistPageSkeleton } from "@/components/skeletons";
 import { currentAdmin } from "@/lib/admin";
 import { resolvedCountByArtist } from "@/lib/art-requests";
 import { getPortfolio } from "@/lib/artists";
-import { currentMember } from "@/lib/members";
+import { currentMember } from "@/lib/artists";
 import { listArtistReviews } from "@/lib/reviews";
 import { safeDecode } from "@/lib/search";
 

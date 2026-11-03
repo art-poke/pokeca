@@ -1,6 +1,6 @@
 import { requestArt } from "@/lib/art-requests";
 import { isFormat } from "@/lib/formats";
-import { memberRoute } from "@/lib/member-route";
+import { memberRoute } from "@/lib/artist-route";
 
 // 카드×규격 도안 요청(회원). body: { format }
 export const POST = memberRoute(

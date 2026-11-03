@@ -1,5 +1,5 @@
-import { memberRoute } from "@/lib/member-route";
-import { updateProfile } from "@/lib/members";
+import { memberRoute } from "@/lib/artist-route";
+import { updateProfile } from "@/lib/artists";
 
 // 마이프로필 수정: 닉네임(필수) + 프로필 이미지(선택, 업로드 ID).
 export const PATCH = memberRoute(async (request, _ctx, member) => {

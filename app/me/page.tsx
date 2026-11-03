@@ -7,7 +7,7 @@ import { RowsSkeleton } from "@/components/skeletons";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { listFavoriteCards } from "@/lib/favorites";
-import { anyMember, currentMember, type Member } from "@/lib/members";
+import { anyMember, currentMember, type Member } from "@/lib/artists";
 
 export const metadata = { title: "마이프로필 · 확장 아트 아카이브" };
 

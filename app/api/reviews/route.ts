@@ -1,5 +1,5 @@
 import { approvedArtistId } from "@/lib/artists";
-import { memberRoute } from "@/lib/member-route";
+import { memberRoute } from "@/lib/artist-route";
 import { createReview, ReviewError } from "@/lib/reviews";
 
 // 작가 후기 작성. body: { artistHandle, body, imageUploadId? }. 회원만.

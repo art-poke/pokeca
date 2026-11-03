@@ -2,7 +2,7 @@
 
 import { getArtworkDetail, recentArtworks } from "@/lib/artworks";
 import { getEngagement } from "@/lib/engagements";
-import { currentMember } from "@/lib/members";
+import { currentMember } from "@/lib/artists";
 import type { Artwork, ArtworkDetail } from "./types";
 
 // ---------------------------------------------------------------------------

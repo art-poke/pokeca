@@ -292,7 +292,7 @@ export type ArtworkRow = {
   source_visibility: "public" | "members_only" | null;
   link_status: string;
   print_size_verified: boolean;
-  artists?: { handle: string; status: string } | null;
+  artists?: { handle: string | null } | null;
 };
 
 export function toPublic(r: ArtworkRow): PublicArtwork {
@@ -310,7 +310,8 @@ export function toPublic(r: ArtworkRow): PublicArtwork {
     sourceDomain,
     membersOnly: !!sourceUrl && r.source_visibility === "members_only",
     printSizeVerified: r.print_size_verified,
-    artistHandle: r.artists?.status === "approved" ? r.artists.handle : null,
+    // 발행자(handle 보유)의 작품이면 작가 페이지로 잇는다.
+    artistHandle: r.artists?.handle ?? null,
   };
 }
 
@@ -327,7 +328,6 @@ export async function listPublicArtworks(cardId: string): Promise<PublicArtwork[
       link_status: artworks.linkStatus,
       print_size_verified: artworks.printSizeVerified,
       artistHandle: artists.handle,
-      artistStatus: artists.status,
     })
     .from(artworks)
     .leftJoin(artists, eq(artworks.artistId, artists.userId))
@@ -336,7 +336,7 @@ export async function listPublicArtworks(cardId: string): Promise<PublicArtwork[
   return rows.map((r) => toPublic(toArtworkRow(r)));
 }
 
-// Drizzle select 결과(평평한 artistHandle/artistStatus)를 toPublic이 받는 ArtworkRow로 맞춘다.
+// Drizzle select 결과(평평한 artistHandle)를 toPublic이 받는 ArtworkRow로 맞춘다.
 type ArtworkSelect = {
   id: string;
   title: string | null;
@@ -347,7 +347,6 @@ type ArtworkSelect = {
   link_status: string;
   print_size_verified: boolean;
   artistHandle: string | null;
-  artistStatus: string | null;
 };
 
 function toArtworkRow(r: ArtworkSelect): ArtworkRow {
@@ -360,7 +359,7 @@ function toArtworkRow(r: ArtworkSelect): ArtworkRow {
     source_visibility: r.source_visibility as "public" | "members_only" | null,
     link_status: r.link_status,
     print_size_verified: r.print_size_verified,
-    artists: r.artistHandle ? { handle: r.artistHandle, status: r.artistStatus ?? "" } : null,
+    artists: r.artistHandle ? { handle: r.artistHandle } : null,
   };
 }
 
@@ -379,7 +378,6 @@ export async function recentArtworks(limit = 8): Promise<RecentArtwork[]> {
       link_status: artworks.linkStatus,
       print_size_verified: artworks.printSizeVerified,
       artistHandle: artists.handle,
-      artistStatus: artists.status,
       setCode: cards.setCode,
       collectorNumber: cards.collectorNumber,
       nameKo: cards.nameKo,
@@ -424,7 +422,6 @@ export async function getArtworkDetail(id: string): Promise<ArtworkDetail | null
       link_status: artworks.linkStatus,
       print_size_verified: artworks.printSizeVerified,
       artistHandle: artists.handle,
-      artistStatus: artists.status,
       setCode: cards.setCode,
       collectorNumber: cards.collectorNumber,
       nameKo: cards.nameKo,

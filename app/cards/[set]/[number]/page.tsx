@@ -11,7 +11,7 @@ import { getCard } from "@/lib/cards";
 import { CardPageSkeleton } from "@/components/skeletons";
 import { isFavorited } from "@/lib/favorites";
 import { FORMATS } from "@/lib/formats";
-import { currentMember } from "@/lib/members";
+import { currentMember } from "@/lib/artists";
 import { numberFromPath, safeDecode } from "@/lib/search";
 
 const LANG_LABEL = { ja: "일본", en: "영문" } as const;

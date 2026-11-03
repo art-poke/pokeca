@@ -1,6 +1,6 @@
 import { currentAdmin } from "@/lib/admin";
 import { CommentError, deleteComment } from "@/lib/comments";
-import { memberRoute } from "@/lib/member-route";
+import { memberRoute } from "@/lib/artist-route";
 
 // 댓글 삭제(본인 또는 어드민). soft delete.
 export const DELETE = memberRoute(

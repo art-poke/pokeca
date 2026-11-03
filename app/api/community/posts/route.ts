@@ -1,6 +1,6 @@
 import { currentAdmin } from "@/lib/admin";
 import { createPost, PostError } from "@/lib/community";
-import { memberRoute } from "@/lib/member-route";
+import { memberRoute } from "@/lib/artist-route";
 
 // 게시글 작성(회원). 공지는 어드민만. body: { board, title, body }
 export const POST = memberRoute(async (request, _ctx, member) => {
