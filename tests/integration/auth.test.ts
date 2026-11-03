@@ -2,6 +2,12 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { Pool } from "pg";
 import bcrypt from "bcryptjs";
 
+// currentAdmin의 connection()(동적 렌더 강제)은 요청 스코프 밖에선 던진다 → no-op 모킹.
+vi.mock("next/server", async (original) => ({
+  ...(await original<typeof import("next/server")>()),
+  connection: async () => {},
+}));
+
 // 로컬 Docker Postgres(DATABASE_URL)에 직접 붙어 어드민을 심고, Credentials 검증과 currentAdmin을 확인한다.
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 

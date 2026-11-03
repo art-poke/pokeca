@@ -34,8 +34,9 @@ beforeAll(async () => {
     .returning({ id: users.id });
 
   await db.insert(artists).values([
-    { userId: artistId, handle: HANDLE, displayName: "후기작가", provider: "google", status: "approved" },
-    { userId: pendingArtistId, handle: `${HANDLE}p`, displayName: "대기작가", provider: "google", status: "pending" },
+    { userId: artistId, handle: HANDLE, displayName: "후기작가", provider: "google" },
+    // 미발행(handle 없음) 프로필 — 후기 대상이 될 수 없다.
+    { userId: pendingArtistId, handle: null, displayName: "대기작가", provider: "google" },
   ]);
 });
 

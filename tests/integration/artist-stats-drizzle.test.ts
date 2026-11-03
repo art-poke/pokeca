@@ -38,8 +38,8 @@ beforeAll(async () => {
   // handle은 ^[a-z0-9_]{2,30}$ 제약. TAG( as+숫자)는 소문자·숫자라 그대로 쓰되 길이만 맞춘다.
   const h = TAG.toLowerCase().slice(0, 22);
   await db.insert(artists).values([
-    { userId: artist, handle: `${h}_a`, displayName: `${TAG} 작가`, provider: "test", status: "approved" },
-    { userId: other, handle: `${h}_o`, displayName: `${TAG} 남작가`, provider: "test", status: "approved" },
+    { userId: artist, handle: `${h}_a`, displayName: `${TAG} 작가`, provider: "test" },
+    { userId: other, handle: `${h}_o`, displayName: `${TAG} 남작가`, provider: "test" },
   ]);
 
   const arts = await db
