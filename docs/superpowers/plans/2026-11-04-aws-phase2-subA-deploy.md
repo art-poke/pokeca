@@ -111,7 +111,7 @@ export default config;
     - `DATABASE_URL = "postgresql://${user}:${urlencode(pass)}@${aws_db_instance.main.address}:${port}/${dbname}"` (lib/db가 `DATABASE_URL` 읽음 확인됨; `random_password.db`는 special=false라 인코딩 이슈 없음)
     - `AUTH_SECRET`(신규 `random_password`/시크릿), `AUTH_KAKAO_ID/SECRET`, `AUTH_GOOGLE_ID/SECRET`
     - **`AUTH_TRUST_HOST = "true"`** (CloudFront+Lambda 뒤 host 신뢰 필수). `AUTH_URL`은 **이 단계에선 생략**(CloudFront 도메인 미정 — 순환). 호스트는 Phase 4의 CloudFront Function이 넣는 `x-forwarded-host`로 해결. 필요 시 Phase 6에서 `AUTH_URL` 2차 주입.
-    - `AWS_REGION`, `S3_BUCKET_UPLOADS`, `S3_BUCKET_EVIDENCE`
+    - `S3_BUCKET_UPLOADS`, `S3_BUCKET_EVIDENCE` (⚠️ `AWS_REGION`은 Lambda 예약 env라 주입 금지 — 런타임이 자동 제공. storage-client는 이 값을 읽음)
   - `aws_lambda_function_url`: **`invoke_mode = "RESPONSE_STREAM"`**(스트리밍 SSR; BUFFERED면 스트리밍 깨짐), `authorization_type = "AWS_IAM"`(Phase 4에서 CloudFront OAC가 sigv4 서명). 
 - [ ] **Step 2** `infra/iam.tf`: 앱 역할에 **S3 uploads/evidence 버킷만**(Get/Put/Delete/List/Copy, 리소스 ARN+`/*`로 좁힘) + logs + VPC. **assets 버킷 읽기 불필요**(CloudFront OAC가 직접 읽음 → 제외). **Secrets read 불필요**(env 직접 주입).
 - [ ] **Step 3** `terraform plan` → Lambda/IAM 신규 확인. `apply`.

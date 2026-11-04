@@ -55,6 +55,43 @@
 - **왜**: 앱 CloudFront부터 세우는 게 1차 목표. 이미지 CDN은 presigned로도 동작하므로 라이브를 막지 않음. 과도한 동시 변경 지양.
 - **되돌리는 법**: 후속에서 uploads 버킷 OAC 비헤이비어 추가.
 
+## ADR-A6. OpenNext 캐시: incrementalCache/queue/tagCache = "dummy"
+
+- **결정**: `open-next.config.ts`에서 세 캐시를 **dummy**로 끈다.
+- **왜**: art-poke는 `cacheComponents` off = 거의 전동적 렌더. ISR/`revalidatePath`/`revalidateTag` 미사용. OpenNext 기본값은 **런타임에 S3 cache 버킷·SQS(queue)·DynamoDB(tagCache)를 기대** → 안 끄면 불필요 인프라 + 런타임 에러. dummy로 끄면 cache 버킷·revalidation fn·dynamodb-provider 배포 생략.
+- **전제/리스크**: 앱에 ISR/revalidate 사용처가 생기면 깨짐 → 플랜 Task 1.2 grep으로 가드.
+- **되돌리는 법**: override 제거 + cache 버킷/revalidation fn/Dynamo seed 배포.
+- 근거: [OpenNext architecture](https://opennext.js.org/aws/inner_workings/architecture)
+
+## ADR-A7. Host 처리: CloudFront viewer-request Function으로 x-forwarded-host 주입
+
+- **결정**: CloudFront에 viewer-request Function을 붙여 `x-forwarded-host = Host`를 세팅. `Host`는 origin(Lambda Function URL)으로 forward하지 않음.
+- **왜**: Lambda가 받는 `Host`는 Lambda 서비스 호스트명이라 그대로 쓰면 **Auth.js가 콜백 URL·세션 쿠키 도메인을 틀린 호스트로 생성 → OAuth/세션 전멸**. OpenNext 서버는 `x-forwarded-host`를 읽어 host를 잡으므로 CloudFront가 이 헤더를 넣어야 함. Function URL에 Host를 직접 forward하면 SNI/호스트 불일치로 깨짐.
+- **보강**: Lambda env `AUTH_TRUST_HOST=true`(host 신뢰) + 도메인 확정 후 `AUTH_URL` 2차 주입.
+- **되돌리는 법**: 거의 영구(OpenNext 구조상 필수).
+- 근거: [opennextjs-aws #753](https://github.com/opennextjs/opennextjs-aws/issues/753)
+
+## ADR-A8. Function URL 보호: Lambda 오리진 OAC (커스텀 헤더 아님)
+
+- **결정**: 앱 Lambda Function URL을 `AWS_IAM` + **CloudFront OAC(origin type=lambda, sigv4)**로 보호. CloudFront만 호출 가능.
+- **왜**: 2026-10 CloudFront가 Lambda Function URL에 OAC 정식 지원. 과거 관행인 "커스텀 헤더 시크릿"보다 깔끔. (단 aws provider가 lambda OAC 지원하는 버전이어야 — 현재 5.100, 미지원 시 bump.)
+- **되돌리는 법**: 커스텀 헤더 + Function URL auth NONE로 회귀(비권장).
+- 근거: [AWS What's New 2026-10](https://aws.amazon.com/about-aws/whats-new/2026/10/cloudfront-lambda-web-functions-origin/)
+
+## ADR-A9. 스트리밍: Function URL invoke_mode = RESPONSE_STREAM + 4.1.0 회피
+
+- **결정**: Lambda Function URL을 RESPONSE_STREAM(스트리밍 SSR). `@opennextjs/aws` **4.1.0은 핀하지 않음**(CloudFront+스트리밍 wedge 회귀 #1315), Next16 지원 + 패치 버전 사용.
+- **왜**: BUFFERED면 Next 스트리밍 SSR이 깨짐. 4.1.0 특정 버전은 terminal chunk 미전송 버그.
+- **되돌리는 법**: 버전 상향/하향, 또는 BUFFERED(스트리밍 포기).
+- 근거: [opennextjs-aws #1315](https://github.com/opennextjs/opennextjs-aws/issues/1315)
+
+## ADR-A10. 시크릿 주입: Lambda env 직접(Secrets Manager 런타임 fetch 아님)
+
+- **결정**: `DATABASE_URL`(RDS 조합)·`AUTH_SECRET`·OAuth 키·`AUTH_TRUST_HOST`를 **Lambda 생성 시 env 직접 주입**. (`AWS_REGION`은 Lambda 예약 env라 주입 금지.)
+- **왜**: 콜드스타트·단순성. 기존 lambda.tf도 DB env 직접 주입 패턴. `lib/db`는 `DATABASE_URL`(connectionString) 읽음(확인됨), `random_password.db` special=false라 URL 인코딩 안전. IAM에서 `secretsmanager:GetSecretValue` 불필요해짐.
+- **리스크**: 시크릿이 Lambda 구성에 평문 노출(콘솔). 민감도 낮아 수용, 필요 시 후속에 Secrets Manager+KMS.
+- **되돌리는 법**: entrypoint에서 Secrets Manager fetch + 역할에 read 권한.
+
 ---
 
 ## 상속된 확정 결정 (Phase 2 공통, 재논의 안 함 — 근거는 journey 문서)
