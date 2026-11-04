@@ -78,12 +78,19 @@
 - **되돌리는 법**: 커스텀 헤더 + Function URL auth NONE로 회귀(비권장).
 - 근거: [AWS What's New 2026-10](https://aws.amazon.com/about-aws/whats-new/2026/10/cloudfront-lambda-web-functions-origin/)
 
-## ADR-A9. 스트리밍: Function URL invoke_mode = RESPONSE_STREAM + 4.1.0 회피
+## ADR-A9. 스트리밍: BUFFERED (빌드 정본이 비스트리밍) + 버전 4.1.15
 
-- **결정**: Lambda Function URL을 RESPONSE_STREAM(스트리밍 SSR). `@opennextjs/aws` **4.1.0은 핀하지 않음**(CloudFront+스트리밍 wedge 회귀 #1315), Next16 지원 + 패치 버전 사용.
-- **왜**: BUFFERED면 Next 스트리밍 SSR이 깨짐. 4.1.0 특정 버전은 terminal chunk 미전송 버그.
-- **되돌리는 법**: 버전 상향/하향, 또는 BUFFERED(스트리밍 포기).
-- 근거: [opennextjs-aws #1315](https://github.com/opennextjs/opennextjs-aws/issues/1315)
+- **결정**: Lambda Function URL = **BUFFERED**. OpenNext 버전 **4.1.15**(latest).
+- **왜**: Phase 1 실제 빌드 산출물 `open-next.output.json`이 `default.streaming=false`·`imageOptimizer.streaming=false` → **비스트리밍 빌드**. 따라서 RESPONSE_STREAM 불필요, 4.1.x 스트리밍 wedge 버그(#1315)도 무관. (리뷰어 H2는 일반적 스트리밍 가정이었으나 빌드 정본이 비스트리밍이라 BUFFERED로 확정.)
+- **Next 버전 제약**: OpenNext 4.1.15 peer가 `next >=16.4.5`인데 앱은 16.4.3이었음 → **Next 16.4.3→16.4.5 패치 범프**(ADR-A11). react 19.3 유지.
+- **되돌리는 법**: 스트리밍 필요 시 OpenNext 설정에 streaming 활성 + Function URL RESPONSE_STREAM + wedge-fix 버전 확인.
+- 근거: 빌드 출력 `open-next.output.json`, [opennextjs-aws #1315](https://github.com/opennextjs/opennextjs-aws/issues/1315)
+
+## ADR-A11. Next.js 16.4.3 → 16.4.5 패치 범프 (OpenNext 호환)
+
+- **결정**: `next`·`eslint-config-next`를 **16.4.5**로 범프.
+- **왜**: `@opennextjs/aws@4.1.15` peer = `next >=16.4.5`. 16.4.3은 미지원. 패치 레벨 범프라 리스크 낮음(react 19.3 유지, typecheck 0 확인). 16.5는 canary뿐이라 제외.
+- **되돌리는 법**: OpenNext를 16.4.3 지원하는 과거 버전으로(단 wedge 버그/구버전 리스크).
 
 ## ADR-A10. 시크릿 주입: Lambda env 직접(Secrets Manager 런타임 fetch 아님)
 

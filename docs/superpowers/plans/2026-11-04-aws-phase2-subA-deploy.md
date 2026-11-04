@@ -112,7 +112,8 @@ export default config;
     - `AUTH_SECRET`(신규 `random_password`/시크릿), `AUTH_KAKAO_ID/SECRET`, `AUTH_GOOGLE_ID/SECRET`
     - **`AUTH_TRUST_HOST = "true"`** (CloudFront+Lambda 뒤 host 신뢰 필수). `AUTH_URL`은 **이 단계에선 생략**(CloudFront 도메인 미정 — 순환). 호스트는 Phase 4의 CloudFront Function이 넣는 `x-forwarded-host`로 해결. 필요 시 Phase 6에서 `AUTH_URL` 2차 주입.
     - `S3_BUCKET_UPLOADS`, `S3_BUCKET_EVIDENCE` (⚠️ `AWS_REGION`은 Lambda 예약 env라 주입 금지 — 런타임이 자동 제공. storage-client는 이 값을 읽음)
-  - `aws_lambda_function_url`: **`invoke_mode = "RESPONSE_STREAM"`**(스트리밍 SSR; BUFFERED면 스트리밍 깨짐), `authorization_type = "AWS_IAM"`(Phase 4에서 CloudFront OAC가 sigv4 서명). 
+  - `aws_lambda_function_url`: **`invoke_mode = "BUFFERED"`** (⚠️ Phase 1 빌드 정본 `open-next.output.json`이 `default.streaming=false` → 비스트리밍 빌드. RESPONSE_STREAM 불필요, 4.1.x 스트리밍 wedge 버그도 무관), `authorization_type = "AWS_IAM"`(Phase 4에서 CloudFront OAC가 sigv4 서명).
+  - **image fn도 동일**(imageOptimizer, handler index.handler, BUFFERED) — `/_next/image*` 라우팅용. 둘 다 배포.
 - [ ] **Step 2** `infra/iam.tf`: 앱 역할에 **S3 uploads/evidence 버킷만**(Get/Put/Delete/List/Copy, 리소스 ARN+`/*`로 좁힘) + logs + VPC. **assets 버킷 읽기 불필요**(CloudFront OAC가 직접 읽음 → 제외). **Secrets read 불필요**(env 직접 주입).
 - [ ] **Step 3** `terraform plan` → Lambda/IAM 신규 확인. `apply`.
 - [ ] **Step 4: 검증** Function URL은 AWS_IAM이라 직접 curl 401 정상. `aws lambda invoke`로 핸들러 구동 확인, 또는 임시로 auth NONE 두고 **DB 접근 경로(`/api/auth/session` 200, DB 쿼리 페이지)** 확인 후 AWS_IAM로 전환. (정적은 CloudFront 전이라 깨짐 정상.)
@@ -130,8 +131,12 @@ export default config;
 - [ ] **Step 2: 오리진/비헤이비어**
   - OAC 2개: (a) **Lambda용**(origin type=lambda, sigv4), (b) **S3 assets용**(sigv4).
   - 오리진: (a) Lambda Function URL(custom origin, https-only, OAC), (b) S3 assets(OAC).
-  - **기본 비헤이비어 → Lambda**: viewer-request에 위 Function associate. **`Host`는 origin으로 forward 금지**(Function URL이 자기 호스트 기대) — 대신 x-forwarded-host로 전달. **쿠키 전달**: origin request policy로 `__Secure-authjs.session-token` 등 Auth.js 쿠키 + CSRF 쿠키 origin 전달, **캐시 키에서 쿠키 제외**(캐시 오염 방지). 캐시 정책=CachingDisabled(또는 min, `Cache-Control` 존중). `Set-Cookie` viewer 반환 허용.
-  - **정렬 비헤이비어 → S3 assets**: `/_next/static/*`, 정적 확장자(OpenNext output 규칙). 장기 캐시.
+  - **OpenNext 빌드가 준 정확한 behaviors(`open-next.output.json`) 그대로 매핑**:
+    - `* `(기본) → **default Lambda**(server, viewer-request Function associate)
+    - `_next/data/*` → default Lambda
+    - `_next/image*` → **imageOptimizer Lambda**
+    - `_next/*`, `BUILD_ID`, `favicon.ico`, `*.svg`, `specs/*` → **S3 assets**(장기 캐시)
+  - **Lambda 비헤이비어**: **`Host`는 origin으로 forward 금지**(Function URL이 자기 호스트 기대) — x-forwarded-host로 전달. **쿠키 전달**: origin request policy로 `__Secure-authjs.session-token` 등 Auth.js 쿠키 + CSRF 쿠키 origin 전달, **캐시 키에서 쿠키 제외**(캐시 오염 방지). 캐시 정책=CachingDisabled(또는 min, `Cache-Control` 존중). `Set-Cookie` viewer 반환.
   - `viewer_certificate { cloudfront_default_certificate = true }` (커스텀 도메인 X).
   - S3 assets 버킷 정책: 이 distribution OAC만 `s3:GetObject`.
 - [ ] **Step 3** `terraform plan` → CloudFront/Function/OAC/정책 신규. `apply`(전파 수 분).
