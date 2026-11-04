@@ -99,6 +99,18 @@
 - **리스크**: 시크릿이 Lambda 구성에 평문 노출(콘솔). 민감도 낮아 수용, 필요 시 후속에 Secrets Manager+KMS.
 - **되돌리는 법**: entrypoint에서 Secrets Manager fetch + 역할에 read 권한.
 
+## ADR-A12. sharp를 server fn에 명시 설치 (OpenNext install 옵션)
+
+- **결정**: `open-next.config.ts`의 `default.install`로 `sharp@0.35.5`(arch x64 / os linux / libc glibc)를 **server fn 번들에 설치**.
+- **왜**: 앱이 `lib/preview.ts`에서 `import sharp`(업로드 썸네일 생성)로 직접 사용. OpenNext는 sharp를 external 처리(image fn에만 설치) → server fn엔 dangling 심볼릭만 남아 **런타임 모듈 로드 실패("Failed to load external module sharp")로 SSR 500**. Lambda x86_64라 x64/linux/glibc 바이너리 필요. 증상: 홈 등 SSR 전부 500(초기 배포 때 실제 발생, install 추가 후 200).
+- **부수 발견**: `data.archive_file`은 OpenNext의 심볼릭 링크(dangling 포함)를 못 다룸 → `zip -ry`로 번들 압축 + Terraform은 pre-built zip 참조(`filebase64sha256`). deploy.sh가 빌드+zip 담당.
+- **되돌리는 법**: lib/preview.ts의 sharp 사용을 image fn/별도 경로로 옮기면 server fn install 불필요.
+
+## ADR-A13. 앱 Lambda 역할 분리 + env 직접 주입 구현
+
+- **결정**: 앱 전용 `aws_iam_role.app`(VPC+logs+S3 uploads/evidence) — migrate/healthcheck 공용 역할과 분리. 시크릿은 `aws_lambda_function.app_server/image`의 `environment.variables`에 직접(ADR-A10). OAuth 키는 `variables.tf`(sensitive) + gitignore `secrets.auto.tfvars`(.env.local에서 생성). `AUTH_SECRET`은 `random_password`.
+- **검증**: Function URL(AWS_IAM)을 Function-URL 이벤트로 직접 invoke → `/api/auth/session` 200(null), 홈 200(DB 렌더). VPC→RDS(DATABASE_URL) 정상.
+
 ---
 
 ## 상속된 확정 결정 (Phase 2 공통, 재논의 안 함 — 근거는 journey 문서)

@@ -10,6 +10,14 @@ const config: OpenNextConfig = {
       queue: "dummy",
       tagCache: "dummy",
     },
+    // 앱이 lib/preview.ts에서 sharp를 직접 쓴다(썸네일 생성). OpenNext가 sharp를 external 처리하므로
+    // server fn 번들에 Lambda(x86_64/linux/glibc)용 sharp를 명시 설치해야 한다(안 하면 모듈 로드 실패).
+    install: {
+      packages: ["sharp@0.35.5"],
+      arch: "x64",
+      os: "linux",
+      libc: "glibc",
+    },
   },
 };
 

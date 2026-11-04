@@ -19,3 +19,21 @@ variable "db_username" {
   type    = string
   default = "pokeca_admin"
 }
+
+# 소셜 로그인 시크릿(.env.local 값 → secrets.auto.tfvars, gitignore). 커밋 금지.
+variable "auth_kakao_id" {
+  type      = string
+  sensitive = true
+}
+variable "auth_kakao_secret" {
+  type      = string
+  sensitive = true
+}
+variable "auth_google_id" {
+  type      = string
+  sensitive = true
+}
+variable "auth_google_secret" {
+  type      = string
+  sensitive = true
+}

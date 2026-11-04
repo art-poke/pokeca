@@ -52,3 +52,6 @@ next-env.d.ts
 storybook-static
 .open-next/
 infra/errored.tfstate
+infra/secrets.auto.tfvars
+infra/*.tfvars
+infra/app-*.zip
