@@ -107,9 +107,9 @@ async function Ranking({ searchParams }: Pick<PageProps<"/ranking">, "searchPara
         {artworks.length === 0 ? (
           <Empty />
         ) : (
-          <ol className="grid gap-3 sm:grid-cols-2">
+          <ol className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {artworks.map((a) => (
-              <li key={a.artworkId}>
+              <li key={a.artworkId} className="min-w-0">
                 <Link
                   href={`/artworks/${a.artworkId}`}
                   className="flex items-center gap-3 rounded-2xl border border-border bg-background p-3.5 transition-shadow hover:shadow-md"

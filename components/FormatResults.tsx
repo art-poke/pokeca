@@ -41,7 +41,7 @@ export function FormatResults({ cardId, artworks }: { cardId: string; artworks: 
           확장 아트 도안 {artworks.length}개
         </h2>
         <div
-          className="inline-flex items-center gap-1 rounded-xl bg-muted p-1"
+          className="scrollbar-none flex max-w-full items-center gap-1 overflow-x-auto rounded-xl bg-muted p-1 sm:inline-flex"
           role="group"
           aria-label="규격"
         >
@@ -54,7 +54,7 @@ export function FormatResults({ cardId, artworks }: { cardId: string; artworks: 
                 type="button"
                 aria-pressed={selected}
                 className={cn(
-                  "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors",
+                  "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors",
                   selected
                     ? "bg-background text-foreground shadow-xs"
                     : "text-muted-foreground hover:text-foreground",

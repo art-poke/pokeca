@@ -47,7 +47,7 @@ export function StudioArtworks({ works }: { works: MyArtwork[] }) {
       ) : (
         <>
           {/* 규격 분류 */}
-          <div className="inline-flex rounded-xl bg-muted p-1">
+          <div className="scrollbar-none flex max-w-full gap-1 overflow-x-auto rounded-xl bg-muted p-1 sm:inline-flex">
             {(["all", ...FORMATS] as Filter[]).map((f) => {
               const count = f === "all" ? works.length : counts[f];
               const selected = filter === f;
@@ -58,7 +58,7 @@ export function StudioArtworks({ works }: { works: MyArtwork[] }) {
                   aria-pressed={selected}
                   onClick={() => setFilter(f)}
                   className={cn(
-                    "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors",
+                    "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors",
                     selected
                       ? "bg-background text-foreground shadow-xs"
                       : "text-muted-foreground hover:text-foreground",

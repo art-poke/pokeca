@@ -202,7 +202,7 @@ function CandidateList({ hits }: { hits: CardHit[] }) {
                 {hit.rarity && <Badge variant="outline">{hit.rarity}</Badge>}
               </div>
               <div className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
-                <span className="tabular font-medium text-ink-600">
+                <span className="tabular shrink-0 whitespace-nowrap font-medium text-ink-600">
                   {hit.setCode} {hit.collectorNumber}
                 </span>
                 <span aria-hidden>·</span>
