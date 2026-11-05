@@ -309,6 +309,7 @@ export const posts = pgTable("posts", {
   authorName: text("author_name").notNull(),
   title: text("title").notNull(),
   body: text("body").notNull(),
+  imagePath: text("image_path"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),

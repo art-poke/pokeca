@@ -28,7 +28,7 @@ const EVIDENCE_TTL_SECONDS = 60;
 const DOWNLOAD_TTL_SECONDS = 300;
 
 export type FileKind = "original" | "thumbnail";
-export type UploadKind = FileKind | "evidence" | "avatar" | "review";
+export type UploadKind = FileKind | "evidence" | "avatar" | "review" | "post";
 export type MimeType = "image/png" | "image/jpeg" | "image/webp" | "application/pdf";
 
 const ALLOWED: Record<UploadKind, MimeType[]> = {
@@ -36,16 +36,17 @@ const ALLOWED: Record<UploadKind, MimeType[]> = {
   // 썸네일은 <img>로 보여 주므로 이미지 형식만.
   thumbnail: ["image/png", "image/jpeg"],
   evidence: ["image/png", "image/jpeg", "application/pdf"],
-  // 프로필 이미지(회원)·후기 이미지. <img>로 보여 주므로 이미지만.
+  // 프로필 이미지(회원)·후기 이미지·커뮤니티 글 이미지. <img>로 보여 주므로 이미지만.
   avatar: ["image/png", "image/jpeg"],
   review: ["image/png", "image/jpeg"],
+  post: ["image/png", "image/jpeg"],
 };
 
 const bucketOf = (kind: UploadKind) => (kind === "evidence" ? EVIDENCE_BUCKET : BUCKET);
 const maxBytesOf = (kind: UploadKind) =>
   kind === "evidence"
     ? EVIDENCE_MAX_BYTES
-    : kind === "avatar" || kind === "review"
+    : kind === "avatar" || kind === "review" || kind === "post"
       ? AVATAR_MAX_BYTES
       : MAX_BYTES;
 
@@ -86,6 +87,11 @@ export function avatarPath(userId: string, uploadId: string): string {
 export function reviewImagePath(uploadId: string): string {
   if (!UUID.test(uploadId)) throw new StorageInputError("invalid_upload_id");
   return `reviews/${uploadId}`;
+}
+
+export function postImagePath(uploadId: string): string {
+  if (!UUID.test(uploadId)) throw new StorageInputError("invalid_upload_id");
+  return `posts/${uploadId}`;
 }
 
 export function detectMime(head: Uint8Array): MimeType | null {
@@ -163,6 +169,11 @@ export async function promoteAvatar(uploadId: string, userId: string): Promise<s
 // 후기 이미지를 artworks 버킷 reviews/ 아래에 확정한다. 반환값은 artist_reviews.image_path에 넣을 경로.
 export async function promoteReviewImage(uploadId: string): Promise<string> {
   return (await promote("review", pendingPath(uploadId), reviewImagePath(uploadId))).path;
+}
+
+// 커뮤니티 글 이미지를 artworks 버킷 posts/ 아래에 확정한다. 반환값은 posts.image_path에 넣을 경로.
+export async function promotePostImage(uploadId: string): Promise<string> {
+  return (await promote("post", pendingPath(uploadId), postImagePath(uploadId))).path;
 }
 
 // 아바타 교체 시 옛 파일 정리(artwork_files 테이블과 무관하므로 저장소만 지운다).

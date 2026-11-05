@@ -60,3 +60,9 @@ curl -s -X POST -o /dev/null -w "POST=%{http_code}\n" "$D/api/events" -d '{}'  #
 # 카카오 redirect: 위 authorize URL로 KOE006 여부
 # terraform: cd infra && AWS_PROFILE=artpoke terraform plan  → No changes
 ```
+
+## 8. ★ 프로드 업로드 전부 막힘 — S3 CORS에 cloudfront origin 누락 (2026-11-05 발견)
+- 증상: 프로드에서 아바타·후기·커뮤니티 글 이미지·도안 업로드가 **조용히 실패**(앱 로그 없음, 폼 그대로). 브라우저 presigned PUT이 S3 CORS에 막힘.
+- 원인: `infra/s3.tf`의 `cors_origins`가 localhost만. (서브 D 핸드오프의 "서브 A가 프로드 CORS origin 추가" 항목 누락.)
+- 해결: `cors_origins`에 `https://d3mfru6qnveki4.cloudfront.net` 추가 → apply. 커스텀 도메인 붙이면 거기도 추가.
+- 교훈: 브라우저 직접 업로드(presigned)는 **S3 CORS에 실제 서빙 origin**이 있어야 함. 업로드 디버깅 시 앱 로그 없으면 CORS 의심(클라 측 실패).

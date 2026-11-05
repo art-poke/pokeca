@@ -2,9 +2,14 @@ import { currentAdmin } from "@/lib/admin";
 import { createPost, PostError } from "@/lib/community";
 import { memberRoute } from "@/lib/artist-route";
 
-// 게시글 작성(회원). 공지는 어드민만. body: { board, title, body }
+// 게시글 작성(회원). 공지는 어드민만. body: { board, title, body, imageUploadId? }
 export const POST = memberRoute(async (request, _ctx, member) => {
-  const b = (await request.json()) as { board?: unknown; title?: unknown; body?: unknown };
+  const b = (await request.json()) as {
+    board?: unknown;
+    title?: unknown;
+    body?: unknown;
+    imageUploadId?: unknown;
+  };
   const isAdmin = !!(await currentAdmin());
   try {
     const id = await createPost({
@@ -14,6 +19,7 @@ export const POST = memberRoute(async (request, _ctx, member) => {
       title: String(b.title ?? ""),
       body: String(b.body ?? ""),
       isAdmin,
+      imageUploadId: b.imageUploadId ? String(b.imageUploadId) : null,
     });
     return Response.json({ id });
   } catch (e) {

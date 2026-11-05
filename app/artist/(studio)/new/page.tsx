@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { NewArtworkForm } from "@/components/admin/NewArtworkForm";
+import { HandleSetup } from "@/components/handle-setup";
 import { SpecInfoButton } from "@/components/spec-info";
 import { currentArtist } from "@/lib/artists";
 
@@ -20,11 +21,12 @@ export default function NewArtistArtworkPage() {
   );
 }
 
-// 발행 자격(handle 보유)만. dev에서는 로그인 없이도 폼 UI를 미리본다(카드 검색·업로드는 로그인 후).
+// 발행 자격(handle 보유)만. handle 없으면 마이페이지로 튕기지 말고 여기서 바로 설정하게 한다.
+// dev에서는 로그인 없이도 폼 UI를 미리본다(카드 검색·업로드는 로그인 후).
 async function Gate() {
   const artist = await currentArtist();
   if (artist) {
-    if (!artist.handle) redirect("/me?setup=handle");
+    if (!artist.handle) return <HandleSetup displayName={artist.displayName} />;
     return <NewArtworkForm mode="artist" />;
   }
   if (process.env.NODE_ENV === "development") {
