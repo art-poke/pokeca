@@ -94,6 +94,8 @@ migrate Lambda(`lambda-migrate/migrate.mjs`)는 `public.schema_migrations`에 �
 
 ```bash
 npm run db:migrate                                   # 로컬(DATABASE_URL)에 같은 로직 적용
+# 데이터(카드 시드 등)도 같은 경로로 넣는다. RDS는 외부 접속이 없으므로 스크립트로 직접 쓰지 않는다:
+#   npm run cards:seed-sql -- --out db/migrations/<YYYYMMDD_HHMMSS>_cards_seed.sql   (CSV+이미지 manifest → SQL)
 rm -rf lambda-migrate/sql && cp -R db/. lambda-migrate/sql/ && (cd lambda-migrate && npm install --omit=dev)
 AWS_PROFILE=artpoke terraform apply -target=aws_lambda_function.migrate
 aws lambda invoke --function-name pokeca-migrate --profile artpoke --region ap-northeast-1 /dev/stdout
