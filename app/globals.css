@@ -191,6 +191,14 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* 모바일에서 한 줄 가로 스크롤(탭·칩). 스크롤바는 숨긴다. */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* 스켈레톤 쉬머: 로딩 중 placeholder. rounded·크기는 호출부에서. */
 @keyframes skeleton-shimmer {
   0% {

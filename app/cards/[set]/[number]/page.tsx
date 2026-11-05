@@ -60,7 +60,7 @@ async function Card({
             width={217}
             height={303}
             loading="eager"
-            className="aspect-[63/88] w-20 shrink-0 rounded-xl border border-border object-cover sm:w-28 md:w-32"
+            className="aspect-[63/88] w-20 shrink-0 self-start rounded-xl border border-border object-cover sm:w-28 md:w-32"
           />
         ) : (
           <div
@@ -76,7 +76,7 @@ async function Card({
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <h1 className="tabular font-display text-2xl font-bold tracking-tight text-foreground md:text-4xl">
+          <h1 className="tabular font-display text-xl font-bold tracking-tight text-foreground sm:text-2xl md:text-4xl">
             {card.setCode} {card.collectorNumber}
           </h1>
           <p className="mt-1 text-lg font-semibold text-foreground md:text-xl">{card.nameKo}</p>

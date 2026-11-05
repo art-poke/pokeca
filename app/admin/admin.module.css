@@ -1,6 +1,7 @@
 /* 어드민(OPERATE) 공통 스타일. 공개 화면과 같은 토큰을 쓰고, 표와 폼 위주로 단순하게 둔다. */
 .console {
   display: grid;
+  grid-template-columns: minmax(0, 1fr); /* 표가 넓어도 페이지가 아니라 .tableWrap 안에서 스크롤 */
   gap: calc(var(--space) * 3);
 }
 
@@ -58,11 +59,20 @@
 
 .form {
   display: grid;
+  grid-template-columns: minmax(0, 1fr); /* 파일 입력 등 고유 폭이 큰 컨트롤이 좁은 화면을 밀어내지 않게 */
   gap: calc(var(--space) * 2);
+}
+
+.form input,
+.form select,
+.form textarea {
+  max-width: 100%;
+  min-width: 0;
 }
 
 .field {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: calc(var(--space) / 2);
   font-weight: 600;
 }
@@ -193,6 +203,7 @@
 
 .tableWrap {
   overflow-x: auto;
+  max-width: 100%;
 }
 
 .table {
