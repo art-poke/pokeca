@@ -111,6 +111,14 @@
 - **결정**: 앱 전용 `aws_iam_role.app`(VPC+logs+S3 uploads/evidence) — migrate/healthcheck 공용 역할과 분리. 시크릿은 `aws_lambda_function.app_server/image`의 `environment.variables`에 직접(ADR-A10). OAuth 키는 `variables.tf`(sensitive) + gitignore `secrets.auto.tfvars`(.env.local에서 생성). `AUTH_SECRET`은 `random_password`.
 - **검증**: Function URL(AWS_IAM)을 Function-URL 이벤트로 직접 invoke → `/api/auth/session` 200(null), 홈 200(DB 렌더). VPC→RDS(DATABASE_URL) 정상.
 
+## ADR-A14. CloudFront → Lambda OAC: 권한 2개 필요 (InvokeFunctionUrl + InvokeFunction)
+
+- **증상**: CloudFront OAC(lambda, always, sigv4) + Function URL(AWS_IAM) + `lambda:InvokeFunctionUrl` 권한까지 다 맞췄는데도 **모든 Lambda 오리진이 403 Forbidden**(S3 OAC는 정상). 함수(x-forwarded-host)·origin request policy 제거해도 403 유지 → 인증 자체 거부.
+- **근본 원인**: AWS 문서상 OAC+Lambda Function URL은 **권한 2개**가 필요 — `lambda:InvokeFunctionUrl` **AND `lambda:InvokeFunction`**(둘 다 principal cloudfront.amazonaws.com, source_arn=distribution). InvokeFunction 누락 시 sigv4 요청이 403.
+- **해결**: `aws_lambda_permission.cf_server_invoke`/`cf_image_invoke`(action `lambda:InvokeFunction`) 추가 → 즉시 홈 200(DB 렌더)·`/api/auth/session` 200.
+- **부수 확인**: 기본 cloudfront.net 도메인에선 OAC가 Host를 올바르게 sigv4 서명(커스텀 도메인 CNAME 케이스의 Host 불일치 문제와 무관). x-forwarded-host 함수·AllViewerExceptHostHeader는 원인 아님(격리로 확인).
+- 근거: [AWS: Restrict access to Lambda function URL origin](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-lambda.html)
+
 ---
 
 ## 상속된 확정 결정 (Phase 2 공통, 재논의 안 함 — 근거는 journey 문서)
