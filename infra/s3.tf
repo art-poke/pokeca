@@ -35,9 +35,9 @@ resource "aws_s3_bucket_versioning" "evidence" {
   versioning_configuration { status = "Enabled" }
 }
 
-# CORS — 브라우저 presigned PUT/GET 허용. dev=localhost, 프로드 도메인은 서브 A에서 추가.
+# CORS — 브라우저 presigned PUT/GET 허용. dev=localhost + 프로드 cloudfront. 커스텀 도메인 추가 시 여기에.
 locals {
-  cors_origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
+  cors_origins = ["http://localhost:3000", "http://127.0.0.1:3000", "https://d3mfru6qnveki4.cloudfront.net"]
 }
 resource "aws_s3_bucket_cors_configuration" "uploads" {
   bucket = aws_s3_bucket.uploads.id
