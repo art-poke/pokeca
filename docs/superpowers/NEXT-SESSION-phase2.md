@@ -146,3 +146,9 @@ terraform destroy
 - **작품 이미지 CloudFront+OAC**(서브 D 이월, 현재 presigned 유지).
 - **데모 시드 Supabase→pg 포팅**(기존 과제).
 - **서브 E 컷오버**: 커스텀 도메인 DNS 전환 후 Vercel/Supabase 해지.
+
+### 서브 A 운영 주의 & 삽질 기록 → `docs/superpowers/2026-11-05-subA-gotchas.md`
+Function URL 막다른 길(→API Gateway), sharp/archive_file/dummy캐시, RDS SSL, x-forwarded-host, **카카오 KOE006(리다이렉트 URI를 "카카오 로그인" 섹션에 — "비즈니스 인증" 아님; 앱→플랫폼키→REST API키 수정)**, OAuth 콘솔 자동화 교훈, 검증 체크리스트. 같은 삽질 반복 금지용.
+
+### ⚠️ 알려진 미해결 버그: 프로덕션 signout 미작동
+`/api/auth/signout` 후에도 세션 유지(로그인·세션읽기는 정상). 가설=청크된 authjs 세션쿠키의 다중 Set-Cookie가 CloudFront/API Gateway 거치며 일부만 전달. 공용PC 로그아웃 안 됨(보안) → 우선순위 중. 조사 시작점은 gotchas 문서 §7.
