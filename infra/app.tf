@@ -105,15 +105,3 @@ resource "aws_lambda_function" "app_image" {
   }
 }
 
-# Function URL: BUFFERED(빌드 비스트리밍) + AWS_IAM(CloudFront OAC sigv4만 호출).
-resource "aws_lambda_function_url" "app_server" {
-  function_name      = aws_lambda_function.app_server.function_name
-  authorization_type = "AWS_IAM"
-  invoke_mode        = "BUFFERED"
-}
-
-resource "aws_lambda_function_url" "app_image" {
-  function_name      = aws_lambda_function.app_image.function_name
-  authorization_type = "AWS_IAM"
-  invoke_mode        = "BUFFERED"
-}

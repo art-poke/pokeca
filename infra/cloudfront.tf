@@ -2,8 +2,9 @@
 # 오리진: server Lambda(기본/SSR/API), image Lambda(/_next/image), S3 assets(정적). 전부 OAC(비공개).
 
 locals {
-  server_host = replace(replace(aws_lambda_function_url.app_server.function_url, "https://", ""), "/", "")
-  image_host  = replace(replace(aws_lambda_function_url.app_image.function_url, "https://", ""), "/", "")
+  # API Gateway HTTP API 도메인(Function URL 대체). api_endpoint = https://{id}.execute-api.{region}.amazonaws.com
+  server_host = replace(aws_apigatewayv2_api.server.api_endpoint, "https://", "")
+  image_host  = replace(aws_apigatewayv2_api.image.api_endpoint, "https://", "")
 }
 
 # viewer-request: OpenNext 서버가 host로 쓰도록 x-forwarded-host 주입(없으면 Auth.js 콜백/세션 깨짐).
@@ -19,13 +20,8 @@ resource "aws_cloudfront_function" "xfh" {
   JS
 }
 
-resource "aws_cloudfront_origin_access_control" "lambda" {
-  name                              = "${var.project_name}-oac-lambda"
-  origin_access_control_origin_type = "lambda"
-  signing_behavior                  = "always"
-  signing_protocol                  = "sigv4"
-}
-
+# ⚠️ Lambda OAC는 POST body 해시를 CloudFront가 서명 못 해 POST가 403(서버액션/API). 제거하고
+# Function URL auth=NONE으로 전환(앞단 CloudFront 유지). 후속: 시크릿 헤더로 직접접근 차단.
 resource "aws_cloudfront_origin_access_control" "s3" {
   name                              = "${var.project_name}-oac-s3"
   origin_access_control_origin_type = "s3"
@@ -48,7 +44,6 @@ resource "aws_cloudfront_distribution" "app" {
   origin {
     origin_id                = "server"
     domain_name              = local.server_host
-    origin_access_control_id = aws_cloudfront_origin_access_control.lambda.id
     custom_origin_config {
       http_port              = 80
       https_port             = 443
@@ -59,7 +54,6 @@ resource "aws_cloudfront_distribution" "app" {
   origin {
     origin_id                = "image"
     domain_name              = local.image_host
-    origin_access_control_id = aws_cloudfront_origin_access_control.lambda.id
     custom_origin_config {
       http_port              = 80
       https_port             = 443
@@ -158,43 +152,6 @@ data "aws_iam_policy_document" "assets" {
 resource "aws_s3_bucket_policy" "assets" {
   bucket = aws_s3_bucket.assets.id
   policy = data.aws_iam_policy_document.assets.json
-}
-
-# 이 배포가 Function URL을 sigv4로 호출하도록 허용.
-resource "aws_lambda_permission" "cf_server" {
-  statement_id           = "AllowCloudFront"
-  action                 = "lambda:InvokeFunctionUrl"
-  function_name          = aws_lambda_function.app_server.function_name
-  principal              = "cloudfront.amazonaws.com"
-  source_arn             = aws_cloudfront_distribution.app.arn
-  function_url_auth_type = "AWS_IAM"
-}
-
-resource "aws_lambda_permission" "cf_image" {
-  statement_id           = "AllowCloudFront"
-  action                 = "lambda:InvokeFunctionUrl"
-  function_name          = aws_lambda_function.app_image.function_name
-  principal              = "cloudfront.amazonaws.com"
-  source_arn             = aws_cloudfront_distribution.app.arn
-  function_url_auth_type = "AWS_IAM"
-}
-
-# OAC+Lambda Function URL은 InvokeFunctionUrl 외에 lambda:InvokeFunction 권한도 필요하다(AWS 문서).
-# 이게 없으면 CloudFront sigv4 요청이 403 Forbidden.
-resource "aws_lambda_permission" "cf_server_invoke" {
-  statement_id  = "AllowCloudFrontInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.app_server.function_name
-  principal     = "cloudfront.amazonaws.com"
-  source_arn    = aws_cloudfront_distribution.app.arn
-}
-
-resource "aws_lambda_permission" "cf_image_invoke" {
-  statement_id  = "AllowCloudFrontInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.app_image.function_name
-  principal     = "cloudfront.amazonaws.com"
-  source_arn    = aws_cloudfront_distribution.app.arn
 }
 
 output "cloudfront_domain" {

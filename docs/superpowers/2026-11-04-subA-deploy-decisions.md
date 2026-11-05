@@ -119,6 +119,20 @@
 - **부수 확인**: 기본 cloudfront.net 도메인에선 OAC가 Host를 올바르게 sigv4 서명(커스텀 도메인 CNAME 케이스의 Host 불일치 문제와 무관). x-forwarded-host 함수·AllViewerExceptHostHeader는 원인 아님(격리로 확인).
 - 근거: [AWS: Restrict access to Lambda function URL origin](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-lambda.html)
 
+## ADR-A15. 오리진을 Function URL → API Gateway HTTP API로 전환 (POST 지원 + 신규계정 제약 회피)
+
+- **막다른 길 2개**:
+  1. **auth=NONE 공개 Function URL = artpoke 신규계정 차단**: 정책이 맞아도 403(healthcheck 공개 URL도 동일). 인수인계에 적힌 "공개 Function URL 403: 신규계정 제한" 확인.
+  2. **OAC+Function URL(IAM) = POST body 미서명으로 403**: CloudFront OAC는 POST/PUT body 해시(x-amz-content-sha256)를 서명 안 함 → Lambda가 unsigned payload 거부. GET은 OK, 서버액션/API POST 전멸.
+  - Lambda Web Functions(POST를 UNSIGNED-PAYLOAD로 서명)는 2026-10 신기능이라 Terraform provider 5.100 미지원.
+- **결정**: 오리진을 **API Gateway HTTP API(v2) → Lambda proxy**로. Function URL 제약·POST 서명 문제 모두 없음. payload v2 이벤트가 OpenNext(Function URL과 동일 포맷)와 호환. 요청당 과금($1/백만, 고정비 없음).
+- **구성**: `aws_apigatewayv2_api`(server/image) + AWS_PROXY integration(payload 2.0) + `$default` route/stage(auto_deploy) + `aws_lambda_permission`(apigateway principal). CloudFront 오리진 = `{id}.execute-api.{region}.amazonaws.com`. x-forwarded-host Function 유지(OpenNext host).
+- **검증**: CloudFront 경유 홈 200(DB), 세션 200, **POST 400(앱 도달=성공, 403 아님)**, 정적 200.
+- **보안 메모**: API Gateway는 현재 공개(앞단 CloudFront). 직접 접근 차단은 후속(CloudFront 커스텀 헤더 시크릿 + proxy.ts 검증) — 앱 자체는 Auth.js로 보호됨.
+- 근거: [AWS Lambda function URL OAC(POST 제약)](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-lambda.html), [Lambda Web Function origin](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-lambda-web.html)
+
+> ADR-A8·A9·A14(Function URL/OAC 관련)는 A15로 대체됨(히스토리 보존용 유지).
+
 ---
 
 ## 상속된 확정 결정 (Phase 2 공통, 재논의 안 함 — 근거는 journey 문서)
