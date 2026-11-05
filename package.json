@@ -23,7 +23,9 @@
     "cards:fetch": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/fetch-official-cards.mts",
     "cards:aliases-ja": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/add-ja-aliases.mts",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "cards:images": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/fetch-card-images.mts",
+    "cards:images:apply": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file-if-exists=.env.local scripts/apply-card-images.mts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.3",

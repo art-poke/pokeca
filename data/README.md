@@ -56,3 +56,18 @@ npm run cards:import -- data/cards-kr.csv
 - `cards-kr-alias-review.csv`의 73장 확인. 일본판 번호를 찾으면 `cards-kr.csv`의 `alias_set_code_ja, alias_number_ja, name_ja`를 채운다.
 - 영문판 별칭(`alias_*_en`)은 아직 없다. 국제판은 세트 구성과 번호가 달라(151 = MEW) 자동 매칭 전에 규칙을 정해야 한다.
 - 2023년 이전(소드실드 이전) 카드는 받지 않았다.
+
+## 공식 카드 이미지
+
+공식 한국 사이트의 카드 이미지(워터마크 webp, 868×1212)를 받아 S3 uploads 버킷 `cards/{세트}/{세트}_{번호}.webp`에 두고 `cards.image_path`에 기록한다. 카드 페이지는 `image_path`가 있으면 이미지를, 없으면 실루엣을 그린다(`/api/card-images/…`가 짧은 서명 URL로 302).
+
+```bash
+npm run cards:images -- --csv data/cards-kr.csv --out .cache/card-images --manifest data/card-images.csv   # 받기(0.7초 간격, 재실행 시 받은 건 건너뜀)
+AWS_PROFILE=artpoke npm run cards:images:apply -- --manifest data/card-images.csv                          # S3 업로드 + DATABASE_URL의 cards.image_path 갱신
+```
+
+- 이미지 주소는 `/public-assets/home/data/cards.image_www/data/wmimages/{SV|MEGA}/{세트}/{세트}_{번호3자리}.webp` 로 세트·번호만으로 정해진다(HTML 수집 불필요). 세트 코드는 대소문자를 가리므로 CSV 원문 표기(SV2a, M2a)를 쓴다.
+- 기본 에너지 카드처럼 번호가 글자(WAT, GRA…)인 카드는 이미지가 없다. 못 받은 카드는 manifest의 `status`(missing/error)로 남는다.
+- 운영 DB는 `cards.image_path` 컬럼 추가(`infra/db/01_app.sql` 끝의 `20261105000000_card_images` 블록)를 먼저 적용한 뒤 같은 명령을 운영 `DATABASE_URL`로 돌린다.
+- 규칙으로 못 정하는 카드는 `data/card-image-overrides.csv`(set_code,collector_number,source_url)에 적는다. 배틀 아카데미(SVI)는 같은 번호가 덱별 변형(_N/_G/_P)으로 갈려서 전부 여기 있다(공식 상세 페이지에서 뽑음).
+- 2026-11-05 결과: 1,430장 중 1,423장 확보. 못 받은 7장 = 프로모 기본 에너지 5장(SVJL FIR, SVJP WAT, SVP2 GRA/LIG/PSY), SV11B 109/086(서버에 파일 없음, 403), M2a 250/193(공식 페이지 번호 오타 "2 50 /193", 이미지 없음).

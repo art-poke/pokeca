@@ -1400,3 +1400,8 @@ drop table if exists public.members cascade;
 -- 5) 공개/발행 조회용 인덱스(handle 보유 프로필)
 create index if not exists artists_published on public.artists (handle) where handle is not null;
 
+
+-- ========== 20261105000000_card_images.sql ==========
+-- 공식 카드 이미지(pokemoncard.co.kr 워터마크 webp)를 S3 uploads 버킷 cards/ 아래에 두고 경로를 기록한다.
+-- null이면 카드 페이지는 기존 실루엣을 그린다. scripts/apply-card-images.mts 가 채운다.
+alter table public.cards add column if not exists image_path text;
