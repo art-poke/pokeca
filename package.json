@@ -26,6 +26,7 @@
     "build-storybook": "storybook build",
     "cards:images": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/fetch-card-images.mts",
     "cards:images:apply": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file-if-exists=.env.local scripts/apply-card-images.mts",
+    "cards:seed-sql": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/cards-seed-sql.mts",
     "db:migrate": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file-if-exists=.env.local scripts/db-migrate.mts"
   },
   "dependencies": {
