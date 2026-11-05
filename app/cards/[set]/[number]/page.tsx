@@ -50,18 +50,31 @@ async function Card({
   return (
     <article className="enter space-y-8">
       <header className="flex items-stretch gap-4 rounded-2xl border border-border bg-background p-4 md:gap-6 md:p-6">
-        {/* 공식 카드 이미지는 쓰지 않는다. 중립 실루엣만 둔다. */}
-        <div
-          className="relative hidden aspect-[63/88] w-28 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-gradient-to-br from-gray-50 to-gray-200 sm:flex md:w-32"
-          aria-hidden
-        >
-          <PokeballMark className="absolute -bottom-4 -right-4 size-20 opacity-[0.1]" />
-          <span className="tabular px-2 text-center text-sm font-bold leading-snug text-ink-600">
-            {card.setCode}
-            <br />
-            {card.collectorNumber}
-          </span>
-        </div>
+        {/* 공식 카드 이미지(수집한 카드만). 없으면 중립 실루엣. */}
+        {card.imagePath ? (
+          // next/image는 image Lambda가 서명 URL 302를 못 따라가서 못 쓴다. 원본이 이미 webp라 최적화 이득도 없다.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={`/api/card-images/${card.imagePath.replace(/^cards\//, "")}`}
+            alt={`${card.nameKo} 카드`}
+            width={217}
+            height={303}
+            loading="eager"
+            className="hidden aspect-[63/88] w-28 shrink-0 rounded-xl border border-border object-cover sm:block md:w-32"
+          />
+        ) : (
+          <div
+            className="relative hidden aspect-[63/88] w-28 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-gradient-to-br from-gray-50 to-gray-200 sm:flex md:w-32"
+            aria-hidden
+          >
+            <PokeballMark className="absolute -bottom-4 -right-4 size-20 opacity-[0.1]" />
+            <span className="tabular px-2 text-center text-sm font-bold leading-snug text-ink-600">
+              {card.setCode}
+              <br />
+              {card.collectorNumber}
+            </span>
+          </div>
+        )}
         <div className="min-w-0 flex-1">
           <h1 className="tabular font-display text-2xl font-bold tracking-tight text-foreground md:text-4xl">
             {card.setCode} {card.collectorNumber}

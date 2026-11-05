@@ -97,6 +97,8 @@ export const cards = pgTable(
     nameKo: text("name_ko").notNull(),
     rarity: text("rarity"),
     illustrator: text("illustrator"),
+    // 공식 카드 이미지의 S3 키(uploads 버킷 cards/…). null이면 실루엣.
+    imagePath: text("image_path"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({ setNumberUnique: unique().on(t.setCode, t.collectorNumber) }),

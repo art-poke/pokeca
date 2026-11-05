@@ -55,3 +55,4 @@ infra/errored.tfstate
 infra/secrets.auto.tfvars
 infra/*.tfvars
 infra/app-*.zip
+docker-compose.override.yml

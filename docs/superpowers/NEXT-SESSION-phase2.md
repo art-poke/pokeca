@@ -107,8 +107,9 @@ cd ~/orca/projects/art-poke/pokeca/infra
 export AWS_PROFILE=artpoke
 terraform plan            # 코드=실제 일치 확인(No changes 기대)
 
-# 스키마 다시 적용(변경 시): db/*.sql 수정 → lambda-migrate/sql 갱신 빌드 → apply → invoke
-cp db/*.sql lambda-migrate/sql/ && terraform apply
+# 스키마 변경: infra/db/migrations/<YYYYMMDD_HHMMSS>_<이름>.sql 추가(01_app.sql은 기준선, 더 이상 덧붙이지 않음)
+# 로컬: npm run db:migrate   /   운영: 아래(migrate Lambda가 schema_migrations 기록을 보고 안 한 파일만 실행)
+rm -rf lambda-migrate/sql && cp -R db/. lambda-migrate/sql/ && (cd lambda-migrate && npm install --omit=dev) && terraform apply -target=aws_lambda_function.migrate
 aws lambda invoke --function-name pokeca-migrate --profile artpoke --region ap-northeast-1 /tmp/o.json && cat /tmp/o.json
 
 # DB 연결 테스트

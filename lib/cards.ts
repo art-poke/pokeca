@@ -96,6 +96,8 @@ export type CardDetail = {
   rarity: string | null;
   illustrator: string | null;
   setName: string;
+  // 공식 카드 이미지 경로(S3 키). null이면 실루엣.
+  imagePath: string | null;
 };
 
 export async function getCard(setCode: string, collectorNumber: string): Promise<CardDetail | null> {
@@ -107,6 +109,7 @@ export async function getCard(setCode: string, collectorNumber: string): Promise
       nameKo: cards.nameKo,
       rarity: cards.rarity,
       illustrator: cards.illustrator,
+      imagePath: cards.imagePath,
       setName: sets.nameKo,
     })
     .from(cards)
@@ -123,6 +126,7 @@ export async function getCard(setCode: string, collectorNumber: string): Promise
     rarity: data.rarity,
     illustrator: data.illustrator,
     setName: data.setName,
+    imagePath: data.imagePath,
   };
 }
 
