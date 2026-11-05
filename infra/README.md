@@ -86,3 +86,16 @@ terraform destroy   # 전체 삭제. 다시 쓰려면 위 1~3 재실행.
 - **ECR docker push (Phase 2)**: macOS `credsStore: desktop`이 비대화형에서 멈춤 → `DOCKER_CONFIG` 임시 디렉터리 우회. zsh는 `"${ECR_URL}:latest"`(중괄호) — `"$ECR_URL:latest"`는 `:l` 모디파이어로 태그 깨짐.
 
 > 참고: `healthcheck/`(컨테이너 버전)는 App Runner 시절 잔재. 현재 Lambda는 `lambda-healthcheck/` 사용. Phase 2 앱 컨테이너화 때 ECR+`healthcheck/` 패턴 참고 가능.
+
+## 스키마 변경 절차 (2026-11-05부터)
+
+`infra/db/00_authjs.sql`·`01_app.sql`은 **기준선**(처음 만들 때 한 번)이고 더 이상 끝에 덧붙이지 않는다. 변경은 `infra/db/migrations/<YYYYMMDD_HHMMSS>_<이름>.sql` 파일로 추가한다.
+migrate Lambda(`lambda-migrate/migrate.mjs`)는 `public.schema_migrations`에 실행한 파일명을 기록하고, 기록 없는 파일만 파일명 순서로 실행한다(파일 하나 = 트랜잭션 하나). 테이블이 이미 있는 DB에서 처음 돌리면 기준선은 실행 없이 기록만 남긴다.
+
+```bash
+npm run db:migrate                                   # 로컬(DATABASE_URL)에 같은 로직 적용
+rm -rf lambda-migrate/sql && cp -R db/. lambda-migrate/sql/ && (cd lambda-migrate && npm install --omit=dev)
+AWS_PROFILE=artpoke terraform apply -target=aws_lambda_function.migrate
+aws lambda invoke --function-name pokeca-migrate --profile artpoke --region ap-northeast-1 /dev/stdout
+# → {"applied":[...새로 실행한 파일...],"recorded":[...],"skipped":[...],"tables":N}
+```
