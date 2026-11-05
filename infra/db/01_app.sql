@@ -1400,3 +1400,7 @@ drop table if exists public.members cascade;
 -- 5) 공개/발행 조회용 인덱스(handle 보유 프로필)
 create index if not exists artists_published on public.artists (handle) where handle is not null;
 
+
+-- ========== 20261105000000_post_image.sql ==========
+-- 커뮤니티 게시글 이미지 첨부(선택 1장). artworks 버킷 posts/<uploadId>.
+alter table public.posts add column if not exists image_path text;

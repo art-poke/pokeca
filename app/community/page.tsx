@@ -8,13 +8,18 @@ import { type Board, isBoard, listPosts } from "@/lib/community";
 
 export const metadata = { title: "커뮤니티 · 확장 아트 아카이브" };
 
-export default function CommunityPage(props: PageProps<"/community">) {
+export default async function CommunityPage(props: PageProps<"/community">) {
+  // 현재 탭을 글쓰기 링크에 실어, 글쓰기 폼이 그 게시판으로 열리게 한다.
+  const sp = await props.searchParams;
+  const raw = Array.isArray(sp.board) ? sp.board[0] : sp.board;
+  const board: Board = isBoard(raw) ? raw : "free";
+
   return (
     <div className="space-y-6">
       <header className="flex items-center justify-between gap-2">
         <h1 className="font-display text-2xl font-bold text-foreground md:text-3xl">커뮤니티</h1>
         <Link
-          href="/community/new"
+          href={`/community/new?board=${board}`}
           className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-red-700"
         >
           <PenLine className="size-4" aria-hidden />
@@ -22,6 +27,7 @@ export default function CommunityPage(props: PageProps<"/community">) {
         </Link>
       </header>
       <Suspense
+        key={board}
         fallback={
           <div className="space-y-4">
             <Skeleton className="h-10 w-72 rounded-xl" />
@@ -29,16 +35,13 @@ export default function CommunityPage(props: PageProps<"/community">) {
           </div>
         }
       >
-        <Board searchParams={props.searchParams} />
+        <Board board={board} />
       </Suspense>
     </div>
   );
 }
 
-async function Board({ searchParams }: Pick<PageProps<"/community">, "searchParams">) {
-  const sp = await searchParams;
-  const raw = Array.isArray(sp.board) ? sp.board[0] : sp.board;
-  const board: Board = isBoard(raw) ? raw : "free";
+async function Board({ board }: { board: Board }) {
   const posts = await listPosts(board);
 
   return (

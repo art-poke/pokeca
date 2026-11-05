@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { posts } from "@/lib/db/schema";
 import { UUID } from "@/lib/uuid";
 import { commentCount } from "@/lib/comments";
+import { promotePostImage, StorageInputError } from "@/lib/storage";
 
 // 커뮤니티 게시판. 공지=어드민만 작성, 건의·자유=회원 작성. 누구나 읽기·댓글.
 // 탭·기본 노출 순서: 자유게시판을 가장 먼저.
@@ -34,7 +35,7 @@ export type PostListItem = {
   comments: number;
 };
 
-export type PostDetail = PostListItem & { body: string; mine: boolean };
+export type PostDetail = PostListItem & { body: string; mine: boolean; hasImage: boolean };
 
 export async function listPosts(board: Board, limit = 50): Promise<PostListItem[]> {
   const data = await db
@@ -71,6 +72,7 @@ export async function getPost(id: string, viewerId: string | null): Promise<Post
       authorName: posts.authorName,
       userId: posts.userId,
       body: posts.body,
+      imagePath: posts.imagePath,
       createdAt: posts.createdAt,
     })
     .from(posts)
@@ -87,7 +89,21 @@ export async function getPost(id: string, viewerId: string | null): Promise<Post
     body: data.body,
     comments: await commentCount("post", id),
     mine: !!viewerId && data.userId === viewerId,
+    hasImage: !!data.imagePath,
   };
+}
+
+// 이미지 서빙용: 게시글의 image_path(없으면 null).
+export async function postImageOf(id: string): Promise<string | null> {
+  if (!UUID.test(id)) return null;
+  const rows = await db
+    .select({ imagePath: posts.imagePath, deletedAt: posts.deletedAt })
+    .from(posts)
+    .where(eq(posts.id, id))
+    .limit(1);
+  const data = rows[0] ?? null;
+  if (!data || data.deletedAt) return null;
+  return data.imagePath ?? null;
 }
 
 export async function createPost(opts: {
@@ -97,6 +113,7 @@ export async function createPost(opts: {
   title: string;
   body: string;
   isAdmin: boolean;
+  imageUploadId?: string | null;
 }): Promise<string> {
   if (!isBoard(opts.board)) throw new PostError("invalid_board");
   if (opts.board === "notice" && !opts.isAdmin) throw new PostError("forbidden");
@@ -104,6 +121,17 @@ export async function createPost(opts: {
   const body = opts.body.trim();
   if (!title || title.length > 120) throw new PostError("invalid_title");
   if (!body || body.length > 20000) throw new PostError("invalid_body");
+
+  let imagePath: string | null = null;
+  if (opts.imageUploadId) {
+    try {
+      imagePath = await promotePostImage(opts.imageUploadId);
+    } catch (e) {
+      if (e instanceof StorageInputError) throw new PostError(e.message);
+      throw e;
+    }
+  }
+
   const inserted = await db
     .insert(posts)
     .values({
@@ -112,6 +140,7 @@ export async function createPost(opts: {
       authorName: opts.authorName,
       title,
       body,
+      imagePath,
     })
     .returning({ id: posts.id });
   return inserted[0].id;

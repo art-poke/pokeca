@@ -12,7 +12,7 @@ export const UPLOAD_ERRORS: Record<string, string> = {
 // 허락 근거(evidence)는 별도 비공개 버킷에 올린다. 서명 토큰이 버킷·경로에 묶여 있어 다른 곳에는 못 쓴다.
 // api는 업로드 URL을 발급하는 영역: 어드민 "/api/admin", 작가 "/api/artist", 회원 "/api/member"(아바타).
 export async function uploadFile(
-  kind: "original" | "thumbnail" | "evidence" | "avatar" | "review",
+  kind: "original" | "thumbnail" | "evidence" | "avatar" | "review" | "post",
   file: File,
   api: "/api/admin" | "/api/artist" | "/api/member" = "/api/admin",
 ): Promise<string> {

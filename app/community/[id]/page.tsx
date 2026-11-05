@@ -55,6 +55,15 @@ async function Post({ params }: Pick<PageProps<"/community/[id]">, "params">) {
 
       <div className="whitespace-pre-wrap break-words text-ink-800">{post.body}</div>
 
+      {post.hasImage && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={`/api/community/posts/${post.id}/image`}
+          alt="첨부 이미지"
+          className="max-h-[600px] w-auto rounded-2xl border border-border object-contain"
+        />
+      )}
+
       <div className="border-t border-border pt-6">
         <Comments target="post" targetId={id} comments={comments} canWrite={!!member} />
       </div>
