@@ -125,3 +125,24 @@ terraform destroy
 - 플랜: `docs/superpowers/plans/2026-10-31-aws-infra-phase1.md` (App Runner 기준—Lambda로 갱신 필요)
 - 이슈·결정 기록: `docs/superpowers/2026-11-01-aws-infra-journey.md`
 - 메모리(개인): `~/.claude/.../memory/art-poke-aws-migration.md`, `art-poke-aws-account-separation.md`
+
+---
+
+## ✅ 서브 A — 앱 배포 완료 (2026-11-05)
+
+**프로덕션 LIVE: https://d3mfru6qnveki4.cloudfront.net** (브랜치 `feat/aws-phase2-subA-deploy`)
+
+- 아키텍처: CloudFront(기본도메인) → **API Gateway HTTP API** → Lambda(OpenNext server/image), 정적=S3(OAC), DB=RDS(SSL), 아웃바운드=NAT 인스턴스(fck-nat t4g.nano).
+- 검증: 홈/정적/SSR/API 200, **카카오·구글 로그인 end-to-end**(프로필 자동생성), POST(서버액션) 정상, terraform `No changes`.
+- 프로드 RDS에 유저=작가 마이그레이션 적용·검증.
+- 배포: `scripts/deploy.sh` (build→zip→apply→s3 sync→invalidation). 반드시 `AWS_PROFILE=artpoke`.
+- 결정·함정 전부 기록: `docs/superpowers/2026-11-04-subA-deploy-decisions.md` (ADR-A1~A16).
+  - 핵심 함정: 신규계정 공개 Function URL 403 + OAC POST 미서명 → **API Gateway 전환**(ADR-A15). sharp server fn 설치(A12). RDS SSL(A16).
+
+### 서브 A 후속/남은 것
+- **커스텀 도메인**: 도메인 등록(Route53) → ACM(us-east-1) + CloudFront alias + OAuth 콘솔에 프로드 도메인 추가. (현재 cloudfront.net)
+- **API Gateway 직접접근 차단**(하드닝): CloudFront 커스텀 헤더 시크릿 + proxy.ts 검증. (현재 API GW 공개, 앞단 CloudFront)
+- **어드민 프로드 시드**: 프로드 RDS에 어드민 계정 생성(어드민 로그인용).
+- **작품 이미지 CloudFront+OAC**(서브 D 이월, 현재 presigned 유지).
+- **데모 시드 Supabase→pg 포팅**(기존 과제).
+- **서브 E 컷오버**: 커스텀 도메인 DNS 전환 후 Vercel/Supabase 해지.
