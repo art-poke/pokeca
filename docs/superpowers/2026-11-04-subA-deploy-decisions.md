@@ -140,3 +140,10 @@
 - 인증 Auth.js(카카오·구글·어드민 Credentials), 유저 **RDS**(Cognito 안 씀).
 - 인가 앱 레이어 if문. 스토리지 S3(+서브 A에서 CloudFront OAC). 커넥션 Lambda 동시성 상한.
 - 전환 빅뱅 컷오버(서브 E) 후 Vercel·Supabase 해지.
+
+## ADR-A16. RDS 연결 SSL 필수 (DATABASE_URL에 sslmode=no-verify)
+
+- **증상**: 앱 Lambda의 모든 DB 쿼리 `no pg_hba.conf entry for host ... no encryption` → SSR/어댑터 실패(홈 200은 쿼리 실패한 빈 shell). OAuth 콜백도 AdapterError.
+- **원인**: RDS는 SSL 연결 필수인데 `lib/db`의 pg Pool은 connectionString만 받고 SSL 미지정. (로컬 Docker PG는 SSL 불필요라 안 드러남.)
+- **해결**: 프로드 `DATABASE_URL`에 `?sslmode=no-verify` 추가(암호화하되 CA 미검증 — VPC 내부, migrate Lambda의 rejectUnauthorized:false와 동일 수준). 로컬은 영향 없음.
+- **검증**: 홈 DB 렌더 정상, DB 에러 0, 구글 로그인 end-to-end `/me` 안착(프로필 자동생성).

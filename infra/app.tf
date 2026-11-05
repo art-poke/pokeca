@@ -3,7 +3,8 @@
 
 locals {
   # lib/db가 읽는 connectionString. random_password.db는 special=false라 URL 인코딩 불필요.
-  database_url = "postgresql://${aws_db_instance.main.username}:${random_password.db.result}@${aws_db_instance.main.address}:${aws_db_instance.main.port}/${aws_db_instance.main.db_name}"
+  # RDS는 SSL 필수(no pg_hba entry ... no encryption) → sslmode=no-verify(암호화하되 CA 미검증, VPC 내부).
+  database_url = "postgresql://${aws_db_instance.main.username}:${random_password.db.result}@${aws_db_instance.main.address}:${aws_db_instance.main.port}/${aws_db_instance.main.db_name}?sslmode=no-verify"
   app_env = {
     DATABASE_URL        = local.database_url
     AUTH_SECRET         = random_password.auth_secret.result
