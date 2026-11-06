@@ -64,60 +64,23 @@ export async function searchCards(query: string): Promise<SearchResult> {
       : await db.execute(
           sql`select * from public.search_cards_by_number(${parsed.kind === "set_number" ? parsed.set : null}, ${parsed.number}, ${parsed.total})`,
         );
+  // 일어판 gap 카드는 cards에 정식 편입돼 있어(마이그레이션), 검색 함수가 한글판과 함께 돌려준다.
   const hits = await withImagePaths((result.rows as CardHitRow[]).map(toHit));
-  // 일어판(SNKRDUNK) gap 카드도 덧붙인다. 같은 카드(세트+번호)가 한글판에 있으면 제외(한글판 우선).
-  const ja = await searchSnkrdunkGap(parsed);
-  return { parsed, hits: [...hits, ...ja] };
+  return { parsed, hits };
 }
 
-// 일어판 카탈로그에서 검색어에 맞는 카드 중 한글판 cards에 없는 것(gap)만 CardHit으로 돌려준다.
-async function searchSnkrdunkGap(parsed: ParsedQuery): Promise<CardHit[]> {
-  if (parsed.kind === "empty") return [];
-  const where =
-    parsed.kind === "name"
-      ? sql`(s.name_en ilike ${"%" + parsed.text + "%"} or s.species_ko ilike ${"%" + parsed.text + "%"})`
-      : sql`public.normalize_collector_number(s.collector_number) = ${parsed.number}
-             ${parsed.kind === "set_number" ? sql`and lower(s.set_code) = lower(${parsed.set})` : sql``}
-             ${parsed.total ? sql`and public.normalize_collector_number(coalesce(s.total,'')) = ${parsed.total}` : sql``}`;
-  const result = await db.execute(sql`
-    select s.source_id, s.set_code, s.collector_number, s.total, s.name_en, s.rarity, s.set_name, s.image_path
-    from public.snkrdunk_cards s
-    where coalesce(s.lang,'ja') = 'ja' and s.set_code is not null and s.collector_number is not null
-      and (${where})
-      and not exists (
-        select 1 from public.cards c
-        where lower(c.set_code) = lower(s.set_code)
-          and public.normalize_collector_number(split_part(c.collector_number,'/',1))
-              = public.normalize_collector_number(s.collector_number))
-    order by s.popularity_rank nulls last
-    limit 50
-  `);
-  return (result.rows as {
-    source_id: string; set_code: string; collector_number: string; total: string | null;
-    name_en: string; rarity: string | null; set_name: string | null; image_path: string | null;
-  }[]).map((r) => ({
-    cardId: `ja:${r.source_id}`,
-    setCode: r.set_code.toLowerCase(),
-    collectorNumber: r.total ? `${r.collector_number}/${r.total}` : r.collector_number,
-    nameKo: r.name_en,
-    rarity: r.rarity,
-    setName: r.set_name ?? "일어판",
-    artworkCount: 0,
-    imagePath: r.image_path,
-    lang: "ja",
-    alias: null,
-  }));
-}
-
-// card_hit 합성 타입에 image_path가 없어, cardId로 한 번 더 조회해 격자용 이미지 경로를 채운다.
+// card_hit 합성 타입에 image_path·lang이 없어, cardId로 한 번 더 조회해 채운다.
 async function withImagePaths(hits: CardHit[]): Promise<CardHit[]> {
   if (hits.length === 0) return hits;
   const rows = await db
-    .select({ id: cards.id, imagePath: cards.imagePath })
+    .select({ id: cards.id, imagePath: cards.imagePath, lang: cards.lang })
     .from(cards)
     .where(inArray(cards.id, hits.map((h) => h.cardId)));
-  const byId = new Map(rows.map((r) => [r.id, r.imagePath]));
-  return hits.map((h) => ({ ...h, imagePath: byId.get(h.cardId) ?? null }));
+  const byId = new Map(rows.map((r) => [r.id, r]));
+  return hits.map((h) => {
+    const r = byId.get(h.cardId);
+    return { ...h, imagePath: r?.imagePath ?? null, lang: r?.lang === "ja" ? "ja" : "ko" };
+  });
 }
 
 // 측정 기록은 실패해도 화면을 막지 않는다. 호출자는 after() 안에서 부른다.
@@ -140,8 +103,7 @@ export async function recordSearch(
   await db.insert(events).values({
     type: "search",
     visitorId,
-    // 일어판 가짜 id("ja:…")는 cards FK가 아니라 기록하지 않는다.
-    cardId: result.hits.length === 1 && result.hits[0].lang === "ko" ? result.hits[0].cardId : null,
+    cardId: result.hits.length === 1 ? result.hits[0].cardId : null,
     payload: { query, kind: result.parsed.kind, hits: result.hits.length },
   });
   if (result.hits.length === 0 && result.parsed.kind !== "empty") {
@@ -172,6 +134,7 @@ export async function getCard(setCode: string, collectorNumber: string): Promise
       rarity: cards.rarity,
       illustrator: cards.illustrator,
       imagePath: cards.imagePath,
+      lang: cards.lang,
       setName: sets.nameKo,
     })
     .from(cards)
@@ -179,7 +142,7 @@ export async function getCard(setCode: string, collectorNumber: string): Promise
     .where(and(eq(cards.setCode, setCode), eq(cards.collectorNumber, collectorNumber)))
     .limit(1);
   const data = rows[0] ?? null;
-  if (!data) return getSnkrdunkCard(setCode, collectorNumber); // 한글판에 없으면 일어판 폴백
+  if (!data) return null;
   return {
     cardId: data.id,
     setCode: data.setCode,
@@ -189,36 +152,7 @@ export async function getCard(setCode: string, collectorNumber: string): Promise
     illustrator: data.illustrator,
     setName: data.setName,
     imagePath: data.imagePath,
-    lang: "ko",
-  };
-}
-
-// 일어판 카드 상세(한글판에 없는 gap 카드). 확장아트는 한글판 카드에 붙으므로 여긴 열람 전용.
-async function getSnkrdunkCard(setCode: string, collectorNumber: string): Promise<CardDetail | null> {
-  const [number, total] = collectorNumber.split("/");
-  const result = await db.execute(sql`
-    select source_id, set_code, collector_number, total, name_en, rarity, set_name, image_path
-    from public.snkrdunk_cards
-    where lower(set_code) = lower(${setCode})
-      and public.normalize_collector_number(collector_number) = public.normalize_collector_number(${number})
-      ${total ? sql`and public.normalize_collector_number(coalesce(total,'')) = public.normalize_collector_number(${total})` : sql``}
-    limit 1
-  `);
-  const r = (result.rows as {
-    source_id: string; set_code: string; collector_number: string; total: string | null;
-    name_en: string; rarity: string | null; set_name: string | null; image_path: string | null;
-  }[])[0];
-  if (!r) return null;
-  return {
-    cardId: `ja:${r.source_id}`,
-    setCode: r.set_code.toLowerCase(),
-    collectorNumber: r.total ? `${r.collector_number}/${r.total}` : r.collector_number,
-    nameKo: r.name_en,
-    rarity: r.rarity,
-    illustrator: null,
-    setName: r.set_name ?? "일어판",
-    imagePath: r.image_path,
-    lang: "ja",
+    lang: data.lang === "ja" ? "ja" : "ko",
   };
 }
 
@@ -273,7 +207,7 @@ export async function randomCardsWithImages(limit = 12): Promise<BrowseCard[]> {
            (select count(*)::int from public.artworks w
              where w.card_id = c.id and w.status = 'active') as artwork_count
     from public.cards c
-    where c.image_path is not null
+    where c.image_path is not null and c.lang = 'ko'
     order by md5(c.id::text || current_date::text)
     limit ${limit}
   `);

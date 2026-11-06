@@ -99,6 +99,8 @@ export const cards = pgTable(
     illustrator: text("illustrator"),
     // 공식 카드 이미지의 S3 키(uploads 버킷 cards/…). null이면 실루엣.
     imagePath: text("image_path"),
+    // ko=한글판, ja=SNKRDUNK 일어판 편입 카드.
+    lang: text("lang").notNull().default("ko"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({ setNumberUnique: unique().on(t.setCode, t.collectorNumber) }),
