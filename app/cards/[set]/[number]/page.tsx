@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CardImageZoom } from "@/components/card-image-zoom";
+import { cardImageUrl } from "@/lib/card-image";
 import { FavoriteButton } from "@/components/favorite-button";
 import { FormatResults } from "@/components/FormatResults";
 import { RequestArtButton } from "@/components/request-art-button";
@@ -36,10 +37,12 @@ async function Card({
   const card = await getCard(setCode, collectorNumber);
   if (!card) notFound();
 
+  // 일어판 gap 카드는 cards에 없어 확장아트·즐겨찾기(uuid 기반)를 못 건다. 열람 전용.
+  const isJa = card.lang === "ja";
   const [artworks, query, member] = await Promise.all([
-    listPublicArtworks(card.cardId),
+    isJa ? Promise.resolve([]) : listPublicArtworks(card.cardId),
     searchParams,
-    currentMember(),
+    isJa ? Promise.resolve(null) : currentMember(),
   ]);
   const from = aliasFrom(query.from);
   const [myRequested, favorited] = member
@@ -54,7 +57,7 @@ async function Card({
         {/* 공식 카드 이미지(수집한 카드만). 모바일에서도 보인다(작게). 없으면 중립 실루엣(sm 이상에서만). */}
         {card.imagePath ? (
           <CardImageZoom
-            src={`/api/card-images/${card.imagePath.replace(/^cards\//, "")}`}
+            src={cardImageUrl(card.imagePath, card.lang)}
             alt={`${card.nameKo} 카드`}
           />
         ) : (
@@ -93,19 +96,25 @@ async function Card({
               {LANG_LABEL[from.lang]}판)과 같은 그림의 한글판 카드예요. 도안은 한글판 기준이에요.
             </p>
           )}
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <FavoriteButton cardId={card.cardId} isMember={!!member} initial={favorited} />
-            <RequestArtButton
-              cardId={card.cardId}
-              isMember={!!member}
-              missingFormats={missingFormats}
-              requestedFormats={myRequested}
-            />
-          </div>
+          {isJa ? (
+            <p className="mt-4 rounded-xl bg-accent px-3.5 py-2.5 text-sm text-accent-foreground">
+              일어판 카드예요. 확장 아트 도안은 한글판 카드 기준으로 모여요.
+            </p>
+          ) : (
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <FavoriteButton cardId={card.cardId} isMember={!!member} initial={favorited} />
+              <RequestArtButton
+                cardId={card.cardId}
+                isMember={!!member}
+                missingFormats={missingFormats}
+                requestedFormats={myRequested}
+              />
+            </div>
+          )}
         </div>
       </header>
 
-      <FormatResults cardId={card.cardId} artworks={artworks} />
+      {!isJa && <FormatResults cardId={card.cardId} artworks={artworks} />}
     </article>
   );
 }

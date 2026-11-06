@@ -16,6 +16,8 @@ export type CardHit = {
   artworkCount: number;
   // 공식 카드 이미지(S3 키). 검색 결과 격자에서 실제 그림을 보여주려고 보강한다. null이면 실루엣.
   imagePath: string | null;
+  // 카드 자체의 언어/출처. ja=SNKRDUNK 일어판(한글판에 없는 카드). 뱃지·이미지 경로가 달라진다.
+  lang: "ko" | "ja";
   alias: { lang: "ja" | "en"; setCode: string; collectorNumber: string } | null;
 };
 
@@ -42,6 +44,7 @@ function toHit(r: CardHitRow): CardHit {
     setName: r.set_name,
     artworkCount: r.artwork_count,
     imagePath: null, // 합성 타입 card_hit에는 image_path가 없어 아래 withImagePaths가 채운다.
+    lang: "ko",
     alias: r.alias_lang
       ? { lang: r.alias_lang, setCode: r.alias_set_code!, collectorNumber: r.alias_number! }
       : null,
@@ -62,7 +65,48 @@ export async function searchCards(query: string): Promise<SearchResult> {
           sql`select * from public.search_cards_by_number(${parsed.kind === "set_number" ? parsed.set : null}, ${parsed.number}, ${parsed.total})`,
         );
   const hits = await withImagePaths((result.rows as CardHitRow[]).map(toHit));
-  return { parsed, hits };
+  // 일어판(SNKRDUNK) gap 카드도 덧붙인다. 같은 카드(세트+번호)가 한글판에 있으면 제외(한글판 우선).
+  const ja = await searchSnkrdunkGap(parsed);
+  return { parsed, hits: [...hits, ...ja] };
+}
+
+// 일어판 카탈로그에서 검색어에 맞는 카드 중 한글판 cards에 없는 것(gap)만 CardHit으로 돌려준다.
+async function searchSnkrdunkGap(parsed: ParsedQuery): Promise<CardHit[]> {
+  if (parsed.kind === "empty") return [];
+  const where =
+    parsed.kind === "name"
+      ? sql`(s.name_en ilike ${"%" + parsed.text + "%"} or s.species_ko ilike ${"%" + parsed.text + "%"})`
+      : sql`public.normalize_collector_number(s.collector_number) = ${parsed.number}
+             ${parsed.kind === "set_number" ? sql`and lower(s.set_code) = lower(${parsed.set})` : sql``}
+             ${parsed.total ? sql`and public.normalize_collector_number(coalesce(s.total,'')) = ${parsed.total}` : sql``}`;
+  const result = await db.execute(sql`
+    select s.source_id, s.set_code, s.collector_number, s.total, s.name_en, s.rarity, s.set_name, s.image_path
+    from public.snkrdunk_cards s
+    where coalesce(s.lang,'ja') = 'ja' and s.set_code is not null and s.collector_number is not null
+      and (${where})
+      and not exists (
+        select 1 from public.cards c
+        where lower(c.set_code) = lower(s.set_code)
+          and public.normalize_collector_number(split_part(c.collector_number,'/',1))
+              = public.normalize_collector_number(s.collector_number))
+    order by s.popularity_rank nulls last
+    limit 50
+  `);
+  return (result.rows as {
+    source_id: string; set_code: string; collector_number: string; total: string | null;
+    name_en: string; rarity: string | null; set_name: string | null; image_path: string | null;
+  }[]).map((r) => ({
+    cardId: `ja:${r.source_id}`,
+    setCode: r.set_code.toLowerCase(),
+    collectorNumber: r.total ? `${r.collector_number}/${r.total}` : r.collector_number,
+    nameKo: r.name_en,
+    rarity: r.rarity,
+    setName: r.set_name ?? "일어판",
+    artworkCount: 0,
+    imagePath: r.image_path,
+    lang: "ja",
+    alias: null,
+  }));
 }
 
 // card_hit 합성 타입에 image_path가 없어, cardId로 한 번 더 조회해 격자용 이미지 경로를 채운다.
@@ -96,7 +140,8 @@ export async function recordSearch(
   await db.insert(events).values({
     type: "search",
     visitorId,
-    cardId: result.hits.length === 1 ? result.hits[0].cardId : null,
+    // 일어판 가짜 id("ja:…")는 cards FK가 아니라 기록하지 않는다.
+    cardId: result.hits.length === 1 && result.hits[0].lang === "ko" ? result.hits[0].cardId : null,
     payload: { query, kind: result.parsed.kind, hits: result.hits.length },
   });
   if (result.hits.length === 0 && result.parsed.kind !== "empty") {
@@ -114,6 +159,7 @@ export type CardDetail = {
   setName: string;
   // 공식 카드 이미지 경로(S3 키). null이면 실루엣.
   imagePath: string | null;
+  lang: "ko" | "ja";
 };
 
 export async function getCard(setCode: string, collectorNumber: string): Promise<CardDetail | null> {
@@ -133,7 +179,7 @@ export async function getCard(setCode: string, collectorNumber: string): Promise
     .where(and(eq(cards.setCode, setCode), eq(cards.collectorNumber, collectorNumber)))
     .limit(1);
   const data = rows[0] ?? null;
-  if (!data) return null;
+  if (!data) return getSnkrdunkCard(setCode, collectorNumber); // 한글판에 없으면 일어판 폴백
   return {
     cardId: data.id,
     setCode: data.setCode,
@@ -143,6 +189,36 @@ export async function getCard(setCode: string, collectorNumber: string): Promise
     illustrator: data.illustrator,
     setName: data.setName,
     imagePath: data.imagePath,
+    lang: "ko",
+  };
+}
+
+// 일어판 카드 상세(한글판에 없는 gap 카드). 확장아트는 한글판 카드에 붙으므로 여긴 열람 전용.
+async function getSnkrdunkCard(setCode: string, collectorNumber: string): Promise<CardDetail | null> {
+  const [number, total] = collectorNumber.split("/");
+  const result = await db.execute(sql`
+    select source_id, set_code, collector_number, total, name_en, rarity, set_name, image_path
+    from public.snkrdunk_cards
+    where lower(set_code) = lower(${setCode})
+      and public.normalize_collector_number(collector_number) = public.normalize_collector_number(${number})
+      ${total ? sql`and public.normalize_collector_number(coalesce(total,'')) = public.normalize_collector_number(${total})` : sql``}
+    limit 1
+  `);
+  const r = (result.rows as {
+    source_id: string; set_code: string; collector_number: string; total: string | null;
+    name_en: string; rarity: string | null; set_name: string | null; image_path: string | null;
+  }[])[0];
+  if (!r) return null;
+  return {
+    cardId: `ja:${r.source_id}`,
+    setCode: r.set_code.toLowerCase(),
+    collectorNumber: r.total ? `${r.collector_number}/${r.total}` : r.collector_number,
+    nameKo: r.name_en,
+    rarity: r.rarity,
+    illustrator: null,
+    setName: r.set_name ?? "일어판",
+    imagePath: r.image_path,
+    lang: "ja",
   };
 }
 

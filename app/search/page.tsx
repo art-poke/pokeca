@@ -194,6 +194,7 @@ function CandidateGrid({ hits }: { hits: CardHit[] }) {
               imagePath: hit.imagePath,
               artworkCount: hit.artworkCount,
               rarity: hit.rarity,
+              lang: hit.lang,
             }}
           />
         </li>
