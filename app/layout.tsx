@@ -8,9 +8,28 @@ import { AuthMenu, AuthMenuFallback } from "@/components/auth-menu";
 import { QueryProvider } from "@/lib/query/query-client";
 import "./globals.css";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://d3mfru6qnveki4.cloudfront.net";
+const DESCRIPTION = "카드 번호로 포켓몬 카드 확장 아트 도안을 찾는 비영리 아카이브";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "Extended Art Archive",
-  description: "카드 번호로 포켓몬 카드 확장 아트 도안을 찾는 비영리 아카이브",
+  description: DESCRIPTION,
+  // 외부 공유 미리보기는 유저 도안이 아니라 브랜드 이미지(몬스터볼 + Extended Art Archive)로 고정.
+  openGraph: {
+    type: "website",
+    siteName: "Extended Art Archive",
+    title: "Extended Art Archive",
+    description: DESCRIPTION,
+    locale: "ko_KR",
+    images: [{ url: "/og-home.png", width: 1200, height: 630, alt: "Extended Art Archive" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Extended Art Archive",
+    description: DESCRIPTION,
+    images: ["/og-home.png"],
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
