@@ -84,6 +84,9 @@ export const artists = pgTable("artists", {
   provider: text("provider").notNull(),
   intro: text("intro"),
   linkUrl: text("link_url"),
+  // 링크 여러 개(오픈카톡/기타): [{label, url}]. 활동처·닉네임: [{place, handle}].
+  links: jsonb("links").$type<{ label: string; url: string }[]>().notNull().default([]),
+  activities: jsonb("activities").$type<{ place: string; handle: string }[]>().notNull().default([]),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

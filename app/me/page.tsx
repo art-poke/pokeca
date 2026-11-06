@@ -67,6 +67,10 @@ async function Profile({ searchParams }: { searchParams: PageProps<"/me">["searc
         displayName={profile.displayName}
         handle={profile.handle}
         hasAvatar={!!profile.avatarPath}
+        email={profile.email}
+        intro={profile.intro}
+        links={profile.links}
+        activities={profile.activities}
         preview={preview}
         setupHandle={setup === "handle"}
       />

@@ -66,6 +66,31 @@ async function Portfolio({ params }: Pick<PageProps<"/artists/[handle]">, "param
               </a>
             </p>
           )}
+          {artist.email && <p className="mt-2 text-sm text-muted-foreground">✉ {artist.email}</p>}
+          {artist.activities.length > 0 && (
+            <ul className="mt-2 flex flex-wrap gap-1.5">
+              {artist.activities.map((a, i) => (
+                <li key={i} className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-ink-700">
+                  {a.place}{a.place && a.handle ? " · " : ""}{a.handle}
+                </li>
+              ))}
+            </ul>
+          )}
+          {artist.links.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {artist.links.map((l, i) => (
+                <a
+                  key={i}
+                  href={l.url}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="rounded-full border border-border px-2.5 py-1 text-xs font-semibold text-ink-700 transition-colors hover:border-primary hover:text-primary"
+                >
+                  {l.label || "링크"} ↗
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       </header>
 

@@ -16,6 +16,9 @@ import { UUID } from "@/lib/uuid";
 // 로그인은 카카오·구글뿐. 첫 상호작용 때 프로필이 자동 생성되고(display_name 기본값),
 // 발행(도안 업로드)·공개는 handle(작가 주소)을 마이페이지에서 설정하면 열린다.
 
+export type ProfileLink = { label: string; url: string };
+export type ProfileActivity = { place: string; handle: string };
+
 export type Artist = {
   userId: string;
   displayName: string;
@@ -25,6 +28,8 @@ export type Artist = {
   provider: SocialProvider;
   intro: string | null;
   linkUrl: string | null;
+  links: ProfileLink[];
+  activities: ProfileActivity[];
   createdAt: string;
 };
 
@@ -37,6 +42,8 @@ const artistColumns = {
   provider: artists.provider,
   intro: artists.intro,
   linkUrl: artists.linkUrl,
+  links: artists.links,
+  activities: artists.activities,
   createdAt: artists.createdAt,
 };
 
@@ -49,6 +56,8 @@ type DrizzleArtistRow = {
   provider: string;
   intro: string | null;
   linkUrl: string | null;
+  links: ProfileLink[];
+  activities: ProfileActivity[];
   createdAt: Date;
 };
 
@@ -62,6 +71,8 @@ function fromDrizzle(r: DrizzleArtistRow): Artist {
     provider: r.provider as SocialProvider,
     intro: r.intro,
     linkUrl: r.linkUrl,
+    links: Array.isArray(r.links) ? r.links : [],
+    activities: Array.isArray(r.activities) ? r.activities : [],
     createdAt: r.createdAt.toISOString(),
   };
 }
@@ -148,16 +159,60 @@ export async function anyMember(): Promise<Artist | null> {
 
 export const HANDLE = /^[a-z0-9_]{2,30}$/;
 
-// 닉네임(표시명) + 프로필 이미지 수정. 이미지를 바꾸면 옛 파일은 지운다.
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
+// 입력 링크/활동처를 안전하게 정리(최대 8개, 빈 값·형식 불량 제거).
+function cleanLinks(raw: unknown): ProfileLink[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((l) => ({ label: String(l?.label ?? "").trim().slice(0, 20), url: String(l?.url ?? "").trim().slice(0, 300) }))
+    .filter((l) => /^https?:\/\//.test(l.url))
+    .slice(0, 8);
+}
+function cleanActivities(raw: unknown): ProfileActivity[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((a) => ({ place: String(a?.place ?? "").trim().slice(0, 30), handle: String(a?.handle ?? "").trim().slice(0, 40) }))
+    .filter((a) => a.place || a.handle)
+    .slice(0, 8);
+}
+
+// 프로필 수정: 표시명·이미지 + 이메일·소개·링크·활동처. undefined인 필드는 건드리지 않는다.
 export async function updateProfile(
   userId: string,
-  input: { displayName: string; avatarUploadId?: string | null },
+  input: {
+    displayName: string;
+    avatarUploadId?: string | null;
+    email?: string | null;
+    intro?: string | null;
+    links?: unknown;
+    activities?: unknown;
+  },
 ): Promise<void> {
   const displayName = input.displayName.trim();
   if (!displayName) throw new ArtistError("nickname_required");
   if (displayName.length > NICKNAME_MAX) throw new ArtistError("nickname_too_long");
 
-  const patch: { displayName: string; avatarPath?: string } = { displayName };
+  const patch: {
+    displayName: string;
+    avatarPath?: string;
+    email?: string | null;
+    intro?: string | null;
+    links?: ProfileLink[];
+    activities?: ProfileActivity[];
+  } = { displayName };
+
+  if (input.email !== undefined) {
+    const email = (input.email ?? "").trim();
+    if (email && !EMAIL_RE.test(email)) throw new ArtistError("invalid_email");
+    patch.email = email || null;
+  }
+  if (input.intro !== undefined) {
+    patch.intro = (input.intro ?? "").trim().slice(0, 500) || null;
+  }
+  if (input.links !== undefined) patch.links = cleanLinks(input.links);
+  if (input.activities !== undefined) patch.activities = cleanActivities(input.activities);
+
   let oldPath: string | null = null;
   if (input.avatarUploadId) {
     const prev = await db
