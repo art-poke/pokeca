@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { CardImageZoom } from "@/components/card-image-zoom";
 import { FavoriteButton } from "@/components/favorite-button";
 import { FormatResults } from "@/components/FormatResults";
 import { RequestArtButton } from "@/components/request-art-button";
@@ -52,15 +53,9 @@ async function Card({
       <header className="flex items-stretch gap-4 rounded-2xl border border-border bg-background p-4 md:gap-6 md:p-6">
         {/* 공식 카드 이미지(수집한 카드만). 모바일에서도 보인다(작게). 없으면 중립 실루엣(sm 이상에서만). */}
         {card.imagePath ? (
-          // next/image는 image Lambda가 서명 URL 302를 못 따라가서 못 쓴다. 원본이 이미 webp라 최적화 이득도 없다.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <CardImageZoom
             src={`/api/card-images/${card.imagePath.replace(/^cards\//, "")}`}
             alt={`${card.nameKo} 카드`}
-            width={217}
-            height={303}
-            loading="eager"
-            className="aspect-[63/88] w-20 shrink-0 self-start rounded-xl border border-border object-cover sm:w-28 md:w-32"
           />
         ) : (
           <div

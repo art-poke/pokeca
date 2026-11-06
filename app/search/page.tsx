@@ -1,13 +1,18 @@
-import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { Suspense } from "react";
+import { CardTile, CardTileGridSkeleton } from "@/components/card-tile";
 import { SearchBar } from "@/components/search-bar";
 import { SearchMissRequest } from "@/components/SearchMissRequest";
-import { Badge } from "@/components/ui/badge";
 import { PokeballMark } from "@/components/ui/logo";
-import { recentArtworkCards, recordSearch, searchCards, type CardHit } from "@/lib/cards";
+import {
+  randomCardsWithImages,
+  recordSearch,
+  searchCards,
+  suggestCards,
+  type CardHit,
+} from "@/lib/cards";
 import { cardPath } from "@/lib/search";
 import { visitorId } from "@/lib/visitor";
 
@@ -54,6 +59,8 @@ async function Results({ searchParams }: { searchParams: PageProps<"/search">["s
   }
 
   if (result.hits.length === 0) {
+    // 이름 검색이 빗나갔으면 오타 보정 후보("이거 찾으셨나요?")를 함께 제안한다.
+    const suggestions = result.parsed.kind === "name" ? await suggestCards(query) : [];
     return (
       <SearchShell query={query}>
         <div className="rounded-2xl border border-border bg-background p-6 text-center md:p-10">
@@ -73,6 +80,21 @@ async function Results({ searchParams }: { searchParams: PageProps<"/search">["s
             />
           </div>
         </div>
+
+        {suggestions.length > 0 && (
+          <section className="mt-8" aria-labelledby="suggest-heading">
+            <h2 id="suggest-heading" className="font-display text-lg font-bold text-foreground">
+              혹시 이거 찾으셨나요?
+            </h2>
+            <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {suggestions.map((c) => (
+                <li key={c.cardId}>
+                  <CardTile card={c} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </SearchShell>
     );
   }
@@ -82,26 +104,26 @@ async function Results({ searchParams }: { searchParams: PageProps<"/search">["s
       <h2 className="mb-3 text-sm font-semibold text-muted-foreground">
         카드 {result.hits.length}장
       </h2>
-      <CandidateList hits={result.hits} />
+      <CandidateGrid hits={result.hits} />
     </SearchShell>
   );
 }
 
-// 검색 랜딩(쿼리 없음): 큰 검색창 + 예시 + 최근 등록 카드.
+// 검색 랜딩(쿼리 없음): 큰 검색창 + 예시 + 카드 둘러보기.
 function SearchLanding() {
   return (
     <div className="enter space-y-10">
-      <section className="relative overflow-hidden rounded-3xl border border-border bg-background px-6 py-10 shadow-sm md:px-10 md:py-12">
+      <section className="relative overflow-hidden rounded-3xl border border-border bg-background px-5 py-9 shadow-sm md:px-10 md:py-12">
         <div className="absolute inset-x-0 top-0 h-1.5 bg-red-500" aria-hidden />
         <PokeballMark
           className="pointer-events-none absolute -right-12 -top-12 hidden size-60 opacity-[0.06] md:block"
           aria-hidden
         />
         <div className="relative">
-          <h1 className="font-display text-3xl font-bold leading-tight text-foreground md:text-4xl">
+          <h1 className="font-display text-2xl font-bold leading-tight text-foreground sm:text-3xl md:text-4xl">
             카드 번호로 <span className="text-red-500">확장 아트</span> 찾기
           </h1>
-          <p className="mt-3 max-w-lg text-muted-foreground">
+          <p className="mt-3 max-w-lg text-sm text-muted-foreground md:text-base">
             가지고 있는 카드 번호만 입력하면, 그 카드에 맞는 확장 아트 도안을 모아서 보여드려요.
           </p>
           <div className="mt-6 max-w-xl">
@@ -122,48 +144,26 @@ function SearchLanding() {
         </div>
       </section>
 
-      <Suspense fallback={<RecentCardsSkeleton />}>
-        <RecentCards />
+      <Suspense fallback={<BrowseSkeleton />}>
+        <BrowseCards />
       </Suspense>
     </div>
   );
 }
 
-async function RecentCards() {
-  const cards = await recentArtworkCards(8);
+async function BrowseCards() {
+  const cards = await randomCardsWithImages(12);
   if (cards.length === 0) return null;
   return (
-    <section aria-labelledby="recent-heading">
-      <h2 id="recent-heading" className="font-display text-xl font-bold text-foreground md:text-2xl">
-        최근 도안이 등록된 카드
+    <section aria-labelledby="browse-heading">
+      <h2 id="browse-heading" className="font-display text-xl font-bold text-foreground md:text-2xl">
+        카드 둘러보기
       </h2>
+      <p className="mt-1 text-sm text-muted-foreground">오늘의 카드 — 눌러서 확장 아트를 구경해 보세요.</p>
       <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {cards.map((c) => (
-          <li key={`${c.setCode}-${c.collectorNumber}`}>
-            <Link
-              href={cardPath(c.setCode, c.collectorNumber)}
-              className="group flex flex-col gap-2.5 rounded-2xl border border-border bg-background p-2.5 transition-shadow hover:shadow-md"
-            >
-              <div className="relative flex aspect-[63/88] items-center justify-center overflow-hidden rounded-xl border border-border bg-gradient-to-br from-gray-50 to-gray-200">
-                <PokeballMark
-                  className="pointer-events-none absolute -bottom-4 -right-4 size-20 opacity-[0.1]"
-                  aria-hidden
-                />
-                <span className="tabular text-center text-sm font-bold leading-snug text-ink-600">
-                  {c.setCode}
-                  <br />
-                  {c.collectorNumber}
-                </span>
-              </div>
-              <div className="px-0.5 pb-0.5">
-                <div className="tabular text-sm font-bold text-foreground">
-                  {c.setCode} {c.collectorNumber}
-                </div>
-                <div className="truncate text-sm text-muted-foreground group-hover:text-foreground">
-                  {c.nameKo}
-                </div>
-              </div>
-            </Link>
+          <li key={c.cardId}>
+            <CardTile card={c} />
           </li>
         ))}
       </ul>
@@ -171,51 +171,31 @@ async function RecentCards() {
   );
 }
 
-const RecentCardsSkeleton = () => (
+const BrowseSkeleton = () => (
   <section aria-hidden>
-    <div className="h-7 w-48 animate-pulse rounded-lg bg-gray-200" />
-    <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-      {Array.from({ length: 8 }).map((_, i) => (
-        <li key={i} className="rounded-2xl border border-border bg-background p-2.5">
-          <div className="aspect-[63/88] animate-pulse rounded-xl bg-gray-100" />
-          <div className="mt-2.5 h-4 w-20 animate-pulse rounded bg-gray-100" />
-          <div className="mt-1.5 h-4 w-24 animate-pulse rounded bg-gray-100" />
-        </li>
-      ))}
-    </ul>
+    <div className="h-7 w-40 animate-pulse rounded-lg bg-gray-200" />
+    <div className="mt-4">
+      <CardTileGridSkeleton count={12} />
+    </div>
   </section>
 );
 
-// 카드당 한 줄. 도안 많은 순, 같으면 최신 확장팩 순(DB가 정렬).
-function CandidateList({ hits }: { hits: CardHit[] }) {
+// 검색 결과 격자 — 카드 그림과 함께 본다. 도안 많은 순, 같으면 최신 확장팩 순(DB가 정렬).
+function CandidateGrid({ hits }: { hits: CardHit[] }) {
   return (
-    <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-background">
+    <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
       {hits.map((hit) => (
         <li key={hit.cardId}>
-          <Link
-            href={cardPath(hit.setCode, hit.collectorNumber)}
-            className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-gray-50"
-          >
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <span className="truncate font-semibold text-foreground">{hit.nameKo}</span>
-                {hit.rarity && <Badge variant="outline">{hit.rarity}</Badge>}
-              </div>
-              <div className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
-                <span className="tabular shrink-0 whitespace-nowrap font-medium text-ink-600">
-                  {hit.setCode} {hit.collectorNumber}
-                </span>
-                <span aria-hidden>·</span>
-                <span className="truncate">{hit.setName}</span>
-              </div>
-            </div>
-            {hit.artworkCount === 0 ? (
-              <Badge variant="muted">도안 없음</Badge>
-            ) : (
-              <Badge variant="primary">도안 {hit.artworkCount}</Badge>
-            )}
-            <ChevronRight className="size-5 shrink-0 text-gray-300" aria-hidden />
-          </Link>
+          <CardTile
+            card={{
+              setCode: hit.setCode,
+              collectorNumber: hit.collectorNumber,
+              nameKo: hit.nameKo,
+              imagePath: hit.imagePath,
+              artworkCount: hit.artworkCount,
+              rarity: hit.rarity,
+            }}
+          />
         </li>
       ))}
     </ul>
