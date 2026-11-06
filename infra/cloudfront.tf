@@ -111,9 +111,10 @@ resource "aws_cloudfront_distribution" "app" {
     }
   }
 
-  # 정적 → S3 assets (장기 캐시).
+  # 정적 → S3 assets (장기 캐시). public/의 정적 파일은 여기 패턴에 맞아야 S3로 간다(아니면 SSR Lambda로 가 404).
+  # 주의: "*.webp"는 넣지 말 것 — /api/card-images/*.webp(동적 302)까지 S3로 가버린다. OG는 정확 경로로.
   dynamic "ordered_cache_behavior" {
-    for_each = ["/_next/*", "/specs/*", "/favicon.ico", "*.svg", "/BUILD_ID"]
+    for_each = ["/_next/*", "/specs/*", "/favicon.ico", "*.svg", "/og-home.png", "/BUILD_ID"]
     content {
       path_pattern           = ordered_cache_behavior.value
       target_origin_id       = "assets"
