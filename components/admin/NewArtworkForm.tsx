@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { useCreateArtworkMutation, useSearchCardsMutation } from "@/domains/admin/hooks";
 import type { AdminCardHit as Card } from "@/domains/admin/api/types";
+import { Badge } from "@/components/ui/badge";
+import { cardImageUrl } from "@/lib/card-image";
 import { FORMAT_INFO, FORMAT_PIECES, FORMATS, type Format } from "@/lib/formats";
 import { cn } from "@/lib/utils";
 import { errorMessage, uploadFile } from "./upload";
@@ -469,21 +471,38 @@ export function NewArtworkForm({ mode = "admin" }: { mode?: "admin" | "artist" }
             </div>
             {cards && cards.length === 0 && <p className={hint}>맞는 카드가 없어요.</p>}
             {cards && cards.length > 0 && (
-              <ul className="max-h-48 divide-y divide-border overflow-auto rounded-xl border border-border" aria-label="카드 후보">
+              <ul className="max-h-64 divide-y divide-border overflow-auto rounded-xl border border-border" aria-label="카드 후보">
                 {cards.map((c) => (
                   <li key={c.cardId}>
                     <button
                       type="button"
                       className={cn(
-                        "flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors hover:bg-gray-50",
+                        "flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-gray-50",
                         card?.cardId === c.cardId && "bg-accent",
                       )}
                       aria-pressed={card?.cardId === c.cardId}
                       onClick={() => setCard(c)}
                     >
-                      <strong className="tabular text-foreground">{c.label}</strong>
-                      <span>{c.name}</span>
-                      <span className="text-muted-foreground">· {c.setName}</span>
+                      {/* 아주 작은 카드 일러 */}
+                      <div className="aspect-[63/88] w-9 shrink-0 overflow-hidden rounded border border-border bg-gray-100">
+                        {c.imagePath && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={cardImageUrl(c.imagePath, c.lang)}
+                            alt=""
+                            loading="lazy"
+                            className="size-full object-cover"
+                          />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <strong className="tabular shrink-0 text-sm text-foreground">{c.label}</strong>
+                          {c.rarity && <Badge variant="outline">{c.rarity}</Badge>}
+                        </div>
+                        <div className="truncate text-sm text-foreground">{c.name}</div>
+                        <div className="truncate text-xs text-muted-foreground">{c.setName}</div>
+                      </div>
                     </button>
                   </li>
                 ))}

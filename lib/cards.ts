@@ -92,6 +92,9 @@ export async function cardCandidates(query: string) {
     label: `${h.setCode} ${h.collectorNumber}`,
     name: h.nameKo,
     setName: h.setName,
+    rarity: h.rarity,
+    imagePath: h.imagePath,
+    lang: h.lang,
   }));
 }
 

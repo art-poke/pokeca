@@ -5,6 +5,9 @@ export type AdminCardHit = {
   label: string;
   name: string;
   setName: string;
+  rarity: string | null;
+  imagePath: string | null;
+  lang: "ko" | "ja";
 };
 
 export type UpdateArtworkResult = { changed?: boolean; purged?: boolean };
