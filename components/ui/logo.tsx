@@ -32,7 +32,7 @@ export const Logo = ({ className }: { className?: string }) => {
     <span className={cn("inline-flex items-center gap-2", className)}>
       <PokeballMark className="size-7 shrink-0" />
       <span className="font-display text-lg font-bold tracking-tight text-foreground">
-        확장 아트 아카이브
+        Extended <span className="text-primary">Art</span> Archive
       </span>
     </span>
   );

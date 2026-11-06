@@ -6,7 +6,7 @@ import { RowsSkeleton } from "@/components/skeletons";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type Board, isBoard, listPosts } from "@/lib/community";
 
-export const metadata = { title: "커뮤니티 · 확장 아트 아카이브" };
+export const metadata = { title: "커뮤니티 · Extended Art Archive" };
 
 export default async function CommunityPage(props: PageProps<"/community">) {
   // 현재 탭을 글쓰기 링크에 실어, 글쓰기 폼이 그 게시판으로 열리게 한다.

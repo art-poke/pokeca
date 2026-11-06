@@ -34,7 +34,9 @@ export const AppShellFallback = () => (
     <header className="sticky top-0 z-40 flex h-14 items-center gap-2 border-b border-border bg-background px-3 md:px-4">
       <span className="inline-flex items-center gap-2">
         <PokeballMark className="size-7" />
-        <span className="font-display text-lg font-bold text-foreground">확장 아트 아카이브</span>
+        <span className="font-display text-lg font-bold text-foreground">
+          Extended <span className="text-primary">Art</span> Archive
+        </span>
       </span>
     </header>
   </div>
@@ -131,7 +133,7 @@ export const AppShell = ({
         >
           <Menu className="size-6" />
         </button>
-        <Link href="/" className="shrink-0" aria-label="확장 아트 아카이브 홈">
+        <Link href="/" className="shrink-0" aria-label="Extended Art Archive 홈">
           <Logo />
         </Link>
         <div className="ml-auto flex items-center gap-3">

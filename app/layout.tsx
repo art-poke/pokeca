@@ -9,7 +9,7 @@ import { QueryProvider } from "@/lib/query/query-client";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "확장 아트 아카이브",
+  title: "Extended Art Archive",
   description: "카드 번호로 포켓몬 카드 확장 아트 도안을 찾는 비영리 아카이브",
 };
 

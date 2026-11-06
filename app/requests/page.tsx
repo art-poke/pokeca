@@ -5,7 +5,7 @@ import { RowsSkeleton } from "@/components/skeletons";
 import { Badge } from "@/components/ui/badge";
 import { listOpenRequests } from "@/lib/art-requests";
 
-export const metadata = { title: "도안 요청해요 · 확장 아트 아카이브" };
+export const metadata = { title: "도안 요청해요 · Extended Art Archive" };
 
 export default function RequestsPage() {
   return (

@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { LoginForm } from "./LoginForm";
 import styles from "../admin.module.css";
 
-export const metadata = { title: "어드민 로그인 · 확장 아트 아카이브" };
+export const metadata = { title: "어드민 로그인 · Extended Art Archive" };
 
 // 어드민 계정은 Supabase 대시보드에서 만들고 admins 표에 넣는다(공개 가입 없음).
 export default function LoginPage(props: PageProps<"/admin/login">) {

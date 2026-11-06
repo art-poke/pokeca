@@ -5,7 +5,7 @@ import { HandleSetup } from "@/components/handle-setup";
 import { SpecInfoButton } from "@/components/spec-info";
 import { currentArtist } from "@/lib/artists";
 
-export const metadata = { title: "도안 올리기 · 확장 아트 아카이브" };
+export const metadata = { title: "도안 올리기 · Extended Art Archive" };
 
 export default function NewArtistArtworkPage() {
   return (

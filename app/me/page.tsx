@@ -13,7 +13,7 @@ import { listFavoriteCards } from "@/lib/favorites";
 import { listArtistReviews } from "@/lib/reviews";
 import { StudioArtworks } from "@/app/artist/(studio)/StudioArtworks";
 
-export const metadata = { title: "마이페이지 · 확장 아트 아카이브" };
+export const metadata = { title: "마이페이지 · Extended Art Archive" };
 
 export default function MyProfilePage(props: PageProps<"/me">) {
   return (

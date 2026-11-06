@@ -16,7 +16,7 @@ import {
 import { cardPath } from "@/lib/search";
 import { visitorId } from "@/lib/visitor";
 
-export const metadata = { title: "카드 검색 · 확장 아트 아카이브" };
+export const metadata = { title: "카드 검색 · Extended Art Archive" };
 
 const EXAMPLES = ["리자몽", "피카츄", "이상해씨", "sv2a 201/165"];
 

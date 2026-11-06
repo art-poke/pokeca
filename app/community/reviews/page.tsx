@@ -5,7 +5,7 @@ import { ReviewArtistSearch } from "@/components/review-artist-search";
 import { RowsSkeleton } from "@/components/skeletons";
 import { recentReviews } from "@/lib/reviews";
 
-export const metadata = { title: "작가 후기 · 커뮤니티 · 확장 아트 아카이브" };
+export const metadata = { title: "작가 후기 · 커뮤니티 · Extended Art Archive" };
 
 export default function ReviewsPage() {
   return (

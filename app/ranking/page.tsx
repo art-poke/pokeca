@@ -15,7 +15,7 @@ import {
 } from "@/lib/ranking";
 import { cn } from "@/lib/utils";
 
-export const metadata = { title: "랭킹 · 확장 아트 아카이브" };
+export const metadata = { title: "랭킹 · Extended Art Archive" };
 
 export default function RankingPage(props: PageProps<"/ranking">) {
   return (

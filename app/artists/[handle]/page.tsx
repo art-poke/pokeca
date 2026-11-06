@@ -13,7 +13,7 @@ import { safeDecode } from "@/lib/search";
 
 export async function generateMetadata(props: PageProps<"/artists/[handle]">): Promise<Metadata> {
   const { handle } = await props.params;
-  return { title: `@${safeDecode(handle) ?? handle} · 확장 아트 아카이브` };
+  return { title: `@${safeDecode(handle) ?? handle} · Extended Art Archive` };
 }
 
 export default function ArtistPage(props: PageProps<"/artists/[handle]">) {
