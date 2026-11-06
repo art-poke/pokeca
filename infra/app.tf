@@ -69,11 +69,14 @@ resource "aws_iam_role_policy" "app_s3" {
 # app-server.zip / app-image.zip은 gitignore. plan/apply 전 반드시 존재해야 함.
 
 resource "aws_lambda_function" "app_server" {
-  function_name    = "${var.project_name}-app-server"
-  runtime          = "nodejs22.x"
-  handler          = "index.handler"
-  role             = aws_iam_role.app.arn
-  filename         = "${path.module}/app-server.zip"
+  function_name = "${var.project_name}-app-server"
+  runtime       = "nodejs22.x"
+  handler       = "index.handler"
+  role          = aws_iam_role.app.arn
+  # 직접 zip 업로드는 70MB 한도(RequestEntityTooLarge). 번들이 커서 S3 경유로 올린다.
+  # deploy.sh가 app-server.zip을 이 버킷/키로 업로드한 뒤 apply 한다.
+  s3_bucket        = aws_s3_bucket.assets.id
+  s3_key           = "lambda/app-server.zip"
   source_code_hash = filebase64sha256("${path.module}/app-server.zip")
   memory_size      = 1024
   timeout          = 30

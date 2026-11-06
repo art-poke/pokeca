@@ -16,8 +16,12 @@ npx open-next build
 
 echo "▶ 2. Lambda zip (심볼릭 보존 — archive_file은 OpenNext 심볼릭 못 다룸)"
 rm -f infra/app-server.zip infra/app-image.zip
-( cd .open-next/server-functions/default && zip -ryq "$ROOT/infra/app-server.zip" . )
+# .cache(로컬 SNKRDUNK 이미지 등)는 번들에서 제외 — S3로 서빙하므로 Lambda에 넣을 필요 없다(콜드스타트·용량).
+( cd .open-next/server-functions/default && zip -ryq "$ROOT/infra/app-server.zip" . -x '.cache/*' )
 ( cd .open-next/image-optimization-function && zip -ryq "$ROOT/infra/app-image.zip" . )
+
+echo "▶ 2.5 app-server.zip → S3 (직접 업로드 70MB 한도 회피; app_server는 s3_bucket/s3_key 사용)"
+aws s3 cp "$ROOT/infra/app-server.zip" "s3://${PROJECT_NAME:-pokeca}-assets-${ACC}/lambda/app-server.zip" --no-progress
 
 echo "▶ 3. terraform apply"
 ( cd infra && terraform apply -auto-approve )
