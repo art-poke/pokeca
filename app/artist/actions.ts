@@ -6,8 +6,10 @@ import { signIn, signOut } from "@/auth";
 import {
   currentSocialUser,
   requireProfile,
+  replaceMyArtworkImage,
   setMyArtworkVisibility,
   SOCIAL_PROVIDERS,
+  updateMyArtwork,
   withdrawMyArtwork,
   type SocialProvider,
 } from "@/lib/artists";
@@ -50,4 +52,32 @@ export async function setVisibility(id: string, visible: boolean): Promise<void>
   const artist = await requireProfile();
   await setMyArtworkVisibility(artist, id, visible);
   refresh();
+}
+
+const EDIT_ERRORS: Record<string, string> = {
+  artist_required: "작가 이름을 넣어 주세요.",
+  invalid_source_url: "원본 글 주소는 http(s)://로 시작해야 해요.",
+  source_visibility_required: "원본 글 공개 범위를 골라 주세요.",
+  multi_piece_no_replace: "여러 조각(9포켓 등) 도안은 이미지 교체를 지원하지 않아요. 세부정보만 수정돼요.",
+  not_found: "내 도안을 찾지 못했어요.",
+};
+
+// 내 도안 수정: 세부정보 + (선택) 이미지 교체.
+export async function editArtwork(_prev: FormState, form: FormData): Promise<FormState> {
+  const artist = await requireProfile();
+  const id = String(form.get("id"));
+  try {
+    await updateMyArtwork(artist, id, {
+      title: String(form.get("title") ?? ""),
+      artistName: String(form.get("artistName") ?? ""),
+      sourceUrl: String(form.get("sourceUrl") ?? "") || null,
+      sourceVisibility: (String(form.get("sourceVisibility") ?? "") || null) as "public" | "members_only" | null,
+    });
+    const uploadId = String(form.get("originalUploadId") ?? "");
+    if (uploadId) await replaceMyArtworkImage(artist, id, uploadId);
+  } catch (e) {
+    if (e instanceof ArtworkError) return { error: EDIT_ERRORS[e.code] ?? "수정하지 못했어요. 다시 시도해 주세요." };
+    throw e;
+  }
+  redirect("/me?edited=1");
 }

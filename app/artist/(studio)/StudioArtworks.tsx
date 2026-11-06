@@ -110,6 +110,12 @@ export function StudioArtworks({ works }: { works: MyArtwork[] }) {
                       {a.status !== "withdrawn" && (
                         <div className="flex items-center gap-2.5">
                           <VisibilityToggle id={a.id} status={a.status as "active" | "hidden"} />
+                          <Link
+                            href={`/artworks/${a.id}/edit`}
+                            className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                          >
+                            수정
+                          </Link>
                           <WithdrawMine id={a.id} cardLabel={a.card.label} />
                         </div>
                       )}

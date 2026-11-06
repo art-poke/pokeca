@@ -5,8 +5,8 @@ import { and, asc, desc, eq, ilike, isNotNull, ne, or } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { isUniqueViolation } from "@/lib/db/errors";
-import { artists, artworks, cards } from "@/lib/db/schema";
-import { ArtworkError, setStatus, toPublic, type PublicArtwork, type Status } from "@/lib/artworks";
+import { artists, artworkFiles, artworks, cards } from "@/lib/db/schema";
+import { ArtworkError, attachFile, setStatus, toPublic, type PublicArtwork, type Status } from "@/lib/artworks";
 import { expectedConfirm, normalizeConfirm } from "@/lib/admin";
 import { NICKNAME_MAX } from "@/lib/profile";
 import { promoteAvatar, removeAvatar, StorageInputError } from "@/lib/storage";
@@ -354,6 +354,104 @@ export async function setMyArtworkVisibility(artist: Artist, artworkId: string, 
     reason: visible ? "작가 본인 공개" : "작가 본인 비공개",
     actor: artistActor(artist),
   });
+}
+
+// 수정 폼 프리필용. 본인 소유 + 내리지 않은 도안만(공개·비공개 둘 다).
+export type MyArtworkEdit = {
+  id: string;
+  title: string;
+  artistName: string;
+  format: string;
+  sourceUrl: string | null;
+  sourceVisibility: "public" | "members_only" | null;
+  status: Exclude<Status, "withdrawn">;
+  pieceCount: number;
+  card: { label: string; name: string };
+};
+
+async function ownedArtwork(artist: Artist, artworkId: string) {
+  if (!UUID.test(artworkId)) throw new ArtworkError("not_found");
+  const rows = await db
+    .select({ artistId: artworks.artistId, status: artworks.status })
+    .from(artworks)
+    .where(eq(artworks.id, artworkId))
+    .limit(1);
+  const found = rows[0] ?? null;
+  if (!found || found.artistId !== artist.userId || found.status === "withdrawn") {
+    throw new ArtworkError("not_found");
+  }
+  return found;
+}
+
+export async function getMyArtwork(artist: Artist, artworkId: string): Promise<MyArtworkEdit | null> {
+  if (!UUID.test(artworkId)) return null;
+  const rows = await db
+    .select({
+      id: artworks.id,
+      artistId: artworks.artistId,
+      title: artworks.title,
+      artist_name: artworks.artistName,
+      format: artworks.format,
+      source_url: artworks.sourceUrl,
+      source_visibility: artworks.sourceVisibility,
+      status: artworks.status,
+      setCode: cards.setCode,
+      collectorNumber: cards.collectorNumber,
+      nameKo: cards.nameKo,
+    })
+    .from(artworks)
+    .innerJoin(cards, eq(artworks.cardId, cards.id))
+    .where(eq(artworks.id, artworkId))
+    .limit(1);
+  const d = rows[0] ?? null;
+  if (!d || d.artistId !== artist.userId || d.status === "withdrawn") return null;
+  const fileRows = await db
+    .select({ kind: artworkFiles.kind })
+    .from(artworkFiles)
+    .where(eq(artworkFiles.artworkId, artworkId));
+  return {
+    id: d.id,
+    title: d.title?.trim() ?? "",
+    artistName: d.artist_name,
+    format: d.format,
+    sourceUrl: d.source_url,
+    sourceVisibility: d.source_visibility as "public" | "members_only" | null,
+    status: d.status as Exclude<Status, "withdrawn">,
+    pieceCount: fileRows.filter((f) => f.kind === "original").length,
+    card: { label: `${d.setCode} ${d.collectorNumber}`, name: d.nameKo },
+  };
+}
+
+// 본인 도안 세부정보 수정(제목·작가표시명·출처 링크/공개범위).
+export async function updateMyArtwork(
+  artist: Artist,
+  artworkId: string,
+  fields: { title: string; artistName: string; sourceUrl: string | null; sourceVisibility: "public" | "members_only" | null },
+): Promise<void> {
+  await ownedArtwork(artist, artworkId);
+  const artistName = fields.artistName.trim();
+  if (!artistName) throw new ArtworkError("artist_required");
+  const sourceUrl = fields.sourceUrl?.trim() || null;
+  if (sourceUrl && !/^https?:\/\//.test(sourceUrl)) throw new ArtworkError("invalid_source_url");
+  const sourceVisibility = sourceUrl ? fields.sourceVisibility : null;
+  if (!!sourceUrl !== !!sourceVisibility) throw new ArtworkError("source_visibility_required");
+  await db
+    .update(artworks)
+    .set({ title: fields.title.trim() || null, artistName, sourceUrl, sourceVisibility })
+    .where(eq(artworks.id, artworkId));
+}
+
+// 본인 도안 이미지 교체(단일 조각만). 원본 교체 → 미리보기 재생성 → 옛 파일 purge는 attachFile이 처리.
+export async function replaceMyArtworkImage(artist: Artist, artworkId: string, uploadId: string): Promise<void> {
+  await ownedArtwork(artist, artworkId);
+  const fileRows = await db
+    .select({ kind: artworkFiles.kind })
+    .from(artworkFiles)
+    .where(eq(artworkFiles.artworkId, artworkId));
+  if (fileRows.filter((f) => f.kind === "original").length > 1) {
+    throw new ArtworkError("multi_piece_no_replace"); // 9포켓 등 여러 조각은 이미지 교체 미지원
+  }
+  await attachFile(artworkId, "original", uploadId);
 }
 
 // 하위호환 alias (members.ts 흡수). 옛 회원 개념 = 프로필과 동일.
