@@ -6,6 +6,7 @@ import { signIn, signOut } from "@/auth";
 import {
   currentSocialUser,
   requireProfile,
+  setMyArtworkVisibility,
   SOCIAL_PROVIDERS,
   withdrawMyArtwork,
   type SocialProvider,
@@ -42,4 +43,11 @@ export async function withdraw(_prev: FormState, form: FormData): Promise<FormSt
   }
   refresh();
   return null;
+}
+
+// 내 도안 공개/비공개 토글.
+export async function setVisibility(id: string, visible: boolean): Promise<void> {
+  const artist = await requireProfile();
+  await setMyArtworkVisibility(artist, id, visible);
+  refresh();
 }

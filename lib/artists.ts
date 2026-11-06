@@ -339,6 +339,23 @@ export async function withdrawMyArtwork(artist: Artist, artworkId: string, confi
   await setStatus(artworkId, "withdrawn", { reason: "작가 본인 요청", actor: artistActor(artist) });
 }
 
+// 본인 도안 공개/비공개 토글. active=공개, hidden=비공개(본인만). withdrawn(내림)은 복구 불가라 제외.
+export async function setMyArtworkVisibility(artist: Artist, artworkId: string, visible: boolean): Promise<void> {
+  if (!UUID.test(artworkId)) throw new ArtworkError("not_found");
+  const rows = await db
+    .select({ artistId: artworks.artistId, status: artworks.status })
+    .from(artworks)
+    .where(eq(artworks.id, artworkId))
+    .limit(1);
+  const found = rows[0] ?? null;
+  if (!found || found.artistId !== artist.userId) throw new ArtworkError("not_found");
+  if (found.status === "withdrawn") throw new ArtworkError("not_found");
+  await setStatus(artworkId, visible ? "active" : "hidden", {
+    reason: visible ? "작가 본인 공개" : "작가 본인 비공개",
+    actor: artistActor(artist),
+  });
+}
+
 // 하위호환 alias (members.ts 흡수). 옛 회원 개념 = 프로필과 동일.
 export type Member = Artist;
 export const MemberError = ArtistError;

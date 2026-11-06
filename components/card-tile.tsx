@@ -48,11 +48,6 @@ export function CardTile({ card }: { card: CardTileData }) {
             도안 {artworkCount}
           </span>
         )}
-        {lang === "ja" && (
-          <span className="absolute right-1.5 top-1.5 rounded-full bg-ink-700/85 px-2 py-0.5 text-xs font-bold text-white shadow-sm">
-            JP
-          </span>
-        )}
       </div>
       <div className="min-w-0 px-0.5 pb-0.5">
         <div className="flex items-center gap-1.5">

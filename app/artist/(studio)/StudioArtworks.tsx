@@ -7,11 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import type { MyArtwork } from "@/lib/artists";
 import { FORMAT_INFO, FORMATS, type Format } from "@/lib/formats";
 import { cn } from "@/lib/utils";
+import { VisibilityToggle } from "./VisibilityToggle";
 import { WithdrawMine } from "./WithdrawMine";
 
 const STATUS = {
   active: { label: "공개", variant: "soft" as const },
-  hidden: { label: "숨김(검토중)", variant: "muted" as const },
+  hidden: { label: "비공개", variant: "muted" as const },
   withdrawn: { label: "내림", variant: "muted" as const },
 };
 
@@ -106,7 +107,12 @@ export function StudioArtworks({ works }: { works: MyArtwork[] }) {
                   <div className="space-y-1 p-3">
                     <div className="flex items-center justify-between gap-1.5">
                       <Badge variant="muted">{FORMAT_INFO[a.format as Format]?.label ?? a.format}</Badge>
-                      {a.status !== "withdrawn" && <WithdrawMine id={a.id} cardLabel={a.card.label} />}
+                      {a.status !== "withdrawn" && (
+                        <div className="flex items-center gap-2.5">
+                          <VisibilityToggle id={a.id} status={a.status as "active" | "hidden"} />
+                          <WithdrawMine id={a.id} cardLabel={a.card.label} />
+                        </div>
+                      )}
                     </div>
                     <p className="truncate text-sm font-semibold text-foreground">{a.title}</p>
                     <p className="tabular truncate text-xs text-muted-foreground">
