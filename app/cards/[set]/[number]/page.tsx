@@ -59,7 +59,7 @@ async function Card({
           />
         ) : (
           <div
-            className="relative hidden aspect-[63/88] w-28 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-gradient-to-br from-gray-50 to-gray-200 sm:flex md:w-32"
+            className="relative hidden aspect-[63/88] w-28 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-gradient-to-br from-gray-50 to-gray-200 sm:flex sm:w-36 md:w-44"
             aria-hidden
           >
             <PokeballMark className="absolute -bottom-4 -right-4 size-20 opacity-[0.1]" />
