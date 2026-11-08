@@ -6,13 +6,8 @@ import { CardTile, CardTileGridSkeleton } from "@/components/card-tile";
 import { SearchBar } from "@/components/search-bar";
 import { SearchMissRequest } from "@/components/SearchMissRequest";
 import { PokeballMark } from "@/components/ui/logo";
-import {
-  randomCardsWithImages,
-  recordSearch,
-  searchCards,
-  suggestCards,
-  type CardHit,
-} from "@/lib/cards";
+import { SearchResults } from "@/components/search-results";
+import { randomCardsWithImages, recordSearch, searchCards, suggestCards } from "@/lib/cards";
 import { cardPath } from "@/lib/search";
 import { visitorId } from "@/lib/visitor";
 
@@ -49,8 +44,8 @@ async function Results({ searchParams }: { searchParams: PageProps<"/search">["s
   const visitor = await visitorId();
   after(() => recordSearch(query, result, visitor).catch((e) => console.error("recordSearch", e)));
 
-  // 1건이면 카드 상세로 바로 간다. 별칭으로 맞았으면 안내 줄을 위해 표시를 붙인다.
-  if (result.hits.length === 1) {
+  // 1건이면(그리고 다음 페이지가 없으면) 카드 상세로 바로 간다. 별칭으로 맞았으면 안내 줄 표시를 붙인다.
+  if (result.hits.length === 1 && !result.hasMore) {
     const hit = result.hits[0];
     const from = hit.alias
       ? `?from=${hit.alias.lang}:${hit.alias.setCode}:${hit.alias.collectorNumber}`
@@ -101,10 +96,7 @@ async function Results({ searchParams }: { searchParams: PageProps<"/search">["s
 
   return (
     <SearchShell query={query}>
-      <h2 className="mb-3 text-sm font-semibold text-muted-foreground">
-        카드 {result.hits.length}장
-      </h2>
-      <CandidateGrid hits={result.hits} />
+      <SearchResults query={query} initial={{ hits: result.hits, hasMore: result.hasMore }} />
     </SearchShell>
   );
 }
@@ -180,25 +172,3 @@ const BrowseSkeleton = () => (
   </section>
 );
 
-// 검색 결과 격자 — 카드 그림과 함께 본다. 도안 많은 순, 같으면 최신 확장팩 순(DB가 정렬).
-function CandidateGrid({ hits }: { hits: CardHit[] }) {
-  return (
-    <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-      {hits.map((hit) => (
-        <li key={hit.cardId}>
-          <CardTile
-            card={{
-              setCode: hit.setCode,
-              collectorNumber: hit.collectorNumber,
-              nameKo: hit.nameKo,
-              imagePath: hit.imagePath,
-              artworkCount: hit.artworkCount,
-              rarity: hit.rarity,
-              lang: hit.lang,
-            }}
-          />
-        </li>
-      ))}
-    </ul>
-  );
-}

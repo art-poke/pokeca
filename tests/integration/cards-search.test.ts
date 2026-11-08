@@ -24,6 +24,7 @@ let mewId: string; // 205/165 뮤 ex
 let userId: string;
 let art1: string; // 추천 많은 도안
 let art2: string; // 추천 적은 도안
+let pageCardIds: string[] = []; // 페이지네이션 검증용(같은 이름 토큰 공유)
 
 beforeAll(async () => {
   await db.insert(sets).values({ code: SET_CODE, nameKo: `${TAG} 세트` });
@@ -59,13 +60,24 @@ beforeAll(async () => {
   // art1(리자몽)에 추천 2, art2(뮤)에 추천 0 — 단일 유저로 두 도안 각각 1행이지만
   // 랭킹 정렬 검증은 "추천 받은 도안이 안 받은 도안보다 위"로 충분하다.
   await db.insert(engagements).values({ userId, artworkId: art1, kind: "recommend" });
+
+  // 같은 이름 토큰을 공유하는 카드 3장(페이지네이션 검증용).
+  const pageRows = await db
+    .insert(cards)
+    .values([
+      { setCode: SET_CODE, collectorNumber: "301/165", nameKo: `${TAG}페이지 하나` },
+      { setCode: SET_CODE, collectorNumber: "302/165", nameKo: `${TAG}페이지 둘` },
+      { setCode: SET_CODE, collectorNumber: "303/165", nameKo: `${TAG}페이지 셋` },
+    ])
+    .returning({ id: cards.id });
+  pageCardIds = pageRows.map((r) => r.id);
 });
 
 afterAll(async () => {
   await db.delete(engagements).where(eq(engagements.userId, userId));
   await db.delete(artworks).where(inArray(artworks.id, [art1, art2]));
   await db.delete(cardAliases).where(eq(cardAliases.cardId, charizardId));
-  await db.delete(cards).where(inArray(cards.id, [charizardId, mewId]));
+  await db.delete(cards).where(inArray(cards.id, [charizardId, mewId, ...pageCardIds]));
   await db.delete(sets).where(eq(sets.code, SET_CODE));
   await db.delete(users).where(eq(users.id, userId));
 });
@@ -114,6 +126,33 @@ describe("recentArtworkCards", () => {
     const recent = await recentArtworkCards(100);
     const codes = recent.filter((r) => r.collectorNumber === "201/165").map((r) => r.nameKo);
     expect(codes).toContain(`${TAG} 리자몽 ex`);
+  });
+});
+
+describe("searchCards 페이지네이션 (limit/offset/hasMore)", () => {
+  // 주의: `${TAG}페이지`는 trigram 유사도로 같은 TAG를 공유하는 다른 카드도 잡을 수 있어
+  // 총 매칭 수는 3~5로 변동한다. 그래서 정확 총계에 의존하지 않는 불변식만 검증한다.
+  const Q = `${TAG}페이지`;
+
+  it("limit을 지키고, 더 남았으면 hasMore=true", async () => {
+    const page1 = await searchCards(Q, { limit: 2, offset: 0 });
+    expect(page1.hits.length).toBe(2); // 매칭 ≥3이므로 정확히 limit개
+    expect(page1.hasMore).toBe(true);
+  });
+
+  it("offset으로 다음 페이지를 겹치지 않게 이어 받는다", async () => {
+    const page1 = await searchCards(Q, { limit: 2, offset: 0 });
+    const page2 = await searchCards(Q, { limit: 2, offset: 2 });
+    const ids1 = page1.hits.map((h) => h.cardId);
+    const ids2 = page2.hits.map((h) => h.cardId);
+    expect(ids2.length).toBeGreaterThan(0);
+    expect(ids1.some((id) => ids2.includes(id))).toBe(false);
+  });
+
+  it("limit이 전체보다 크면 hasMore=false", async () => {
+    const all = await searchCards(Q, { limit: 100, offset: 0 });
+    expect(all.hasMore).toBe(false);
+    expect(all.hits.length).toBeGreaterThanOrEqual(3); // 페이지 카드 3장 이상
   });
 });
 

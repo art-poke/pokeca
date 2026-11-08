@@ -12,6 +12,7 @@ import { artistStats } from "@/lib/artist-stats";
 import { listFavoriteCards } from "@/lib/favorites";
 import { listArtistReviews } from "@/lib/reviews";
 import { StudioArtworks } from "@/app/artist/(studio)/StudioArtworks";
+import { WithdrawAccount } from "@/components/withdraw-account";
 
 export const metadata = { title: "마이페이지 · Extended Art Archive" };
 
@@ -145,6 +146,8 @@ async function Profile({ searchParams }: { searchParams: PageProps<"/me">["searc
           selfNotice="방문자가 남긴 후기예요. 작가 공개 페이지에도 함께 보여요."
         />
       )}
+
+      {!preview && <WithdrawAccount />}
     </div>
   );
 }

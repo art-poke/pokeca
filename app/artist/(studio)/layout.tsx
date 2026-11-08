@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { logout } from "../actions";
+import { SignOutButton } from "@/components/signout-button";
 
 // 작가 화면 공통. 접근 확인은 각 화면의 requireArtist()가 한다(dev 미리보기 예외).
 export default function StudioLayout({ children }: LayoutProps<"/artist">) {
@@ -18,14 +18,10 @@ export default function StudioLayout({ children }: LayoutProps<"/artist">) {
         >
           도안 올리기
         </Link>
-        <form action={logout} className="ml-auto">
-          <button
-            type="submit"
-            className="px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground"
-          >
-            로그아웃
-          </button>
-        </form>
+        <SignOutButton
+          callbackUrl="/artist/login"
+          className="ml-auto px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+        />
       </div>
       {children}
     </div>

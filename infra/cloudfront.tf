@@ -40,10 +40,11 @@ resource "aws_cloudfront_distribution" "app" {
   price_class     = "PriceClass_200" # 북미/유럽/아시아(한국 포함). 전세계(All)보다 저렴.
   http_version    = "http2and3"
   is_ipv6_enabled = true
+  aliases         = [var.domain_name] # 커스텀 도메인(domain.tf). 기본 *.cloudfront.net도 계속 유효.
 
   origin {
-    origin_id                = "server"
-    domain_name              = local.server_host
+    origin_id   = "server"
+    domain_name = local.server_host
     custom_origin_config {
       http_port              = 80
       https_port             = 443
@@ -52,8 +53,8 @@ resource "aws_cloudfront_distribution" "app" {
     }
   }
   origin {
-    origin_id                = "image"
-    domain_name              = local.image_host
+    origin_id   = "image"
+    domain_name = local.image_host
     custom_origin_config {
       http_port              = 80
       https_port             = 443
@@ -118,7 +119,7 @@ resource "aws_cloudfront_distribution" "app" {
     content {
       path_pattern           = ordered_cache_behavior.value
       target_origin_id       = "assets"
-      viewer_protocol_policy  = "redirect-to-https"
+      viewer_protocol_policy = "redirect-to-https"
       allowed_methods        = ["GET", "HEAD"]
       cached_methods         = ["GET", "HEAD"]
       cache_policy_id        = data.aws_cloudfront_cache_policy.optimized.id
@@ -129,7 +130,9 @@ resource "aws_cloudfront_distribution" "app" {
     geo_restriction { restriction_type = "none" }
   }
   viewer_certificate {
-    cloudfront_default_certificate = true
+    acm_certificate_arn      = aws_acm_certificate_validation.app.certificate_arn
+    ssl_support_method       = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
   }
 }
 

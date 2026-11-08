@@ -1,11 +1,11 @@
 import "server-only";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
-import { and, asc, desc, eq, ilike, isNotNull, ne, or } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, isNotNull, ne, or } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { isUniqueViolation } from "@/lib/db/errors";
-import { artists, artworkFiles, artworks, cards } from "@/lib/db/schema";
+import { accounts, artists, artworkFiles, artworks, cards, users } from "@/lib/db/schema";
 import { ArtworkError, attachFile, setStatus, toPublic, type PublicArtwork, type Status } from "@/lib/artworks";
 import { expectedConfirm, normalizeConfirm } from "@/lib/admin";
 import { NICKNAME_MAX } from "@/lib/profile";
@@ -514,3 +514,41 @@ export type Member = Artist;
 export const MemberError = ArtistError;
 export const currentMember = currentArtist;
 export const requireMember = requireProfile;
+
+export const WITHDRAWN_DISPLAY_NAME = "탈퇴한 작가";
+
+// 회원 탈퇴(소프트). PII 익명화 + deletedAt 마킹 + OAuth(accounts) 언링크 + 작품 내림.
+// handle=null이면 공개 "작가 페이지"만 빠질 뿐, 작품 레코드는 그대로라 랭킹·카드상세·검색카운트에
+// 계속 노출된다. 그래서 작품을 withdrawn으로 내려(모든 공개 조회가 status='active'만 봄) 함께 제외한다.
+// 탈퇴는 OAuth 언링크로 비가역(재로그인=새 계정)이라, 복구 불가 상태인 withdrawn과 의미가 맞는다.
+// 세션 쿠키 삭제는 클라가 next-auth signOut으로 한다.
+export async function withdrawMyAccount(artist: Artist): Promise<void> {
+  await db.transaction(async (tx) => {
+    await tx
+      .update(artists)
+      .set({
+        deletedAt: new Date(),
+        displayName: WITHDRAWN_DISPLAY_NAME,
+        handle: null,
+        avatarPath: null,
+        email: null,
+        intro: null,
+        linkUrl: null,
+        links: [],
+        activities: [],
+      })
+      .where(eq(artists.userId, artist.userId));
+    // 공개 작품을 전부 내린다(기존 active/hidden만). artwork_set_status는 우회하므로
+    // consent 로깅·파일 purge는 하지 않는다(이번 범위: 공개 숨김. 파일 정리는 후속).
+    await tx
+      .update(artworks)
+      .set({ status: "withdrawn" })
+      .where(
+        and(eq(artworks.artistId, artist.userId), inArray(artworks.status, ["active", "hidden"])),
+      );
+    await tx.update(users).set({ name: null, email: null, image: null }).where(eq(users.id, artist.userId));
+    await tx.delete(accounts).where(eq(accounts.userId, artist.userId));
+  });
+  // 아바타(프로필 사진=PII) 베스트에포트 제거. 실패해도 탈퇴는 완료된 것으로 본다.
+  if (artist.avatarPath) await removeAvatar(artist.avatarPath).catch(() => {});
+}
