@@ -3,7 +3,7 @@
 import { refresh } from "next/cache";
 import { requireAdmin } from "@/lib/admin";
 import { closeReport, LINK_STATUSES, linkReport, setLinkStatus, type LinkStatus } from "@/lib/admin-data";
-import { signIn, signOut } from "@/auth";
+import { signIn } from "@/auth";
 import { AuthError } from "next-auth";
 
 // 어드민 server action. 각 action은 requireAdmin()으로 시작한다(화면 보호와 별개로 직접 호출도 막는다).
@@ -22,10 +22,6 @@ export async function login(_prev: LoginState, form: FormData): Promise<LoginSta
     throw e; // Next redirect()는 예외로 동작한다 — 반드시 다시 던진다.
   }
   return null;
-}
-
-export async function logout() {
-  await signOut({ redirectTo: "/admin/login" });
 }
 
 // 수동 링크 점검 기록 (eng E6).

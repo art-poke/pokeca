@@ -3,7 +3,7 @@
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { ChevronDown, LogOut, Palette, User } from "lucide-react";
 import Link from "next/link";
-import { logout } from "@/app/artist/actions";
+import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
 
 const itemCls =
@@ -56,12 +56,14 @@ export const UserMenu = ({ name, handle }: { name: string; handle: string | null
           )}
           <DropdownMenu.Separator className="my-1 h-px bg-border" />
           <DropdownMenu.Item asChild>
-            <form action={logout}>
-              <button type="submit" className={cn(itemCls, "text-destructive hover:bg-red-50")}>
-                <LogOut className="size-4" aria-hidden />
-                로그아웃
-              </button>
-            </form>
+            <button
+              type="button"
+              onClick={() => signOut({ callbackUrl: "/artist/login" })}
+              className={cn(itemCls, "w-full text-destructive hover:bg-red-50")}
+            >
+              <LogOut className="size-4" aria-hidden />
+              로그아웃
+            </button>
           </DropdownMenu.Item>
         </DropdownMenu.Content>
       </DropdownMenu.Portal>

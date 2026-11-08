@@ -2,7 +2,7 @@
 
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
-import { signIn, signOut } from "@/auth";
+import { signIn } from "@/auth";
 import {
   currentSocialUser,
   requireProfile,
@@ -10,6 +10,7 @@ import {
   setMyArtworkVisibility,
   SOCIAL_PROVIDERS,
   updateMyArtwork,
+  withdrawMyAccount,
   withdrawMyArtwork,
   type SocialProvider,
 } from "@/lib/artists";
@@ -28,8 +29,12 @@ export async function socialLogin(form: FormData) {
   await signIn(provider, { redirectTo: "/me" });
 }
 
-export async function logout() {
-  await signOut({ redirectTo: "/artist/login" });
+// 회원 탈퇴. 확인 문구를 그대로 입력해야 한다. 성공 시 null → 클라가 signOut으로 세션 쿠키를 지운다.
+export async function withdrawAccount(confirm: string): Promise<FormState> {
+  const artist = await requireProfile();
+  if (confirm.trim() !== "탈퇴합니다") return { error: "확인 문구가 일치하지 않아요." };
+  await withdrawMyAccount(artist);
+  return null;
 }
 
 // 내 도안 내리기(철회). 카드 번호를 그대로 입력해야 한다.

@@ -88,6 +88,7 @@ export const artists = pgTable("artists", {
   links: jsonb("links").$type<{ label: string; url: string }[]>().notNull().default([]),
   activities: jsonb("activities").$type<{ place: string; handle: string }[]>().notNull().default([]),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }), // 회원 탈퇴(소프트) 마커
 });
 
 // 정본 카드 (infra/db/01_app.sql의 public.cards 거울). 정본 키는 (set_code, collector_number).

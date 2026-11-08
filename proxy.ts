@@ -47,6 +47,8 @@ function withVisitor(request: NextRequest) {
 }
 
 export const config = {
-  // 정적 파일은 건너뛴다.
-  matcher: ["/((?!_next/|favicon.ico|.*\\.(?:svg|png|jpg|woff2?)$).*)"],
+  // /api/auth(Auth.js 엔드포인트)와 정적 파일은 건너뛴다.
+  // ⚠️ /api/auth 제외 필수: 미들웨어 auth 래퍼가 signout 응답에 세션 쿠키를 refresh(재발급)해
+  //    삭제를 덮어써 로그아웃이 안 됐다. 로그아웃은 이 엔드포인트 경유(components/signout-button).
+  matcher: ["/((?!api/auth|_next/|favicon.ico|.*\\.(?:svg|png|jpg|woff2?)$).*)"],
 };
