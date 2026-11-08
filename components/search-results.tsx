@@ -31,8 +31,7 @@ export function SearchResults({ query, initial }: { query: string; initial: Card
   return (
     <>
       <h2 className="mb-3 text-sm font-semibold text-muted-foreground">
-        카드 {hits.length}
-        {hasNextPage ? "+" : ""}장
+        {`카드 ${hits.length}${hasNextPage ? "+" : ""}장`}
       </h2>
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {hits.map((hit) => (
