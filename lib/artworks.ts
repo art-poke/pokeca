@@ -365,8 +365,8 @@ function toArtworkRow(r: ArtworkSelect): ArtworkRow {
 
 export type RecentArtwork = PublicArtwork & { card: { label: string; path: string; name: string } };
 
-// 홈: 최근 올라온 공개 도안(전체 카드 통틀어 최신 순). 카드 정보도 함께.
-export async function recentArtworks(limit = 8): Promise<RecentArtwork[]> {
+// 최근 올라온 공개 도안(전체 카드 통틀어 최신 순) 조회. createdAt·id로 정렬해 페이지네이션이 안정적.
+async function queryRecentArtworks(limit: number, offset: number): Promise<RecentArtwork[]> {
   const rows = await db
     .select({
       id: artworks.id,
@@ -386,8 +386,9 @@ export async function recentArtworks(limit = 8): Promise<RecentArtwork[]> {
     .innerJoin(cards, eq(artworks.cardId, cards.id))
     .leftJoin(artists, eq(artworks.artistId, artists.userId))
     .where(eq(artworks.status, "active"))
-    .orderBy(desc(artworks.createdAt))
-    .limit(limit);
+    .orderBy(desc(artworks.createdAt), desc(artworks.id))
+    .limit(limit)
+    .offset(offset);
   return rows.map((r) => ({
     ...toPublic(toArtworkRow(r)),
     card: {
@@ -396,6 +397,22 @@ export async function recentArtworks(limit = 8): Promise<RecentArtwork[]> {
       name: r.nameKo,
     },
   }));
+}
+
+// 홈: 최근 올라온 공개 도안 상위 N개.
+export async function recentArtworks(limit = 8): Promise<RecentArtwork[]> {
+  return queryRecentArtworks(limit, 0);
+}
+
+// "최근 도안 더 보기" 페이지: offset 기반 페이지네이션(무한스크롤). limit+1로 hasMore 판정.
+export async function recentArtworksPage(
+  opts: { limit?: number; offset?: number } = {},
+): Promise<{ artworks: RecentArtwork[]; hasMore: boolean }> {
+  const limit = opts.limit ?? 20;
+  const offset = opts.offset ?? 0;
+  const rows = await queryRecentArtworks(limit + 1, offset);
+  const hasMore = rows.length > limit;
+  return { artworks: hasMore ? rows.slice(0, limit) : rows, hasMore };
 }
 
 // 도안 상세 페이지 (/artworks/[id]) ---------------------------------------------

@@ -1,13 +1,20 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api/client";
 import { isApiError } from "@/lib/api/errors";
 import { showErrorToast } from "@/lib/toast/gr-toast";
-import { fetchArtworkDetail, fetchRecentArtworks } from "./api/actions";
+import { fetchArtworkDetail, fetchRecentArtworks, fetchRecentArtworksPage } from "./api/actions";
 import { artworkKeys } from "./api/queries";
-import type { ArtworkDetail, RecommendResult } from "./api/types";
+import type { ArtworkDetail, ArtworkFeedPage, RecommendResult } from "./api/types";
 import { downloadArtwork } from "./download";
+
+const FEED_PAGE_SIZE = 20;
 
 // ---------------------------------------------------------------------------
 // 도메인 훅. 컴포넌트는 이 훅만 호출한다(actions/apiFetch 직접 호출 금지).
@@ -18,6 +25,17 @@ export const useRecentArtworksQuery = (limit?: number) =>
   useQuery({
     queryKey: artworkKeys.list(),
     queryFn: () => fetchRecentArtworks(limit),
+  });
+
+// "최근 도안 더 보기" 무한스크롤. 1페이지는 서버가 SSR로 넘겨(initial), 이후 서버액션으로 이어 받는다.
+export const useRecentArtworksInfinite = (initial: ArtworkFeedPage) =>
+  useInfiniteQuery({
+    queryKey: artworkKeys.feed(),
+    queryFn: ({ pageParam }) => fetchRecentArtworksPage(pageParam),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.hasMore ? allPages.length * FEED_PAGE_SIZE : undefined,
+    initialData: { pages: [initial], pageParams: [0] },
   });
 
 export const useArtworkDetailQuery = (id: string) =>

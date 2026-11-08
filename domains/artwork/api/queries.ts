@@ -3,6 +3,7 @@
 export const artworkKeys = {
   all: ["artworks"] as const,
   list: () => [...artworkKeys.all, "list"] as const, // 홈 최신 피드
+  feed: () => [...artworkKeys.all, "feed"] as const, // "더 보기" 무한스크롤 피드
   details: () => [...artworkKeys.all, "detail"] as const,
   detail: (id: string) => [...artworkKeys.details(), id] as const,
 };

@@ -27,7 +27,7 @@ export default function Home() {
               최근 올라온 도안
             </h2>
             <Link
-              href="/search"
+              href="/artworks"
               className="flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
             >
               더 보기

@@ -4,6 +4,9 @@ import type { ArtworkDetail as LibArtworkDetail, RecentArtwork } from "@/lib/art
 
 export type Artwork = RecentArtwork;
 
+// "최근 도안 더 보기" 무한스크롤 한 페이지.
+export type ArtworkFeedPage = { artworks: Artwork[]; hasMore: boolean };
+
 // 상세: lib 상세 + 현재 유저의 추천 여부(서버액션이 합쳐서 내려준다).
 export type ArtworkDetail = LibArtworkDetail & { isRecommended: boolean };
 
