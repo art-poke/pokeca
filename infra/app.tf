@@ -6,15 +6,15 @@ locals {
   # RDS는 SSL 필수(no pg_hba entry ... no encryption) → sslmode=no-verify(암호화하되 CA 미검증, VPC 내부).
   database_url = "postgresql://${aws_db_instance.main.username}:${random_password.db.result}@${aws_db_instance.main.address}:${aws_db_instance.main.port}/${aws_db_instance.main.db_name}?sslmode=no-verify"
   app_env = {
-    DATABASE_URL        = local.database_url
-    AUTH_SECRET         = random_password.auth_secret.result
-    AUTH_TRUST_HOST     = "true"
-    AUTH_KAKAO_ID       = var.auth_kakao_id
-    AUTH_KAKAO_SECRET   = var.auth_kakao_secret
-    AUTH_GOOGLE_ID      = var.auth_google_id
-    AUTH_GOOGLE_SECRET  = var.auth_google_secret
-    S3_BUCKET_UPLOADS   = aws_s3_bucket.uploads.bucket
-    S3_BUCKET_EVIDENCE  = aws_s3_bucket.evidence.bucket
+    DATABASE_URL       = local.database_url
+    AUTH_SECRET        = random_password.auth_secret.result
+    AUTH_TRUST_HOST    = "true"
+    AUTH_KAKAO_ID      = var.auth_kakao_id
+    AUTH_KAKAO_SECRET  = var.auth_kakao_secret
+    AUTH_GOOGLE_ID     = var.auth_google_id
+    AUTH_GOOGLE_SECRET = var.auth_google_secret
+    S3_BUCKET_UPLOADS  = aws_s3_bucket.uploads.bucket
+    S3_BUCKET_EVIDENCE = aws_s3_bucket.evidence.bucket
     # AWS_REGION은 Lambda 예약 env라 주입 금지(런타임 자동 제공, storage-client가 읽음).
   }
 }

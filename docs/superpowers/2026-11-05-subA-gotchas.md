@@ -45,11 +45,14 @@
 - **ego로 Material/React 콘솔(구글·카카오) 조작 시 JS value 주입 금지 → 실제 키보드 타이핑.** 저장 버튼은 텍스트("저장") 못 찾으면 좌표 클릭. 저장 후 **재조회가 아니라 "진짜 동작"(authorize/로그인)으로 검증**(폼 재조회는 draft 때문에 오탐).
 - 콘솔 로그인은 사용자 세션 필요(비번 대신 사용자가 로그인). 제어권 handoff/takeover 주의.
 
-## 7. 알려진 미해결 버그 (후속)
-- **프로덕션 signout이 세션을 안 지운다**: `/api/auth/signout` POST 후에도 `/api/auth/session`에 유저 남음. 로그인·세션읽기는 정상, 로그아웃만. 
-  - 가설: Auth.js **청크된 세션 쿠키**(큰 JWT가 `authjs.session-token.0/.1`로 쪼개짐)를 지울 때 **다중 Set-Cookie가 CloudFront/API Gateway를 거치며 일부만 전달**. 또는 쿠키 속성(Secure/Host prefix) 불일치.
-  - 조사 시작점: 로그인 응답 vs 로그아웃 응답의 Set-Cookie 개수/이름 비교(브라우저 네트워크), API Gateway payload v2의 `cookies` 배열 처리, OpenNext의 multi Set-Cookie 핸들링.
-  - 영향: 공용 PC에서 로그아웃 안 됨(보안). 우선순위 중.
+## 7. ✅ 해결: 프로덕션 signout이 세션을 안 지웠던 버그 (2026-11-08)
+- **증상**: 로그아웃해도 `__Secure-authjs.session-token`이 안 지워지고 `/api/auth/session`에 유저 남음. 로그인·세션읽기는 정상.
+- **처음 가설(전부 오진)**: 청크 쿠키 / CloudFront 다중 Set-Cookie 유실 / OpenNext 콤마 깨짐 → **전부 반증됨**. (JWT는 단일 499b 쿠키라 청크 아님. OpenNext 4.1.15 apigw-v2 컨버터는 `parseSetCookieHeader`로 올바르게 분리. CloudFront 경유 vs APIGW 직접이 **완전 동일** → 인프라 무관.)
+- **진짜 근본 원인**: **`proxy.ts`의 Auth.js `auth()` 미들웨어가 모든 요청(+`/api/auth`)에 돌며 유효 세션을 보면 세션 쿠키를 refresh(재발급)**. 로그아웃 응답에 `session-token=; Max-Age=0`(삭제) **직후** `session-token=<새 JWT>`(재발급)가 같이 실려 재발급이 삭제를 덮어씀 → 로그인 유지.
+  - 스모킹건: signout raw 응답에 `__Secure-authjs.session-token=; Max-Age=0` + (vid) + `__Secure-authjs.session-token=eyJ...<새 JWT>; Expires=...` 두 개가 동시 존재.
+- **수정**: ① `proxy.ts` matcher에서 **`/api/auth` 제외**(`"/((?!api/auth|_next/|...).*)"`) — 미들웨어가 인증 엔드포인트 안 건드리게(Auth.js 공식 권장). ② 로그아웃을 서버액션 `signOut()` → **`next-auth/react` signOut()**(= `/api/auth/signout` 엔드포인트)로 전환(`components/signout-button.tsx`). 서버액션은 페이지 라우트로 POST돼 미들웨어 refresh에 또 걸리므로 엔드포인트 경유 필수. 3곳(user-menu, 작가 스튜디오/어드민 콘솔 레이아웃) 교체, 버그난 `logout()` 서버액션 제거.
+- **검증**: artpokeca.com 실제 로그인→로그아웃 후 `__Secure-authjs.session-token` 삭제됨 + `/session` null (fix 전 동일 경로는 쿠키 유지였음).
+- **교훈**: Auth.js + Next 미들웨어는 **matcher에서 반드시 `api/auth` 제외**. "쿠키가 안 지워진다"는 인프라부터 의심하기 쉽지만, 미들웨어 세션 refresh가 삭제를 덮는 게 더 흔하다. CloudFront vs origin-direct 대조가 인프라/앱 구분의 결정적 진단.
 
 ## 빠른 검증 체크리스트 (배포 후)
 ```bash
