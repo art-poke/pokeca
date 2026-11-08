@@ -51,22 +51,34 @@ function toHit(r: CardHitRow): CardHit {
   };
 }
 
-export type SearchResult = { parsed: ParsedQuery; hits: CardHit[] };
+export type SearchResult = { parsed: ParsedQuery; hits: CardHit[]; hasMore: boolean };
 
-export async function searchCards(query: string): Promise<SearchResult> {
+export async function searchCards(
+  query: string,
+  opts: { limit?: number; offset?: number } = {},
+): Promise<SearchResult> {
+  const limit = opts.limit ?? 20;
+  const offset = opts.offset ?? 0;
   const parsed = parseQuery(query);
-  if (parsed.kind === "empty") return { parsed, hits: [] };
+  if (parsed.kind === "empty") return { parsed, hits: [], hasMore: false };
 
+  // hasMore 판정용으로 limit+1개 요청한다(별도 count 쿼리 없음).
+  const fetchLimit = limit + 1;
   // plpgsql 검색 함수를 그대로 호출한다(TS 재구현 금지). 반환은 card_hit 합성 타입.
   const result =
     parsed.kind === "name"
-      ? await db.execute(sql`select * from public.search_cards_by_name(${parsed.text})`)
+      ? await db.execute(
+          sql`select * from public.search_cards_by_name(${parsed.text}, ${fetchLimit}, ${offset})`,
+        )
       : await db.execute(
-          sql`select * from public.search_cards_by_number(${parsed.kind === "set_number" ? parsed.set : null}, ${parsed.number}, ${parsed.total})`,
+          sql`select * from public.search_cards_by_number(${parsed.kind === "set_number" ? parsed.set : null}, ${parsed.number}, ${parsed.total}, ${fetchLimit}, ${offset})`,
         );
+  const rows = result.rows as CardHitRow[];
+  const hasMore = rows.length > limit;
+  const page = hasMore ? rows.slice(0, limit) : rows;
   // 일어판 gap 카드는 cards에 정식 편입돼 있어(마이그레이션), 검색 함수가 한글판과 함께 돌려준다.
-  const hits = await withImagePaths((result.rows as CardHitRow[]).map(toHit));
-  return { parsed, hits };
+  const hits = await withImagePaths(page.map(toHit));
+  return { parsed, hits, hasMore };
 }
 
 // card_hit 합성 타입에 image_path·lang이 없어, cardId로 한 번 더 조회해 채운다.
@@ -86,7 +98,7 @@ async function withImagePaths(hits: CardHit[]): Promise<CardHit[]> {
 // 측정 기록은 실패해도 화면을 막지 않는다. 호출자는 after() 안에서 부른다.
 // 등록 폼(어드민·작가)의 카드 후보.
 export async function cardCandidates(query: string) {
-  const { hits } = await searchCards(query.slice(0, 100));
+  const { hits } = await searchCards(query.slice(0, 100), { limit: 50 });
   return hits.map((h) => ({
     cardId: h.cardId,
     label: `${h.setCode} ${h.collectorNumber}`,
