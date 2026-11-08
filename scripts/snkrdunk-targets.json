@@ -2,6 +2,8 @@
   "_comment": "SNKRDUNK 수집 대상 목록. en=검색 키워드(SNKRDUNK /en 영문명), ko=한글 검색용 이름. ko가 null이면 한글 검색은 영문명만. 순서=인기순(위부터 먼저 수집). 새 포켓몬/트레이너는 여기 추가.",
   "targets": [
     { "en": "mewtwo", "ko": "뮤츠" },
+    { "en": "mew", "ko": "뮤" },
+    { "en": "lugia", "ko": "루기아" },
     { "en": "Lycanroc", "ko": "루가루암" },
     { "en": "Cynthia", "ko": "시로나" },
     { "en": "Lillie", "ko": "릴리에" },
