@@ -9,8 +9,8 @@ import { FORMAT_INFO, type Format } from "@/lib/formats";
 //   도안 랭킹 = 추천 수.
 // 초기엔 JS 집계(데이터 적음). 규모 커지면 집계 뷰/테이블로 최적화.
 
-// 도안 1개 올리면 engagement 1건과 같은 점수. 올리기만 해도 랭킹에 기여한다(가중치 조절 지점).
-const UPLOAD_POINTS = 1;
+// 도안 1개 올리면 주는 점수(engagement 1건=1점 대비 가중치). 올리는 기여를 더 쳐준다. 조절 지점.
+export const UPLOAD_POINTS = 3;
 
 export type RankPeriod = "week" | "month" | "all";
 export const RANK_PERIODS: RankPeriod[] = ["week", "month", "all"];

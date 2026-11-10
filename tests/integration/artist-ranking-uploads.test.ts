@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { artists, artworks, cards, engagements, sets, users } from "@/lib/db/schema";
-import { artistRanking } from "@/lib/ranking";
+import { artistRanking, UPLOAD_POINTS } from "@/lib/ranking";
 
 // 작가 랭킹 점수 = engagement(다운로드+추천) + 올린 도안 수. 올리기만 해도 랭킹에 오른다.
 const TAG = `aru${Date.now()}`;
@@ -46,12 +46,12 @@ describe("artistRanking — 업로드 점수 합산", () => {
   it("engagement이 없어도 올린 도안 수만큼 점수가 잡힌다", async () => {
     const entry = (await artistRanking("all", 500)).find((e) => e.userId === userId);
     expect(entry).toBeTruthy();
-    expect(entry!.score).toBe(2); // 도안 2개 올림, engagement 0
+    expect(entry!.score).toBe(2 * UPLOAD_POINTS); // 도안 2개 올림, engagement 0
   });
 
   it("engagement이 추가되면 업로드 점수에 합산된다", async () => {
     await db.insert(engagements).values({ userId, artworkId: art1, kind: "recommend" });
     const entry = (await artistRanking("all", 500)).find((e) => e.userId === userId);
-    expect(entry!.score).toBe(3); // 업로드 2 + engagement 1
+    expect(entry!.score).toBe(2 * UPLOAD_POINTS + 1); // 업로드 2 + engagement 1
   });
 });
