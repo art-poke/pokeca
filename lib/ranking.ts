@@ -5,9 +5,12 @@ import { artists, artworks, cards, engagements } from "@/lib/db/schema";
 import { FORMAT_INFO, type Format } from "@/lib/formats";
 
 // 랭킹 (engagements 집계). 금주(월요일 시작)·이번달·역대.
-//   작가 랭킹 = 자기 active 도안들의 engagement(다운로드+추천) 수.
+//   작가 랭킹 = 자기 active 도안들의 engagement(다운로드+추천) 수 + 기간 내 올린 도안 수(업로드 점수).
 //   도안 랭킹 = 추천 수.
 // 초기엔 JS 집계(데이터 적음). 규모 커지면 집계 뷰/테이블로 최적화.
+
+// 도안 1개 올리면 engagement 1건과 같은 점수. 올리기만 해도 랭킹에 기여한다(가중치 조절 지점).
+const UPLOAD_POINTS = 1;
 
 export type RankPeriod = "week" | "month" | "all";
 export const RANK_PERIODS: RankPeriod[] = ["week", "month", "all"];
@@ -55,6 +58,22 @@ export async function artistRanking(period: RankPeriod, limit = 20): Promise<Art
     const aid = row.artistId;
     if (aid) counts.set(aid, (counts.get(aid) ?? 0) + 1);
   }
+
+  // 업로드 점수: 기간 내 올린 active 도안 1개당 UPLOAD_POINTS. engagement이 없는 작가도 랭킹에 오른다.
+  const uploads = await db
+    .select({ artistId: artworks.artistId })
+    .from(artworks)
+    .where(
+      and(
+        eq(artworks.status, "active"),
+        start ? gte(artworks.createdAt, new Date(start)) : undefined,
+      ),
+    );
+  for (const row of uploads) {
+    const aid = row.artistId;
+    if (aid) counts.set(aid, (counts.get(aid) ?? 0) + UPLOAD_POINTS);
+  }
+
   const top = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, limit);
   if (top.length === 0) return [];
 
