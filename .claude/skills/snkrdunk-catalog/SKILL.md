@@ -28,6 +28,7 @@ SNKRDUNK에서 포켓몬/트레이너 단위로 일어판 카드(메타+이미�
 - `en` = SNKRDUNK 영문 검색어 겸 **단어경계 필터 needle**. `ko` = 한글 검색명(`species_ko`).
 - ⚠️ **`--pokemon` 플래그를 쓰면 `ko` 매핑이 안 채워진다**(그때는 targets.json을 안 읽음). 특정 종만 임시로 크롤하려면 **`--targets`로 임시 JSON 파일**을 주되 `{en,ko}`를 포함시켜라.
 - 이름 충돌 주의: 크롤러는 `/\b<en>\b/i` 단어경계로 거른다 → `mew`는 `Mewtwo`를 안 잡지만 `Mewtwo & Mew GX`(실제 뮤 포함 태그팀)는 잡는다(정상).
+- **태그팀 GX 전체**: 한 종이 아니라 `{ "en": "GX", "ko": "태그팀", "tagteam": true }`. tagteam 모드는 단어매칭 대신 이름이 `A & B ... GX`인 카드만 거르고(트레이너 듀오·프로모는 GX 없어 제외) species를 `tagteam`으로 저장한다. "GX" 검색이 넓어 `--maxpages 60` 권장(유니크 ~34조합/126장 확인).
 
 ### 2. 크롤 (Playwright, 예의상 delay 1s 유지)
 ```bash

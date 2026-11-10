@@ -20,12 +20,17 @@ const has = (n) => args.includes(`--${n}`);
 // 대상 목록: --pokemon "a,b"로 임시 지정하거나, 기본은 scripts/snkrdunk-targets.json(버전관리).
 const TARGETS_PATH = opt("targets", path.join(path.dirname(fileURLToPath(import.meta.url)), "snkrdunk-targets.json"));
 const KO = new Map(); // en(lowercase) → ko
+const TAGTEAM = new Set(); // tagteam:true 인 en — 키워드 단어매칭 대신 "A & B ... GX"(포켓몬 태그팀)만 거른다
 let SPECIES = [];
 if (opt("pokemon")) {
   SPECIES = opt("pokemon").split(",").map((s) => s.trim()).filter(Boolean);
 } else {
   const j = JSON.parse(await readFile(TARGETS_PATH, "utf8"));
-  for (const t of j.targets) { SPECIES.push(t.en); if (t.ko) KO.set(t.en.toLowerCase(), t.ko); }
+  for (const t of j.targets) {
+    SPECIES.push(t.en);
+    if (t.ko) KO.set(t.en.toLowerCase(), t.ko);
+    if (t.tagteam) TAGTEAM.add(t.en);
+  }
 }
 const MAXPAGES = Number(opt("maxpages", "30"));
 const DELAY = Number(opt("delay", "1000"));
@@ -115,6 +120,8 @@ async function main() {
     const needle = sp.toLowerCase();
     // 단어 경계 매칭 — "Bea"가 "Beast", "Lana"가 "Lanakila"에 오매칭되지 않게.
     const re = new RegExp(`\\b${needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
+    const isTag = TAGTEAM.has(sp); // 태그팀 모드: "A & B ... GX"만. species는 'tagteam'으로 저장.
+    const speciesLabel = isTag ? "tagteam" : sp;
     for (let p = 1; p <= MAXPAGES; p++) {
       const url = `https://snkrdunk.com/en/search/result?keyword=${encodeURIComponent(sp)}&sortKey=conversion&page=${p}`;
       await page.goto(url, { waitUntil: "networkidle", timeout: 30000 }).catch(() => {});
@@ -125,8 +132,12 @@ async function main() {
       for (const it of items) {
         const parsed = parseItem(it.text);
         if (!parsed) { parseFail++; continue; }
-        // SNKRDUNK 검색은 fuzzy — 이름에 키워드가 단어로 들어간 카드만 둔다.
-        if (!re.test(parsed.name_en)) { filtered++; continue; }
+        // SNKRDUNK 검색은 fuzzy. 일반=키워드 단어매칭. 태그팀=이름이 "A & B ... GX"인 포켓몬 태그팀만
+        // (트레이너 듀오·"Strongest Tag Team" 프로모는 GX가 없어 자동 제외).
+        const keep = isTag
+          ? / & /.test(parsed.name_en) && /\bGX\b/i.test(parsed.name_en)
+          : re.test(parsed.name_en);
+        if (!keep) { filtered++; continue; }
         rank += 1; // 수집 순서 = 전역 인기순위(목록 앞 숫자는 페이지 내 위치라 못 씀)
         parsed.popularity_rank = rank;
         let imagePath = null;
@@ -145,7 +156,7 @@ async function main() {
              set_name=excluded.set_name, price_krw=excluded.price_krw, popularity_rank=excluded.popularity_rank,
              image_path=coalesce(excluded.image_path, public.snkrdunk_cards.image_path),
              source_url=excluded.source_url, raw_title=excluded.raw_title, lang=excluded.lang, fetched_at=now()`,
-          [it.id, sp, KO.get(sp.toLowerCase()) ?? null, parsed.name_en, parsed.rarity, parsed.set_code, parsed.collector_number, parsed.total,
+          [it.id, speciesLabel, KO.get(sp.toLowerCase()) ?? null, parsed.name_en, parsed.rarity, parsed.set_code, parsed.collector_number, parsed.total,
            parsed.set_name, parsed.price_krw, parsed.popularity_rank, imagePath,
            `https://snkrdunk.com/en/trading-cards/${it.id}`, parsed.raw_title, parsed.lang],
         );
