@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { errorMessage, uploadFile } from "@/components/admin/upload";
+import { AppImage } from "@/components/ui/app-image";
 import type { ProfileActivity, ProfileLink } from "@/domains/member/api/types";
 import { useUpdateProfileMutation } from "@/domains/member/hooks";
 import { isApiError } from "@/lib/api/errors";
@@ -112,9 +113,18 @@ export function ProfileEdit({
 
   const avatar = (
     <span className="relative flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-full bg-secondary text-4xl font-bold text-secondary-foreground ring-4 ring-accent">
-      {shownAvatar ? (
+      {avatarUrl ? (
+        // 로컬 파일 미리보기(blob:) — 서버 이미지가 아니라 plain img 유지
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={shownAvatar} alt="프로필" className="size-full object-cover" />
+        <img src={avatarUrl} alt="프로필" className="size-full object-cover" />
+      ) : shownAvatar ? (
+        <AppImage
+          src={shownAvatar}
+          alt="프로필"
+          variant="avatar"
+          className="size-full rounded-full"
+          fallback={<>{initial}</>}
+        />
       ) : (
         initial
       )}

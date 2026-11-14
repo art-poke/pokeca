@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { useCreateReviewMutation, useDeleteReviewMutation } from "@/domains/review/hooks";
 import { errorMessage, uploadFile } from "@/components/admin/upload";
+import { AppImage } from "@/components/ui/app-image";
 import { isApiError } from "@/lib/api/errors";
 import { showErrorMessage, showLoginNudge, showSuccessToast } from "@/lib/toast/gr-toast";
 import { REVIEW_MAX } from "@/lib/profile";
@@ -183,12 +184,12 @@ export function ArtistReviews({
               </div>
               <p className="mt-2.5 whitespace-pre-wrap text-sm text-ink-700">{r.body}</p>
               {r.hasImage && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <AppImage
                   src={`/api/reviews/${r.id}/image`}
                   alt="후기 이미지"
-                  loading="lazy"
-                  className="mt-3 max-h-80 rounded-xl border border-border object-contain"
+                  variant="photo"
+                  fit="contain"
+                  className="mt-3 max-h-80 rounded-xl border border-border"
                 />
               )}
             </li>

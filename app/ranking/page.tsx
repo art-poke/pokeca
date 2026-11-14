@@ -3,6 +3,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { RankingListSkeleton } from "@/components/skeletons";
+import { AppImage } from "@/components/ui/app-image";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -127,12 +128,12 @@ async function Ranking({ searchParams }: Pick<PageProps<"/ranking">, "searchPara
                     {a.rank}
                   </span>
                   {/* 실제 확장 아트 썸네일 */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <AppImage
                     src={`/api/thumbnails/${a.artworkId}`}
                     alt={a.title}
-                    loading="lazy"
-                    className="size-14 shrink-0 rounded-lg border border-border object-cover"
+                    variant="card"
+                    aspectRatio="1 / 1"
+                    className="size-14 shrink-0 rounded-lg border border-border"
                   />
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-semibold text-foreground">{a.title}</div>

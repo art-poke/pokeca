@@ -3,6 +3,7 @@
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { AppImage } from "@/components/ui/app-image";
 import { Badge } from "@/components/ui/badge";
 import type { MyArtwork } from "@/lib/artists";
 import { FORMAT_INFO, FORMATS, type Format } from "@/lib/formats";
@@ -92,14 +93,13 @@ export function StudioArtworks({ works }: { works: MyArtwork[] }) {
                 >
                   <Link href={`/artworks/${a.id}`} className="block">
                     <div className="relative aspect-[63/88] w-full bg-gray-100">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
+                      <AppImage
                         src={`/api/thumbnails/${a.id}`}
                         alt={a.title}
-                        loading="lazy"
-                        className="size-full object-cover"
+                        variant="card"
+                        className="size-full"
                       />
-                      <span className="absolute left-2 top-2">
+                      <span className="absolute left-2 top-2 z-10">
                         <Badge variant={STATUS[a.status].variant}>{STATUS[a.status].label}</Badge>
                       </span>
                     </div>
