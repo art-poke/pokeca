@@ -6,6 +6,7 @@ import { useRef, useState } from "react";
 import { useCreateArtworkMutation, useSearchCardsMutation } from "@/domains/admin/hooks";
 import type { AdminCardHit as Card } from "@/domains/admin/api/types";
 import { Badge } from "@/components/ui/badge";
+import { AppImage } from "@/components/ui/app-image";
 import { cardImageUrl } from "@/lib/card-image";
 import { FORMAT_INFO, FORMAT_PIECES, FORMATS, type Format } from "@/lib/formats";
 import { cn } from "@/lib/utils";
@@ -484,17 +485,12 @@ export function NewArtworkForm({ mode = "admin" }: { mode?: "admin" | "artist" }
                       onClick={() => setCard(c)}
                     >
                       {/* 아주 작은 카드 일러 */}
-                      <div className="aspect-[63/88] w-9 shrink-0 overflow-hidden rounded border border-border bg-gray-100">
-                        {c.imagePath && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={cardImageUrl(c.imagePath, c.lang)}
-                            alt=""
-                            loading="lazy"
-                            className="size-full object-cover"
-                          />
-                        )}
-                      </div>
+                      <AppImage
+                        src={c.imagePath ? cardImageUrl(c.imagePath, c.lang) : null}
+                        alt=""
+                        variant="card"
+                        className="w-9 shrink-0 rounded border border-border"
+                      />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
                           <strong className="tabular shrink-0 text-sm text-foreground">{c.label}</strong>

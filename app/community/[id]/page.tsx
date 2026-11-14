@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { Comments } from "@/components/comments";
 import { PostDeleteButton } from "@/components/post-delete-button";
 import { Badge } from "@/components/ui/badge";
+import { AppImage } from "@/components/ui/app-image";
 import { currentAdmin } from "@/lib/admin";
 import { listComments } from "@/lib/comments";
 import { BOARD_LABEL, getPost } from "@/lib/community";
@@ -56,11 +57,12 @@ async function Post({ params }: Pick<PageProps<"/community/[id]">, "params">) {
       <div className="whitespace-pre-wrap break-words text-ink-800">{post.body}</div>
 
       {post.hasImage && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        <AppImage
           src={`/api/community/posts/${post.id}/image`}
           alt="첨부 이미지"
-          className="max-h-[600px] w-auto rounded-2xl border border-border object-contain"
+          variant="photo"
+          fit="contain"
+          className="max-h-[600px] rounded-2xl border border-border"
         />
       )}
 

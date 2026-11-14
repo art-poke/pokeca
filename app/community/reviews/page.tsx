@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { CommunityTabs } from "@/components/community-tabs";
 import { ReviewArtistSearch } from "@/components/review-artist-search";
 import { RowsSkeleton } from "@/components/skeletons";
+import { AppImage } from "@/components/ui/app-image";
 import { recentReviews } from "@/lib/reviews";
 
 export const metadata = { title: "작가 후기 · 커뮤니티 · Extended Art Archive" };
@@ -59,12 +60,12 @@ async function Feed() {
           </div>
           <p className="mt-2 line-clamp-3 whitespace-pre-wrap text-sm text-ink-700">{r.body}</p>
           {r.hasImage && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <AppImage
               src={`/api/reviews/${r.id}/image`}
               alt="후기 이미지"
-              loading="lazy"
-              className="mt-3 max-h-56 rounded-xl border border-border object-contain"
+              variant="photo"
+              fit="contain"
+              className="mt-3 max-h-56 rounded-xl border border-border"
             />
           )}
         </li>
