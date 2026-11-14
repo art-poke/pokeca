@@ -92,12 +92,12 @@ export function StudioArtworks({ works }: { works: MyArtwork[] }) {
                   className="group overflow-hidden rounded-2xl border border-border bg-background transition-shadow hover:shadow-md"
                 >
                   <Link href={`/artworks/${a.id}`} className="block">
-                    <div className="relative aspect-[63/88] w-full bg-gray-100">
+                    <div className="relative">
                       <AppImage
                         src={`/api/thumbnails/${a.id}`}
                         alt={a.title}
                         variant="card"
-                        className="size-full"
+                        className="w-full"
                       />
                       <span className="absolute left-2 top-2 z-10">
                         <Badge variant={STATUS[a.status].variant}>{STATUS[a.status].label}</Badge>
