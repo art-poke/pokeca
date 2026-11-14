@@ -3,6 +3,7 @@
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { AppImage } from "@/components/ui/app-image";
 
 // 카드 상세의 공식 카드 이미지. 작게 보이던 걸 눌러 크게 본다(라이트박스 모달).
 // 모달은 createPortal로 document.body에 렌더한다 — 상세 페이지 .enter 애니메이션이 남기는
@@ -31,14 +32,12 @@ export function CardImageZoom({ src, alt }: { src: string; alt: string }) {
         className="group relative shrink-0 cursor-zoom-in self-start rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
         aria-label={`${alt} 크게 보기`}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <AppImage
           src={src}
           alt={alt}
-          width={367}
-          height={512}
-          loading="eager"
-          className="aspect-[63/88] w-28 rounded-xl border border-border object-cover shadow-sm transition-transform group-hover:scale-[1.02] sm:w-36 md:w-44"
+          variant="card"
+          priority
+          className="w-28 rounded-xl border border-border shadow-sm transition-transform group-hover:scale-[1.02] sm:w-36 md:w-44"
         />
       </button>
 

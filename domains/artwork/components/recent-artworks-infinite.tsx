@@ -7,8 +7,8 @@ import { useRecentArtworksInfinite } from "@/domains/artwork/hooks";
 
 // "최근 올라온 도안" 전체 목록 + 무한스크롤. 1페이지는 서버가 준 initial로 즉시 그리고,
 // 바닥 센티넬이 뷰포트에 가까워지면 다음 페이지를 당긴다.
-// 홈과 같은 ArtworkItem(raw <img loading="lazy">)을 쓴다 — next/image는 썸네일의 S3 서명URL
-// 302를 옵티마이저가 못 따라가 깨지고, 전 이미지를 즉시 호출한다. raw img는 302 추종 + 지연로딩.
+// 홈과 같은 ArtworkItem(AppImage)을 쓴다 — next/image는 썸네일의 S3 서명URL 302를 옵티마이저가
+// 못 따라가 깨지고, 전 이미지를 즉시 호출한다. AppImage는 302 추종 + 지연로딩.
 export const RecentArtworksInfinite = ({ initial }: { initial: ArtworkFeedPage }) => {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useRecentArtworksInfinite(initial);

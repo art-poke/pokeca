@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { trackSourceClick } from "@/domains/artwork/download";
 import { useDownloadArtworkMutation } from "@/domains/artwork/hooks";
+import { AppImage } from "@/components/ui/app-image";
 import { Badge } from "@/components/ui/badge";
 import { isApiError } from "@/lib/api/errors";
 import { showErrorToast, showLoginNudge, showNoticeToast } from "@/lib/toast/gr-toast";
@@ -27,16 +28,12 @@ export function ArtworkItem({
       data-testid="artwork"
     >
       <Link href={`/artworks/${artwork.id}`} className="block">
-        <div className="relative aspect-[63/88] w-full overflow-hidden bg-gray-100">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={`/api/thumbnails/${artwork.id}`}
-            alt={`${artwork.title} (@${artwork.artistName})`}
-            loading="lazy"
-            decoding="async"
-            className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-          />
-        </div>
+        <AppImage
+          src={`/api/thumbnails/${artwork.id}`}
+          alt={`${artwork.title} (@${artwork.artistName})`}
+          variant="card"
+          className="w-full transition-transform duration-300 group-hover:scale-[1.03]"
+        />
         <div className="p-3">
           {card && (
             <p className="tabular mb-1 truncate text-xs font-medium text-muted-foreground">

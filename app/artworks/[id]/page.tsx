@@ -7,6 +7,7 @@ import { Comments } from "@/components/comments";
 import { RecommendButton } from "@/components/recommend-button";
 import { ReportTrigger } from "@/components/report-trigger";
 import { ArtworkDetailSkeleton } from "@/components/skeletons";
+import { AppImage } from "@/components/ui/app-image";
 import { Badge } from "@/components/ui/badge";
 import { getArtworkDetail } from "@/lib/artworks";
 import { listComments } from "@/lib/comments";
@@ -52,11 +53,14 @@ async function Detail({ params }: Pick<PageProps<"/artworks/[id]">, "params">) {
             {multi ? (
               <Assembled id={id} positions={artwork.positions} nine={artwork.format === "9pocket"} />
             ) : (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <AppImage
                 src={`/api/thumbnails/${id}`}
                 alt={`${artwork.title} (@${artwork.artistName})`}
-                className="max-h-[70vh] w-auto max-w-full rounded-lg object-contain"
+                variant="artwork"
+                aspectRatio="63 / 88"
+                fit="contain"
+                priority
+                className="max-h-[70vh] w-auto max-w-full rounded-lg bg-transparent"
               />
             )}
           </div>
@@ -125,8 +129,12 @@ function Assembled({ id, positions, nine }: { id: string; positions: number[]; n
           return (
             <div key={c} className="relative aspect-[63/88] overflow-hidden rounded-md bg-ink-800/60">
               {has.has(pi) ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={`/api/thumbnails/${id}?i=${pi}`} alt={`조각 ${pi + 1}`} className="size-full object-cover" />
+                <AppImage
+                  src={`/api/thumbnails/${id}?i=${pi}`}
+                  alt={`조각 ${pi + 1}`}
+                  variant="card"
+                  className="size-full rounded-md bg-transparent"
+                />
               ) : (
                 <span className="flex size-full items-center justify-center text-sm font-semibold text-white/20">
                   {pi + 1}
@@ -142,8 +150,12 @@ function Assembled({ id, positions, nine }: { id: string; positions: number[]; n
     <div className="grid w-full max-w-md grid-cols-3 gap-1.5">
       {positions.map((pi) => (
         <div key={pi} className="relative aspect-[63/88] overflow-hidden rounded-md bg-ink-800">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`/api/thumbnails/${id}?i=${pi}`} alt={`조각 ${pi + 1}`} className="size-full object-cover" />
+          <AppImage
+            src={`/api/thumbnails/${id}?i=${pi}`}
+            alt={`조각 ${pi + 1}`}
+            variant="card"
+            className="size-full rounded-md bg-transparent"
+          />
         </div>
       ))}
     </div>
