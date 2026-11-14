@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { AppImage } from "@/components/ui/app-image";
 import { PokeballMark } from "@/components/ui/logo";
 import { cardImageUrl } from "@/lib/card-image";
 import { cardPath } from "@/lib/search";
@@ -23,26 +24,23 @@ export function CardTile({ card }: { card: CardTileData }) {
       href={cardPath(setCode, collectorNumber)}
       className="group flex flex-col gap-2 rounded-2xl border border-border bg-background p-2 transition-shadow hover:shadow-md active:scale-[0.99] sm:gap-2.5 sm:p-2.5"
     >
-      <div className="relative aspect-[63/88] overflow-hidden rounded-xl border border-border bg-gradient-to-br from-gray-50 to-gray-200">
-        {imagePath ? (
-          // next/image는 image Lambda가 서명 URL 302를 못 따라가 못 쓴다. 원본이 webp라 최적화 이득도 없다.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={cardImageUrl(imagePath, lang)}
-            alt={`${nameKo} 카드`}
-            loading="lazy"
-            className="size-full object-cover"
-          />
-        ) : (
-          <div className="flex size-full items-center justify-center" aria-hidden>
-            <PokeballMark className="pointer-events-none absolute -bottom-4 -right-4 size-20 opacity-[0.1]" />
-            <span className="tabular text-center text-sm font-bold leading-snug text-ink-600">
-              {setCode}
-              <br />
-              {collectorNumber}
-            </span>
-          </div>
-        )}
+      <div className="relative">
+        <AppImage
+          variant="card"
+          src={imagePath ? cardImageUrl(imagePath, lang) : null}
+          alt={`${nameKo} 카드`}
+          className="rounded-xl border border-border"
+          fallback={
+            <div className="flex size-full items-center justify-center bg-gradient-to-br from-gray-50 to-gray-200" aria-hidden>
+              <PokeballMark className="pointer-events-none absolute -bottom-4 -right-4 size-20 opacity-[0.1]" />
+              <span className="tabular text-center text-sm font-bold leading-snug text-ink-600">
+                {setCode}
+                <br />
+                {collectorNumber}
+              </span>
+            </div>
+          }
+        />
         {typeof artworkCount === "number" && artworkCount > 0 && (
           <span className="absolute left-1.5 top-1.5 rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-primary-foreground shadow-sm">
             도안 {artworkCount}
