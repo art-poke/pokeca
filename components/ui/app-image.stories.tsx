@@ -9,6 +9,7 @@ const OK_SRC =
 const meta = {
   title: "Atoms/AppImage",
   component: AppImageFallback,
+  tags: ["autodocs"],
 } satisfies Meta<typeof AppImageFallback>;
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -81,4 +82,30 @@ export const NullSrcIsImmediatelyFallback: StoryObj = {
     await expect(canvasElement.querySelector("img[src]")).toBeNull();
     await expect(canvasElement.querySelector("svg")).toBeTruthy();
   },
+};
+
+// variant × 상태(로드/실패) 카탈로그. autodocs에 표로 노출된다.
+const VARIANTS = [
+  { v: "card", ratio: undefined, w: "w-28" },
+  { v: "avatar", ratio: undefined, w: "w-12" },
+  { v: "artwork", ratio: "3 / 4", w: "w-28" },
+  { v: "photo", ratio: undefined, w: "w-40" },
+] as const;
+
+export const VariantGallery: StoryObj = {
+  render: () => (
+    <div className="flex flex-wrap gap-6">
+      {VARIANTS.map(({ v, ratio, w }) => (
+        <div key={v} className="space-y-2">
+          <p className="text-xs font-semibold text-ink-600">{v}</p>
+          <div className={w}>
+            <AppImage variant={v} aspectRatio={ratio} src={OK_SRC} alt={`${v} 로드`} />
+          </div>
+          <div className={w}>
+            <AppImage variant={v} aspectRatio={ratio} src="/__nope__.png" alt={`${v} 실패`} />
+          </div>
+        </div>
+      ))}
+    </div>
+  ),
 };
