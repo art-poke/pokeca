@@ -1,6 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { expect, within } from "storybook/test";
+import { expect, waitFor, within } from "storybook/test";
+import { AppImage } from "./app-image";
 import { AppImageFallback } from "./app-image-fallback";
+
+const OK_SRC =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
 
 const meta = {
   title: "Atoms/AppImage",
@@ -10,6 +14,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const FallbackCard: Story = {
+  args: { variant: "card" },
   render: () => (
     <div className="w-40" style={{ aspectRatio: "63 / 88" }}>
       <AppImageFallback variant="card" />
@@ -24,6 +29,7 @@ export const FallbackCard: Story = {
 };
 
 export const FallbackAvatar: Story = {
+  args: { variant: "avatar", label: "별빛" },
   render: () => (
     <div className="size-12">
       <AppImageFallback variant="avatar" label="별빛" />
@@ -31,5 +37,48 @@ export const FallbackAvatar: Story = {
   ),
   play: async ({ canvasElement }) => {
     await expect(canvasElement.textContent).toContain("별");
+  },
+};
+
+export const Loaded: StoryObj = {
+  render: () => (
+    <div className="w-40">
+      <AppImage variant="card" src={OK_SRC} alt="로드 성공" />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const img = canvasElement.querySelector("img") as HTMLImageElement;
+    await expect(img).toBeTruthy();
+    // onLoad→setStatus('loaded')는 React 비동기 리렌더라, img.complete보다 늦을 수 있다.
+    // 고정 대기 대신 waitFor로 페이드인(opacity-100) 적용을 폴링한다.
+    await waitFor(() => expect(img.className).toContain("opacity-100"));
+  },
+};
+
+export const ErrorFallsBack: StoryObj = {
+  render: () => (
+    <div className="w-40">
+      <AppImage variant="card" src="/__nope__.png" alt="로드 실패" />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    // onError 후 <img>는 사라지고 폴백(몬스터볼 svg)만 남는다.
+    // 고정 setTimeout 대신 이벤트 기반 waitFor로 대기 → CI 부하에도 플레이크 없음.
+    await waitFor(() => {
+      expect(canvasElement.querySelector('img[src="/__nope__.png"]')).toBeNull();
+      expect(canvasElement.querySelector("svg")).toBeTruthy();
+    });
+  },
+};
+
+export const NullSrcIsImmediatelyFallback: StoryObj = {
+  render: () => (
+    <div className="w-40">
+      <AppImage variant="card" src={null} alt="" />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    await expect(canvasElement.querySelector("img[src]")).toBeNull();
+    await expect(canvasElement.querySelector("svg")).toBeTruthy();
   },
 };
