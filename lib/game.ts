@@ -68,8 +68,11 @@ export const getLeaderboard = async (
   const start = scope === "month" ? monthStart() : null;
 
   // 유저별 '최고 점수 행'(distinct on)을 골라 그 행의 한줄평까지 함께 가져온다.
+  // 닉네임은 artists.display_name이 정본(없으면 users.name). 둘 다 없으면 JS에서 '플레이어' 폴백.
   const res = await db.execute(sql`
-    select t.user_id, t.score::int as score, t.comment, u.name, u.image
+    select t.user_id, t.score::int as score, t.comment,
+           coalesce(nullif(btrim(a.display_name), ''), nullif(btrim(u.name), '')) as name,
+           u.image
     from (
       select distinct on (gs.user_id) gs.user_id, gs.score, gs.comment, gs.played_at
       from game_scores gs
@@ -77,6 +80,7 @@ export const getLeaderboard = async (
       order by gs.user_id, gs.score desc, gs.played_at desc
     ) t
     join users u on u.id = t.user_id
+    left join artists a on a.user_id = t.user_id
     order by t.score desc, t.played_at asc
     limit ${limit}
   `);
