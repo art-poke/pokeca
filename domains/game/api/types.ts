@@ -8,6 +8,7 @@ export type LeaderboardEntry = {
   name: string;
   image: string | null;
   score: number;
+  comment: string | null;
 };
 
 export type LeaderboardResult = {
@@ -15,12 +16,13 @@ export type LeaderboardResult = {
   me: { rank: number; score: number } | null;
 };
 
-// 게임오버 시 서버로 보내는 제출 payload.
+// 게임오버 시 서버로 보내는 제출 payload. comment는 선택(최대 10자 한줄평).
 export type ScoreSubmission = {
   score: number;
   ballsPlaced: number;
   maxTier: number;
   durationMs: number;
+  comment?: string;
 };
 
 export type SubmitScoreResult = { id: string };

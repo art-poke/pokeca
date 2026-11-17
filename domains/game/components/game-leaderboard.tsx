@@ -52,6 +52,7 @@ export const GameLeaderboard = ({ currentUserId }: Props) => {
               name={e.name}
               image={e.image}
               score={e.score}
+              comment={e.comment}
               me={e.userId === currentUserId}
             />
           ))}
@@ -59,16 +60,23 @@ export const GameLeaderboard = ({ currentUserId }: Props) => {
 
       {data?.me && !meInTop && (
         <div className="mt-2 border-t border-[#e6e1d8] pt-2">
-          <Row rank={data.me.rank} name="나" image={null} score={data.me.score} me />
+          <Row rank={data.me.rank} name="나" image={null} score={data.me.score} comment={null} me />
         </div>
       )}
     </div>
   );
 };
 
-type RowProps = { rank: number; name: string; image: string | null; score: number; me: boolean };
+type RowProps = {
+  rank: number;
+  name: string;
+  image: string | null;
+  score: number;
+  comment: string | null;
+  me: boolean;
+};
 
-const Row = ({ rank, name, image, score, me }: RowProps) => (
+const Row = ({ rank, name, image, score, comment, me }: RowProps) => (
   <div
     className={`flex items-center gap-2 px-1.5 py-2 text-sm ${
       me ? "rounded-lg bg-[#fff4f4] outline outline-1 outline-[#ffd3d3]" : "border-b border-[#f0ece4]"
@@ -79,11 +87,14 @@ const Row = ({ rank, name, image, score, me }: RowProps) => (
     </span>
     {image ? (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={image} alt="" className="h-6 w-6 rounded-full object-cover" />
+      <img src={image} alt="" className="h-6 w-6 flex-none rounded-full object-cover" />
     ) : (
       <span className="h-6 w-6 flex-none rounded-full bg-[#ddd]" />
     )}
-    <span className="flex-1 truncate font-semibold">{name}</span>
+    <div className="min-w-0 flex-1">
+      <span className="block truncate font-semibold">{name}</span>
+      {comment && <span className="block truncate text-[11px] text-[#8a8178]">“{comment}”</span>}
+    </div>
     <span className="font-extrabold tabular-nums">{score.toLocaleString()}</span>
   </div>
 );

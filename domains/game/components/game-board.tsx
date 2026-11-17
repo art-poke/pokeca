@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { showSuccessToast } from "@/lib/toast/gr-toast";
 import type { GameStats } from "../engine/types";
 import { useSubmitScore } from "../hooks";
@@ -19,23 +19,30 @@ export const GameBoard = ({ currentUserId }: Props) => {
   const [restartNonce, setRestartNonce] = useState(0);
   const [over, setOver] = useState<{ stats: GameStats; score: number } | null>(null);
 
+  const [comment, setComment] = useState("");
   const submit = useSubmitScore();
-  const submitRef = useRef(submit);
-  useEffect(() => {
-    submitRef.current = submit;
-  }, [submit]);
 
-  // onState/onGameOver는 안정적으로 유지(캔버스 effect 재생성 방지). restart는 nonce로만.
+  // onState/onGameOver는 안정적으로 유지(캔버스 effect 재생성 방지).
   const onState = useCallback((s: GameUiState) => setUi(s), []);
+  // 제출은 오버레이에서 한줄평과 함께(아래 registerAndRestart).
   const onGameOver = useCallback((stats: GameStats, score: number) => {
     setOver({ stats, score });
-    submitRef.current.mutate(
-      { score, ballsPlaced: stats.ballsPlaced, maxTier: stats.maxTier, durationMs: stats.durationMs },
-      { onSuccess: () => showSuccessToast("점수가 등록됐어요!") },
-    );
   }, []);
 
-  const restart = () => {
+  const registerAndRestart = () => {
+    if (over) {
+      submit.mutate(
+        {
+          score: over.score,
+          ballsPlaced: over.stats.ballsPlaced,
+          maxTier: over.stats.maxTier,
+          durationMs: over.stats.durationMs,
+          comment: comment.trim() || undefined,
+        },
+        { onSuccess: () => showSuccessToast("점수가 등록됐어요!") },
+      );
+    }
+    setComment("");
     setOver(null);
     setUi(INITIAL);
     setRestartNonce((n) => n + 1);
@@ -52,10 +59,10 @@ export const GameBoard = ({ currentUserId }: Props) => {
             {over && (
               <GameOverOverlay
                 score={over.score}
-                maxTier={over.stats.maxTier}
+                comment={comment}
+                onComment={setComment}
                 submitting={submit.isPending}
-                failed={submit.isError}
-                onRestart={restart}
+                onRegister={registerAndRestart}
               />
             )}
           </div>
@@ -73,27 +80,35 @@ export const GameBoard = ({ currentUserId }: Props) => {
 
 type OverlayProps = {
   score: number;
-  maxTier: number;
+  comment: string;
+  onComment: (v: string) => void;
   submitting: boolean;
-  failed: boolean;
-  onRestart: () => void;
+  onRegister: () => void;
 };
 
-const GameOverOverlay = ({ score, submitting, failed, onRestart }: OverlayProps) => (
-  <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-xl bg-black/70 text-white backdrop-blur-sm">
+const GameOverOverlay = ({ score, comment, onComment, submitting, onRegister }: OverlayProps) => (
+  <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-xl bg-black/70 px-6 text-white backdrop-blur-sm">
     <p className="text-3xl font-extrabold">게임 오버</p>
     <p className="text-lg">
       점수 <b className="tabular-nums">{score.toLocaleString()}</b>
     </p>
-    <p className="text-xs text-white/70">
-      {submitting ? "점수 등록 중…" : failed ? "점수 등록 실패 (잠시 후 다시)" : "점수가 등록됐어요"}
-    </p>
+    <div className="flex w-full max-w-[260px] flex-col gap-1">
+      <input
+        value={comment}
+        onChange={(e) => onComment(e.target.value.slice(0, 10))}
+        maxLength={10}
+        placeholder="한줄평 (최대 10자, 선택)"
+        className="w-full rounded-lg border border-white/30 bg-white/10 px-3 py-2 text-center text-sm text-white placeholder:text-white/50 focus:border-white/60 focus:outline-none"
+      />
+      <span className="text-right text-[11px] text-white/50">{comment.length}/10</span>
+    </div>
     <button
       type="button"
-      onClick={onRestart}
-      className="rounded-xl bg-[#EE1515] px-6 py-3 font-bold text-white transition hover:bg-red-600"
+      onClick={onRegister}
+      disabled={submitting}
+      className="rounded-xl bg-[#EE1515] px-6 py-3 font-bold text-white transition hover:bg-red-600 disabled:opacity-60"
     >
-      다시 하기
+      {submitting ? "등록 중…" : "등록하고 다시하기"}
     </button>
   </div>
 );

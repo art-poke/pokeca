@@ -1,7 +1,7 @@
 import "server-only";
-import { and, desc, eq, gte, sql } from "drizzle-orm";
+import { and, eq, gte, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { gameScores, users } from "@/lib/db/schema";
+import { gameScores } from "@/lib/db/schema";
 
 // 몬스터볼 수박게임 서버 로직(읽기/쓰기). 서버컴포넌트/서버액션/route가 직접 호출.
 //   리더보드: 역대(all) = 유저별 MAX(score), 월별(month) = played_at이 이번 달.
@@ -14,6 +14,7 @@ export type LeaderboardEntry = {
   name: string;
   image: string | null;
   score: number;
+  comment: string | null; // 최고기록에 남긴 한줄평
 };
 
 export type LeaderboardResult = {
@@ -26,6 +27,7 @@ export type ScoreInput = {
   ballsPlaced: number;
   maxTier: number;
   durationMs: number;
+  comment?: string | null;
 };
 
 const monthStart = (): Date => {
@@ -42,6 +44,7 @@ export const insertGameScore = async (userId: string, input: ScoreInput): Promis
       ballsPlaced: input.ballsPlaced,
       maxTier: input.maxTier,
       durationMs: input.durationMs,
+      comment: input.comment?.trim() || null,
     })
     .returning({ id: gameScores.id });
   return row.id;
@@ -63,43 +66,43 @@ export const getLeaderboard = async (
 ): Promise<LeaderboardResult> => {
   const limit = opts.limit ?? 100;
   const start = scope === "month" ? monthStart() : null;
-  const windowed = start ? gte(gameScores.playedAt, start) : undefined;
-  const best = sql<number>`max(${gameScores.score})::int`;
 
-  const rows = await db
-    .select({
-      userId: gameScores.userId,
-      name: users.name,
-      image: users.image,
-      best,
-    })
-    .from(gameScores)
-    .innerJoin(users, eq(users.id, gameScores.userId))
-    .where(windowed)
-    .groupBy(gameScores.userId, users.name, users.image)
-    .orderBy(desc(best))
-    .limit(limit);
+  // 유저별 '최고 점수 행'(distinct on)을 골라 그 행의 한줄평까지 함께 가져온다.
+  const res = await db.execute(sql`
+    select t.user_id, t.score::int as score, t.comment, u.name, u.image
+    from (
+      select distinct on (gs.user_id) gs.user_id, gs.score, gs.comment, gs.played_at
+      from game_scores gs
+      ${start ? sql`where gs.played_at >= ${start}` : sql``}
+      order by gs.user_id, gs.score desc, gs.played_at desc
+    ) t
+    join users u on u.id = t.user_id
+    order by t.score desc, t.played_at asc
+    limit ${limit}
+  `);
 
-  const entries: LeaderboardEntry[] = rows.map((r, i) => ({
+  type Row = { user_id: string; score: number; comment: string | null; name: string | null; image: string | null };
+  const entries: LeaderboardEntry[] = (res.rows as Row[]).map((r, i) => ({
     rank: i + 1,
-    userId: r.userId,
+    userId: r.user_id,
     name: r.name?.trim() || "플레이어",
     image: r.image ?? null,
-    score: Number(r.best),
+    score: Number(r.score),
+    comment: r.comment ?? null,
   }));
 
   let me: LeaderboardResult["me"] = null;
   if (opts.userId) {
-    const [meRow] = await db
-      .select({ best })
-      .from(gameScores)
-      .where(and(eq(gameScores.userId, opts.userId), windowed));
-    const meBest = meRow?.best;
+    const meRes = await db.execute(
+      sql`select max(score)::int as best from game_scores
+          where user_id = ${opts.userId} ${start ? sql`and played_at >= ${start}` : sql``}`,
+    );
+    const meBest = (meRes.rows?.[0] as { best: number | null } | undefined)?.best;
     if (meBest != null) {
       // 내 최고점보다 높은 유저 수 + 1 = 내 순위.
       const higher = await db.execute(
         sql`select count(*)::int as n from (
-              select user_id, max(score) as b from ${gameScores}
+              select user_id, max(score) as b from game_scores
               ${start ? sql`where played_at >= ${start}` : sql``}
               group by user_id having max(score) > ${meBest}
             ) t`,

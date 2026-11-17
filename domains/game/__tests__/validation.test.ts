@@ -48,4 +48,19 @@ describe("validateScoreSubmission", () => {
     expect(reasonOf(validateScoreSubmission({ ...ok, maxTier: 0 }))).toBe("tier_out_of_range");
     expect(reasonOf(validateScoreSubmission({ ...ok, maxTier: 12 }))).toBe("tier_out_of_range");
   });
+
+  it("accepts an optional one-line comment up to 10 chars (or none)", () => {
+    expect(validateScoreSubmission({ ...ok, comment: "잘했다" }).ok).toBe(true);
+    expect(validateScoreSubmission({ ...ok, comment: "1234567890" }).ok).toBe(true);
+    expect(validateScoreSubmission({ ...ok, comment: "" }).ok).toBe(true);
+    expect(validateScoreSubmission({ ...ok }).ok).toBe(true);
+  });
+
+  it("rejects a comment longer than 10 chars", () => {
+    expect(reasonOf(validateScoreSubmission({ ...ok, comment: "12345678901" }))).toBe("comment_too_long");
+  });
+
+  it("rejects a non-string comment", () => {
+    expect(reasonOf(validateScoreSubmission({ ...ok, comment: 5 }))).toBe("invalid_payload");
+  });
 });

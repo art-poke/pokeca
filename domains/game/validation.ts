@@ -9,6 +9,7 @@ export const MAX_SCORE_PER_BALL = 60;
 export const MIN_DURATION_MS = 3_000;
 export const MAX_DURATION_MS = 7_200_000; // 2시간
 export const MAX_BALLS = 100_000;
+export const MAX_COMMENT_LEN = 10; // 한줄평 최대 글자수
 
 export type ScorePayload = {
   score: number;
@@ -45,6 +46,11 @@ export const validateScoreSubmission = (payload: unknown): ValidationResult => {
   }
   if (score < 0 || score > ballsPlaced * MAX_SCORE_PER_BALL) {
     return { ok: false, reason: "score_out_of_range" };
+  }
+  // 한줄평은 선택. 있으면 문자열이어야 하고 공백 제거 후 최대 길이 이내.
+  if (p.comment !== undefined && p.comment !== null) {
+    if (typeof p.comment !== "string") return { ok: false, reason: "invalid_payload" };
+    if (p.comment.trim().length > MAX_COMMENT_LEN) return { ok: false, reason: "comment_too_long" };
   }
   return { ok: true };
 };

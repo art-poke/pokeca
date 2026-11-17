@@ -348,6 +348,7 @@ export const gameScores = pgTable("game_scores", {
   ballsPlaced: smallint("balls_placed").notNull(),
   maxTier: smallint("max_tier").notNull(),
   durationMs: bigint("duration_ms", { mode: "number" }).notNull(),
+  comment: text("comment"), // 한줄평(최대 10자, 선택)
   playedAt: timestamp("played_at", { withTimezone: true }).notNull().defaultNow(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
