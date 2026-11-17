@@ -1,9 +1,27 @@
 # pokeca — 확장 아트 아카이브
 
-카드 번호로 포켓몬 카드 확장 아트 도안을 찾는 비영리 아카이브. Next.js 16 + Supabase.
+카드 번호로 포켓몬 카드 확장 아트 도안을 찾는 비영리 아카이브. Next.js 16 + **AWS 네이티브(RDS·Lambda·CloudFront, Supabase 아님)**.
 
 - 제품/설계: `docs/designs/extended-art-archive-mvp.md`, 인수인계: `docs/HANDOFF.md`
 - Next.js 16 규칙: `AGENTS.md` (코드 작성 전 `node_modules/next/dist/docs/` 확인)
+
+## 🚀 배포 / 상용 (매번 묻지 말고 여기부터 볼 것)
+
+- **프로덕션 LIVE: https://artpokeca.com** (= CloudFront `d3mfru6qnveki4.cloudfront.net`).
+- **AWS: 계정 `138681986450`, 항상 `AWS_PROFILE=artpoke`** (회사 계정 금지). 리전 `ap-northeast-1`(도쿄), ACM만 us-east-1, TF 상태버킷 `pokeca-tfstate-138681986450`(서울, key `phase1/terraform.tfstate`).
+- **아키텍처**: CloudFront → API Gateway(HTTP API) → Lambda(OpenNext server/image), 정적=S3(OAC), DB=RDS(private·SSL), 아웃바운드=NAT 인스턴스(fck-nat).
+- **앱 배포(코드 변경 시)**: `AWS_PROFILE=artpoke bash scripts/deploy.sh`
+  (OpenNext build → zip(.cache 제외) → app-server.zip S3 업로드(70MB한도) → `terraform apply` → assets S3 sync → CloudFront invalidation).
+- **운영 DB 마이그레이션**(RDS가 private이라 직접접속 불가 → migrate Lambda):
+  ```bash
+  cd infra && rm -rf lambda-migrate/sql && cp -R db/. lambda-migrate/sql/
+  AWS_PROFILE=artpoke terraform apply -target=aws_lambda_function.migrate -auto-approve
+  AWS_PROFILE=artpoke aws lambda invoke --function-name pokeca-migrate --region ap-northeast-1 /tmp/o.json && cat /tmp/o.json
+  ```
+  스키마·시드 둘 다 `infra/db/migrations/*.sql`(새 데이터는 **새 파일명**이어야 적용됨). 로컬은 `node --import tsx scripts/db-migrate.mts`(node20에서 `npm run db:migrate`/`demo`는 `.mts` 때문에 깨짐 → 반드시 `--import tsx`).
+- **git push 전**: `gh auth switch --user clyde-yoonjae` (활성계정 `leeyunjae7`면 403). origin = `art-poke/pokeca`.
+- **상세·함정**: `docs/superpowers/2026-11-05-subA-gotchas.md`, `docs/superpowers/NEXT-SESSION-phase2.md`, `infra/README.md`. 데이터 추가(SNKRDUNK 등): `.claude/skills/snkrdunk-catalog/SKILL.md`.
+- **비용**: 월 ~$5 (RDS 상시 + NAT). 예산 알람 $20.
 
 ## 디자인시스템 (진행 중)
 
