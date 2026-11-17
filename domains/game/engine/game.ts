@@ -4,6 +4,7 @@
 
 import Matter from "matter-js";
 import {
+  CEILING_Y,
   DEADLINE_Y,
   DROP_COOLDOWN_MS,
   DROP_GRACE_MS,
@@ -58,7 +59,7 @@ export class Game {
     this.rng = opts.rng;
     this.onMerge = opts.onMerge;
     this.physics = createPhysics();
-    this.watcher = new DeadlineWatcher(DEADLINE_Y, DROP_GRACE_MS, GAME_OVER_MS);
+    this.watcher = new DeadlineWatcher(DEADLINE_Y, DROP_GRACE_MS, GAME_OVER_MS, CEILING_Y);
 
     const q = opts.queueSize ?? DEFAULT_QUEUE;
     this.current = pickDropTier(this.rng);
@@ -161,12 +162,15 @@ export class Game {
         angle: bd.angle,
       };
     });
+    const danger = this.watcher.dangerMs();
+    const warningMs = this.isGameOver || danger <= 0 ? null : Math.max(0, GAME_OVER_MS - danger);
     return {
       score: this.score,
       nextTier: this.current,
       queue: [...this.upcoming],
       dropX: this.dropX,
       isGameOver: this.isGameOver,
+      warningMs,
       balls,
     };
   }

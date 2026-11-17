@@ -48,4 +48,39 @@ describe("DeadlineWatcher", () => {
     expect(over).toBe(false);
     expect(w.size()).toBe(1);
   });
+
+  it("reports danger time while above the line (for countdown)", () => {
+    const w = mk();
+    for (let i = 0; i < 10; i++) w.update(16, [{ id: 1, topY: 50, ageMs: 2000 }]);
+    expect(w.dangerMs()).toBeCloseTo(160, 0);
+    // drops below → danger resets to 0
+    w.update(16, [{ id: 1, topY: 300, ageMs: 2000 }]);
+    expect(w.dangerMs()).toBe(0);
+  });
+});
+
+describe("DeadlineWatcher — ceiling (instant) + 10s warning", () => {
+  // deadlineY=100, grace=600, gameOver=10000(10s), ceilingY=30
+  const mk2 = () => new DeadlineWatcher(100, 600, 10_000, 30);
+
+  it("instantly triggers when a settled ball touches the ceiling", () => {
+    const w = mk2();
+    expect(w.update(16, [{ id: 1, topY: 20, ageMs: 2000 }])).toBe(true);
+  });
+
+  it("ceiling respects the grace window (fresh ball does not instant-kill)", () => {
+    const w = mk2();
+    expect(w.update(16, [{ id: 1, topY: 20, ageMs: 100 }])).toBe(false);
+  });
+
+  it("a ball only in the warning band gets the full 10s before game over", () => {
+    const w = mk2();
+    let over = false;
+    // 9초: 아직 안 끝남
+    for (let i = 0; i < Math.floor(9000 / 16); i++) over = over || w.update(16, [{ id: 1, topY: 50, ageMs: 2000 }]);
+    expect(over).toBe(false);
+    // 10초 넘기면 끝
+    for (let i = 0; i < Math.floor(1500 / 16); i++) over = over || w.update(16, [{ id: 1, topY: 50, ageMs: 2000 }]);
+    expect(over).toBe(true);
+  });
 });

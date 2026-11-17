@@ -19,6 +19,7 @@ export type GameSnapshot = {
   queue: number[]; // 그 뒤로 대기 중인 볼 등급들(공장 컨베이어)
   dropX: number; // 크레인 가로 위치(가상 월드 좌표)
   isGameOver: boolean;
+  warningMs: number | null; // 경고선 초과 중이면 탈락까지 남은 ms, 아니면 null
   balls: BallSnapshot[];
 };
 

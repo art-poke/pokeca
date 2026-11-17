@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import {
+  CEILING_Y,
   DEADLINE_Y,
   FIXED_DT,
   WORLD_HEIGHT,
@@ -94,9 +95,22 @@ export const GameCanvas = ({ restartNonce, onState, onGameOver }: Props) => {
       ctx.fillStyle = "#141b24";
       ctx.fillRect(0, 0, WORLD_WIDTH, worldH);
 
-      // 데드라인(빨간 점선).
-      ctx.strokeStyle = "rgba(255,90,90,0.7)";
-      ctx.lineWidth = 1.5;
+      const snap = game.getSnapshot();
+      const warning = snap.warningMs != null;
+
+      // 천장(최상단): 닿으면 즉시 탈락.
+      ctx.strokeStyle = "rgba(255,40,40,0.5)";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 4]);
+      ctx.beginPath();
+      ctx.moveTo(0, CEILING_Y);
+      ctx.lineTo(WORLD_WIDTH, CEILING_Y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 경고선(데드라인). 경고 중엔 빨갛게 강조.
+      ctx.strokeStyle = warning ? "rgba(255,40,40,0.95)" : "rgba(255,90,90,0.7)";
+      ctx.lineWidth = warning ? 2.5 : 1.5;
       ctx.setLineDash([8, 6]);
       ctx.beginPath();
       ctx.moveTo(0, DEADLINE_Y);
@@ -104,7 +118,16 @@ export const GameCanvas = ({ restartNonce, onState, onGameOver }: Props) => {
       ctx.stroke();
       ctx.setLineDash([]);
 
-      const snap = game.getSnapshot();
+      // 경고 카운트다운(정리까지 남은 초).
+      if (warning) {
+        const secs = Math.ceil((snap.warningMs ?? 0) / 1000);
+        ctx.textAlign = "center";
+        ctx.fillStyle = "rgba(255,60,60,0.95)";
+        ctx.font = "bold 36px system-ui, sans-serif";
+        ctx.fillText(`${secs}`, WORLD_WIDTH / 2, DEADLINE_Y - 16);
+        ctx.font = "bold 11px system-ui, sans-serif";
+        ctx.fillText("초 안에 정리하세요!", WORLD_WIDTH / 2, DEADLINE_Y - 44);
+      }
 
       // 쌓인 볼들.
       for (const b of snap.balls) {
