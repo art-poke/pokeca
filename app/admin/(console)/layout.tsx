@@ -7,6 +7,8 @@ export default function ConsoleLayout({ children }: LayoutProps<"/admin">) {
   return (
     <div className={styles.console}>
       <nav aria-label="어드민" className={styles.nav}>
+        <Link href="/admin">현황</Link>
+        <Link href="/admin/insights">인사이트</Link>
         <Link href="/admin/artworks">작품</Link>
         <Link href="/admin/artworks/new">작품 등록</Link>
         <Link href="/admin/reports">신고</Link>

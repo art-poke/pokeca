@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { Toaster } from "sonner";
 import { AppShell, AppShellFallback } from "@/components/app-shell";
 import { AuthMenu, AuthMenuFallback } from "@/components/auth-menu";
+import { AnalyticsTracker } from "@/lib/analytics/tracker";
 import { QueryProvider } from "@/lib/query/query-client";
 import "./globals.css";
 
@@ -49,6 +50,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </AppShell>
           </Suspense>
         </QueryProvider>
+        <AnalyticsTracker />
         <Toaster
           position="top-center"
           richColors

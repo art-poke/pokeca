@@ -79,6 +79,7 @@ const NavLinks = ({
           key={href}
           href={href}
           onClick={onNavigate}
+          data-track={`nav:${label}`}
           title={collapsed ? label : undefined}
           aria-current={active ? "page" : undefined}
           className={cn(

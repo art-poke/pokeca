@@ -360,3 +360,124 @@
   color: var(--color-google-ink);
   border: 1px solid var(--color-google-rule);
 }
+
+/* 대시보드 / 인사이트 (OPERATE). 숫자·표·CSS 막대 위주로 가볍게 둔다. */
+.rangeTabs {
+  display: flex;
+  gap: var(--space);
+  flex-wrap: wrap;
+}
+
+.rangeTabs a,
+.rangeTabs a:visited {
+  padding: calc(var(--space) / 2) calc(var(--space) * 1.5);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius);
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.rangeTabs a[aria-current="true"] {
+  background: var(--color-action);
+  border-color: var(--color-action);
+  color: var(--color-on-action);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: calc(var(--space) * 1.5);
+}
+
+.card {
+  display: grid;
+  gap: calc(var(--space) / 2);
+  padding: calc(var(--space) * 1.5);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius);
+}
+
+.cardNum {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.cardLabel {
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
+.alerts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space);
+}
+
+.alert {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--space) / 2);
+  padding: calc(var(--space) / 2) calc(var(--space) * 1.5);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  border: 1px solid var(--color-rule);
+  color: var(--color-ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.alertOn {
+  background: var(--color-demand);
+  border-color: var(--color-demand);
+  color: var(--color-demand-ink);
+}
+
+.twocol {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: calc(var(--space) * 3);
+}
+
+.barRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space);
+  padding-block: calc(var(--space) / 2);
+}
+
+.barLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.barTrack {
+  grid-column: 1 / -1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-rule);
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  background: var(--color-action);
+}
+
+.funnel {
+  display: grid;
+  gap: var(--space);
+}
+
+.funnelStep {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space);
+  padding: var(--space) calc(var(--space) * 1.5);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius);
+}
