@@ -1,7 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { validateScoreSubmission, MAX_SCORE_PER_BALL } from "@/domains/game/validation";
+import {
+  validateScoreSubmission,
+  MAX_SCORE_PER_BALL,
+  type ValidationResult,
+} from "@/domains/game/validation";
 
 const ok = { score: 120, ballsPlaced: 40, maxTier: 6, durationMs: 60_000 };
+const reasonOf = (r: ValidationResult): string | null => (r.ok ? null : r.reason);
 
 describe("validateScoreSubmission", () => {
   it("accepts a plausible payload", () => {
@@ -30,17 +35,17 @@ describe("validateScoreSubmission", () => {
   });
 
   it("rejects out-of-range duration", () => {
-    expect(validateScoreSubmission({ ...ok, durationMs: 2_999 }).reason).toBe("duration_out_of_range");
-    expect(validateScoreSubmission({ ...ok, durationMs: 7_200_001 }).reason).toBe("duration_out_of_range");
+    expect(reasonOf(validateScoreSubmission({ ...ok, durationMs: 2_999 }))).toBe("duration_out_of_range");
+    expect(reasonOf(validateScoreSubmission({ ...ok, durationMs: 7_200_001 }))).toBe("duration_out_of_range");
   });
 
   it("rejects out-of-range ballsPlaced", () => {
-    expect(validateScoreSubmission({ ...ok, ballsPlaced: 0, score: 0 }).reason).toBe("balls_out_of_range");
-    expect(validateScoreSubmission({ ...ok, ballsPlaced: 100_001 }).reason).toBe("balls_out_of_range");
+    expect(reasonOf(validateScoreSubmission({ ...ok, ballsPlaced: 0, score: 0 }))).toBe("balls_out_of_range");
+    expect(reasonOf(validateScoreSubmission({ ...ok, ballsPlaced: 100_001 }))).toBe("balls_out_of_range");
   });
 
   it("rejects out-of-range maxTier", () => {
-    expect(validateScoreSubmission({ ...ok, maxTier: 0 }).reason).toBe("tier_out_of_range");
-    expect(validateScoreSubmission({ ...ok, maxTier: 12 }).reason).toBe("tier_out_of_range");
+    expect(reasonOf(validateScoreSubmission({ ...ok, maxTier: 0 }))).toBe("tier_out_of_range");
+    expect(reasonOf(validateScoreSubmission({ ...ok, maxTier: 12 }))).toBe("tier_out_of_range");
   });
 });
