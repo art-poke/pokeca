@@ -47,7 +47,7 @@ export const GameLeaderboard = ({ currentUserId }: Props) => {
         {data &&
           data.entries.map((e) => (
             <Row
-              key={e.userId}
+              key={e.id}
               rank={e.rank}
               name={e.name}
               image={e.image}

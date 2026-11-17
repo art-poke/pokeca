@@ -9,12 +9,13 @@ import { gameScores } from "@/lib/db/schema";
 export type LeaderboardScope = "all" | "month";
 
 export type LeaderboardEntry = {
+  id: string; // game_scores 행 id(판 단위, React key)
   rank: number;
   userId: string;
   name: string;
   image: string | null;
   score: number;
-  comment: string | null; // 최고기록에 남긴 한줄평
+  comment: string | null; // 그 판에 남긴 한줄평
 };
 
 export type LeaderboardResult = {
@@ -68,25 +69,23 @@ export const getLeaderboard = async (
   const start = scope === "month" ? monthStart() : null;
 
   // 유저별 '최고 점수 행'(distinct on)을 골라 그 행의 한줄평까지 함께 가져온다.
+  // 매 판(모든 game_scores 행)을 다 보여준다 — 같은 사람도 여러 번 등장. 점수순.
   // 닉네임은 artists.display_name이 정본(없으면 users.name). 둘 다 없으면 JS에서 '플레이어' 폴백.
   const res = await db.execute(sql`
-    select t.user_id, t.score::int as score, t.comment,
+    select gs.id, gs.user_id, gs.score::int as score, gs.comment,
            coalesce(nullif(btrim(a.display_name), ''), nullif(btrim(u.name), '')) as name,
            u.image
-    from (
-      select distinct on (gs.user_id) gs.user_id, gs.score, gs.comment, gs.played_at
-      from game_scores gs
-      ${start ? sql`where gs.played_at >= ${start}` : sql``}
-      order by gs.user_id, gs.score desc, gs.played_at desc
-    ) t
-    join users u on u.id = t.user_id
-    left join artists a on a.user_id = t.user_id
-    order by t.score desc, t.played_at asc
+    from game_scores gs
+    join users u on u.id = gs.user_id
+    left join artists a on a.user_id = gs.user_id
+    ${start ? sql`where gs.played_at >= ${start}` : sql``}
+    order by gs.score desc, gs.played_at asc
     limit ${limit}
   `);
 
-  type Row = { user_id: string; score: number; comment: string | null; name: string | null; image: string | null };
+  type Row = { id: string; user_id: string; score: number; comment: string | null; name: string | null; image: string | null };
   const entries: LeaderboardEntry[] = (res.rows as Row[]).map((r, i) => ({
+    id: r.id,
     rank: i + 1,
     userId: r.user_id,
     name: r.name?.trim() || "플레이어",
@@ -103,13 +102,10 @@ export const getLeaderboard = async (
     );
     const meBest = (meRes.rows?.[0] as { best: number | null } | undefined)?.best;
     if (meBest != null) {
-      // 내 최고점보다 높은 유저 수 + 1 = 내 순위.
+      // 모든 판 중 내 최고점보다 높은 '판' 수 + 1 = 내 최고기록의 순위.
       const higher = await db.execute(
-        sql`select count(*)::int as n from (
-              select user_id, max(score) as b from game_scores
-              ${start ? sql`where played_at >= ${start}` : sql``}
-              group by user_id having max(score) > ${meBest}
-            ) t`,
+        sql`select count(*)::int as n from game_scores
+            where score > ${meBest} ${start ? sql`and played_at >= ${start}` : sql``}`,
       );
       const n = Number((higher.rows?.[0] as { n?: number } | undefined)?.n ?? 0);
       me = { rank: n + 1, score: Number(meBest) };

@@ -3,6 +3,7 @@
 export type LeaderboardScope = "all" | "month";
 
 export type LeaderboardEntry = {
+  id: string;
   rank: number;
   userId: string;
   name: string;
