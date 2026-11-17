@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useLeaderboard } from "../hooks";
 import type { LeaderboardScope } from "../api/types";
+import { BallBadge } from "./ball-badge";
 
 type Props = { currentUserId: string };
 
@@ -89,7 +90,8 @@ const Row = ({ rank, name, image, score, comment, me }: RowProps) => (
       // eslint-disable-next-line @next/next/no-img-element
       <img src={image} alt="" className="h-6 w-6 flex-none rounded-full object-cover" />
     ) : (
-      <span className="h-6 w-6 flex-none rounded-full bg-[#ddd]" />
+      // 프로필 이미지 없으면 기본 몬스터볼.
+      <BallBadge tier={1} size={24} />
     )}
     <div className="min-w-0 flex-1">
       <span className="block truncate font-semibold">{name}</span>
