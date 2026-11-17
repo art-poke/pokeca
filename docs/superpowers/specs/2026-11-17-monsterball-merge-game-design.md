@@ -72,6 +72,11 @@ art-poke 사이트에 넣는 **웹 미니게임**. 수박게임(스이카) 머�
 **설계 원칙**: "순수 게임 로직 / React·캔버스 / 백엔드"를 3층으로 분리. 엔진은 React도
 matter.js 렌더러도 모르는 순수 TS → 단위 테스트 용이, 점수 신뢰도 유리.
 
+> 폴더 구조는 canonical 도메인(`domains/artwork`) 컨벤션을 따른다: `api/`에
+> `endpoints.ts`(경로 상수) + `queries.ts`(읽기 + Query Key Factory) +
+> `actions.ts`(쓰기) + `types.ts`, 그리고 **React 컴포넌트는 도메인 폴더 안
+> `components/`** 에 둔다(top-level `components/`가 아님).
+
 ```
 domains/game/
   engine/                  ← 순수 TS, React/캔버스 의존 0
@@ -82,17 +87,18 @@ domains/game/
     types.ts
   api/
     endpoints.ts           ← API 경로 상수
+    queries.ts             ← 리더보드 읽기 + Query Key Factory (react-query)
+    actions.ts             ← 점수 제출 쓰기 (apiFetch → route handler)
     types.ts               ← 요청/응답 DTO
   validation.ts            ← 서버측 '가벼운 검증' 로직
-  hooks.ts                 ← react-query: 점수 제출 / 리더보드 조회
-
-components/game/           ← 'use client', React + 캔버스 층
-  game-canvas.tsx          ← <canvas> 마운트, 엔진 구동, 매 프레임 렌더, 입력(마우스/터치)
-  game-cabinet.tsx         ← 인형뽑기 캐비닛 프레임(CSS/SVG 장식)
-  game-hud.tsx             ← 점수·다음 공·게임오버 오버레이
-  game-leaderboard.tsx     ← 랭킹(역대/월별 탭)
-  effects.ts              ← 머지 이펙트 파티클 시스템(렌더러 전용)
-  ball-sprites.ts         ← 11등급 볼을 오프스크린 캔버스에 1회 렌더(프로그래매틱)
+  hooks.ts                 ← 게임 전용 UI 훅(필요 시)
+  components/              ← 'use client', React + 캔버스 층
+    game-canvas.tsx        ← <canvas> 마운트, 엔진 구동, 매 프레임 렌더, 입력(마우스/터치)
+    game-cabinet.tsx       ← 인형뽑기 캐비닛 프레임(CSS/SVG 장식)
+    game-hud.tsx           ← 점수·다음 공·게임오버 오버레이
+    game-leaderboard.tsx   ← 랭킹(역대/월별 탭)
+    effects.ts             ← 머지 이펙트 파티클 시스템(렌더러 전용)
+    ball-sprites.ts        ← 11등급 볼을 오프스크린 캔버스에 1회 렌더(프로그래매틱)
 
 app/play/                  ← 라우트(이름 임시, 변경 가능), 인증 게이트 뒤
   page.tsx
@@ -148,11 +154,15 @@ game_scores
 
 - **역대 최고점**: 유저별 `MAX(score)` (전체 기간)
 - **월별**: `played_at`이 해당 월인 레코드만 필터 → 매달 자동 리셋 효과(별도 테이블/수동 리셋 불필요)
+- **신뢰 경계 주의**: `played_at`은 "월 버킷 키"이자 검증 대상이므로 **서버에서 insert
+  시각으로 설정**(클라이언트 제공값 신뢰 금지). `created_at`과 동일하게 서버 타임으로 세팅해
+  둘이 임의로 벌어지지 않게 한다.
 
 ### 7.2 가벼운 검증 (`validation.ts`, 서버)
 
 - **로그인 필수**(next-auth 세션). 비로그인 제출 거절.
-- 제출 빈도 제한(예: 유저당 시간당 N회 — 기존 `report_throttle` 패턴 재사용).
+- 제출 빈도 제한(예: 유저당 시간당 N회 — 기존 `report_throttle` 패턴 재사용; 해당 테이블은
+  `lib/db/schema.ts:301` `reportThrottle`로 실재 확인됨).
 - `score ≤ ballsPlaced 기준 이론상 최대치`, `durationMs ∈ [3초, 2시간]`,
   `score↔max_tier 일관성` → 벗어나면 400 거절.
 - 한계 인지: 가벼운 검증은 "그럴듯한 위조 payload"를 막지 못함. 상금·보상 없는 순수
