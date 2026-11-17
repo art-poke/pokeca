@@ -67,12 +67,12 @@ describe("pickDropTier (deterministic via injected rng)", () => {
   });
 
   it("maps mid-bucket values correctly", () => {
-    // weights [.30,.28,.22,.14,.06] -> cum ~[.30,.58,.80,.94,1.0]
+    // weights [.38,.30,.19,.09,.04] -> cum ~[.38,.68,.87,.96,1.0]
     // 경계값은 부동소수 오차로 모호하므로 각 버킷 내부 값으로 검증한다.
-    expect(pickDropTier(() => 0.15)).toBe(1); // (0,.30)
-    expect(pickDropTier(() => 0.45)).toBe(2); // (.30,.58)
-    expect(pickDropTier(() => 0.7)).toBe(3); //  (.58,.80)
-    expect(pickDropTier(() => 0.87)).toBe(4); // (.80,.94)
-    expect(pickDropTier(() => 0.97)).toBe(5); // (.94,1.0)
+    expect(pickDropTier(() => 0.2)).toBe(1); //  (0,.38)
+    expect(pickDropTier(() => 0.5)).toBe(2); //  (.38,.68)
+    expect(pickDropTier(() => 0.78)).toBe(3); // (.68,.87)
+    expect(pickDropTier(() => 0.92)).toBe(4); // (.87,.96)
+    expect(pickDropTier(() => 0.98)).toBe(5); // (.96,1.0)
   });
 });

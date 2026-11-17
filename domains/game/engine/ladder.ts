@@ -48,7 +48,8 @@ export const GAME_OVER_MS = 1000; // 데드라인 위 연속 체류 임계
 export const MASTER_POP_BONUS = 100; // 마스터볼끼리 머지 시 보너스
 
 // 드롭 가능한 하위 5등급의 등장 가중치(작은 볼일수록 자주).
-export const DROP_WEIGHTS: readonly number[] = [0.3, 0.28, 0.22, 0.14, 0.06];
+// tier4(프리미어볼=흰색, 반지름 큼)·tier5는 드물게 나오도록 낮춘다.
+export const DROP_WEIGHTS: readonly number[] = [0.38, 0.3, 0.19, 0.09, 0.04];
 
 export const tierConfig = (tier: number): TierConfig => {
   const cfg = TIERS[tier - 1];

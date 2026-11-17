@@ -18,7 +18,7 @@ export const GameLeaderboard = ({ currentUserId }: Props) => {
   const meInTop = data?.entries.some((e) => e.userId === currentUserId) ?? false;
 
   return (
-    <div className="flex min-h-0 flex-col rounded-2xl border border-[#e6e1d8] bg-white p-4 shadow-sm">
+    <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-[#e6e1d8] bg-white p-4 shadow-sm">
       <h2 className="mb-3 flex items-center gap-2 text-sm font-extrabold">🏆 리더보드</h2>
 
       <div className="mb-3 flex gap-1 rounded-lg bg-[#f4f1ec] p-1">

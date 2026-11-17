@@ -7,6 +7,7 @@ import { useSubmitScore } from "../hooks";
 import { GameCabinet } from "./game-cabinet";
 import { GameCanvas, type GameUiState } from "./game-canvas";
 import { GameHud } from "./game-hud";
+import { GameLadder } from "./game-ladder";
 import { GameLeaderboard } from "./game-leaderboard";
 
 type Props = { currentUserId: string };
@@ -61,9 +62,10 @@ export const GameBoard = ({ currentUserId }: Props) => {
         </GameCabinet>
       </div>
 
-      {/* 오른쪽: 리더보드 (데스크탑) */}
-      <aside className="hidden w-[320px] shrink-0 py-2 md:flex md:flex-col">
+      {/* 오른쪽: 리더보드 + 볼 사다리 (데스크탑) */}
+      <aside className="hidden w-[320px] shrink-0 flex-col gap-3 py-2 md:flex">
         <GameLeaderboard currentUserId={currentUserId} />
+        <GameLadder />
       </aside>
     </div>
   );
