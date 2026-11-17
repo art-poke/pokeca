@@ -3,6 +3,7 @@
 import {
   ChevronLeft,
   ChevronRight,
+  Gamepad2,
   Home,
   Megaphone,
   Menu,
@@ -23,6 +24,7 @@ const NAV = [
   { href: "/", label: "홈", icon: Home },
   { href: "/search", label: "카드 검색", icon: Search },
   { href: "/ranking", label: "랭킹", icon: Trophy },
+  { href: "/play", label: "몬스터볼 게임", icon: Gamepad2 },
   { href: "/requests", label: "도안 요청해요", icon: Megaphone },
   { href: "/community", label: "커뮤니티", icon: MessagesSquare },
   { href: "/me", label: "마이페이지", icon: User },

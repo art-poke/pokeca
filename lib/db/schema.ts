@@ -336,3 +336,19 @@ export const artistReviews = pgTable("artist_reviews", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
 });
+
+// 몬스터볼 수박게임 점수 (infra/db/migrations/20261117_120000_game_scores.sql 거울).
+// 역대 최고 = 유저별 MAX(score), 월별 = played_at 기준 필터. played_at은 서버 설정.
+export const gameScores = pgTable("game_scores", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  score: bigint("score", { mode: "number" }).notNull(),
+  ballsPlaced: smallint("balls_placed").notNull(),
+  maxTier: smallint("max_tier").notNull(),
+  durationMs: bigint("duration_ms", { mode: "number" }).notNull(),
+  comment: text("comment"), // 한줄평(최대 10자, 선택)
+  playedAt: timestamp("played_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});

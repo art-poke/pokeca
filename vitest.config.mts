@@ -30,6 +30,14 @@ export default defineConfig({
       }
     }, {
       extends: true,
+      test: {
+        // 게임 엔진/검증 등 순수 유닛 테스트. DB를 쓰지 않으므로 리시드 globalSetup을 붙이지 않는다.
+        name: 'game',
+        include: ["domains/game/**/*.test.ts"],
+        fileParallelism: false
+      }
+    }, {
+      extends: true,
       plugins: [
       // The plugin will run tests for the stories defined in your Storybook config
       // See options at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon#storybooktest
