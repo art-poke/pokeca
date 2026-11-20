@@ -52,7 +52,7 @@ domains/{도메인}/
 ```
 
 ### 데이터 경로
-- **읽기**: 서버컴포넌트/서버액션 → `lib/*` 함수 직접 호출(네트워크 홉 없음) → Supabase.
+- **읽기**: 서버컴포넌트/서버액션 → `lib/*` 함수 직접 호출(별도 HTTP 홉 없음) → PostgreSQL(운영은 RDS).
 - **쓰기**: 클라 훅 → `lib/api/client`의 `apiFetch('/api/...')` → 기존 route handler → `lib/*`.
 
 ### 의존 방향 (한 방향 아래로만)
