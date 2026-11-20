@@ -48,7 +48,7 @@ CloudFront 없음(소규모라 생략, 나중 무중단 추가). 메일은 Resen
        "Condition": {
          "StringEquals": {
            "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
-           "token.actions.githubusercontent.com:sub": "repo:art-poke/pokeca:ref:refs/heads/main"
+           "token.actions.githubusercontent.com:sub": "repo:art-poke@350312211/pokeca@1439814225:ref:refs/heads/main"
          }
        }
      }]
