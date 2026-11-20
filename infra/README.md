@@ -29,6 +29,35 @@ CloudFront 없음(소규모라 생략, 나중 무중단 추가). 메일은 Resen
 
 ## 실행 순서
 
+### GitHub Actions 운영 배포 (초기 설정 1회)
+
+`art-poke/pokeca`의 `main`에 푸시하면 [Deploy production](../.github/workflows/deploy-production.yml)이 기존 `scripts/deploy.sh`를 실행한다. Actions 탭에서 `main`을 선택해 수동 재실행할 수도 있다.
+
+1. AWS 계정 `138681986450`의 IAM에 GitHub OIDC 공급자(`https://token.actions.githubusercontent.com`, 대상 `sts.amazonaws.com`)가 없으면 추가한다.
+2. 그 공급자를 신뢰하는 전용 배포 역할을 만든다. 신뢰 정책은 아래처럼 저장소와 `main` 브랜치로 제한한다. 역할에는 기존 운영 Terraform 배포에 필요한 권한을 부여한다. 여기에는 서울 S3 상태 객체 및 잠금 파일 접근, 도쿄 운영 리소스 조회·변경, Lambda 패키지 및 정적 자산 업로드, CloudFront 무효화가 포함된다.
+
+   ```json
+   {
+     "Version": "2012-10-17",
+     "Statement": [{
+       "Effect": "Allow",
+       "Principal": {
+         "Federated": "arn:aws:iam::138681986450:oidc-provider/token.actions.githubusercontent.com"
+       },
+       "Action": "sts:AssumeRoleWithWebIdentity",
+       "Condition": {
+         "StringEquals": {
+           "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+           "token.actions.githubusercontent.com:sub": "repo:art-poke/pokeca:ref:refs/heads/main"
+         }
+       }
+     }]
+   }
+   ```
+
+3. GitHub 저장소 **Settings → Secrets and variables → Actions**에서 역할 ARN을 변수 `AWS_DEPLOY_ROLE_ARN`에 넣고, 운영 OAuth 값을 각각 Secret으로 등록한다. 이름은 `AUTH_KAKAO_ID`, `AUTH_KAKAO_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`이다.
+4. 첫 실행에서 **Deploy** 및 **Check production** 성공 여부를 확인한다. 마이그레이션 Lambda 패키지는 함께 갱신되며, 운영 DB SQL 적용은 아래 스키마 변경 절차에 따라 별도로 실행한다.
+
 ### 0. 상태 버킷 부트스트랩 (1회)
 
 ```bash

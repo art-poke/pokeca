@@ -1,5 +1,6 @@
 import { Megaphone } from "lucide-react";
 import Link from "next/link";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { RowsSkeleton } from "@/components/skeletons";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +27,7 @@ export default function RequestsPage() {
 }
 
 async function List() {
+  await connection();
   const items = await listOpenRequests();
   if (items.length === 0) {
     return (

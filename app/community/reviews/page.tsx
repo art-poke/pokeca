@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { CommunityTabs } from "@/components/community-tabs";
 import { ReviewArtistSearch } from "@/components/review-artist-search";
@@ -36,6 +37,7 @@ export default function ReviewsPage() {
 }
 
 async function Feed() {
+  await connection();
   const reviews = await recentReviews(15);
   if (reviews.length === 0) {
     return (

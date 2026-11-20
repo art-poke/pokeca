@@ -1,0 +1,80 @@
+name: Deploy production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: pokeca-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.repository == 'art-poke/pokeca' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      TF_IN_AUTOMATION: "true"
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Check deployment configuration
+        env:
+          AWS_DEPLOY_ROLE_ARN: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          AUTH_KAKAO_ID: ${{ secrets.AUTH_KAKAO_ID }}
+          AUTH_KAKAO_SECRET: ${{ secrets.AUTH_KAKAO_SECRET }}
+          AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
+          AUTH_GOOGLE_SECRET: ${{ secrets.AUTH_GOOGLE_SECRET }}
+        run: |
+          for key in AWS_DEPLOY_ROLE_ARN AUTH_KAKAO_ID AUTH_KAKAO_SECRET AUTH_GOOGLE_ID AUTH_GOOGLE_SECRET; do
+            if [[ -z "${!key}" ]]; then
+              echo "::error::Missing production configuration: $key"
+              exit 1
+            fi
+          done
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+        with:
+          terraform_version: 1.13.5
+          terraform_wrapper: false
+
+      - name: Install dependencies and stage Lambda migrations
+        run: |
+          npm ci
+          npm ci --omit=dev --prefix infra/lambda-healthcheck
+          npm ci --omit=dev --prefix infra/lambda-migrate
+          mkdir -p infra/lambda-migrate/sql
+          cp -R infra/db/. infra/lambda-migrate/sql/
+
+      - uses: aws-actions/configure-aws-credentials@cabfdba3510de1431bac9dba27511d97497fc100 # v5
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          role-session-name: github-${{ github.run_id }}
+          aws-region: ap-northeast-1
+          allowed-account-ids: "138681986450"
+
+      - name: Initialize Terraform
+        run: terraform -chdir=infra init -input=false -lockfile=readonly
+
+      - name: Deploy
+        env:
+          TF_VAR_auth_kakao_id: ${{ secrets.AUTH_KAKAO_ID }}
+          TF_VAR_auth_kakao_secret: ${{ secrets.AUTH_KAKAO_SECRET }}
+          TF_VAR_auth_google_id: ${{ secrets.AUTH_GOOGLE_ID }}
+          TF_VAR_auth_google_secret: ${{ secrets.AUTH_GOOGLE_SECRET }}
+        run: bash scripts/deploy.sh
+
+      - name: Check production
+        run: curl --fail --silent --show-error --location --retry 5 --retry-all-errors --max-time 30 https://artpokeca.com/ --output /dev/null
