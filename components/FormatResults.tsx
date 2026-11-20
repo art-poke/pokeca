@@ -1,30 +1,53 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useCardRequestsQuery, useRequestFormatMutation } from "@/domains/card-request/hooks";
+import { isApiError } from "@/lib/api/errors";
 import type { PublicArtwork } from "@/lib/artworks";
 import { FORMAT_INFO, FORMATS, type Format } from "@/lib/formats";
+import { showLoginNudge } from "@/lib/toast/gr-toast";
 import { cn } from "@/lib/utils";
 import { ArtworkItem } from "./ArtworkItem";
 
 // 카드 상세의 작품 영역. 규격 필터 → 미리보기 타일 그리드 / 빈 상태(찾기 요청).
-// 요청 상태는 방문자별이라 마운트 뒤 따로 불러온다(페이지 HTML은 방문자와 무관).
+// 요청 상태는 계정별이라 마운트 뒤 따로 불러온다.
 
 type Filter = "all" | Format;
 type RequestStatus = { requested: boolean; waiting: number | null };
 type Pending = { format: Format; phase: "sending" | "failed" } | null;
 
-export function FormatResults({ cardId, artworks }: { cardId: string; artworks: PublicArtwork[] }) {
+export function FormatResults({
+  cardId,
+  artworks,
+  isMember,
+}: {
+  cardId: string;
+  artworks: PublicArtwork[];
+  isMember: boolean;
+}) {
+  const router = useRouter();
   const [filter, setFilter] = useState<Filter>("all");
   const [pending, setPending] = useState<Pending>(null);
   const { data: requests } = useCardRequestsQuery(cardId);
-  const { mutate: requestFormat } = useRequestFormatMutation(cardId);
+  const { mutate: requestFormat, isPending } = useRequestFormatMutation(cardId);
+  const nudge = () =>
+    showLoginNudge("로그인하면 요청할 수 있어요", () => router.push("/artist/login"));
 
   function request(format: Format) {
+    if (!isMember) return nudge();
+    if (requests?.[format]?.requested || isPending) return;
     setPending({ format, phase: "sending" });
     requestFormat(format, {
       onSuccess: () => setPending(null), // 캐시 갱신은 훅이 처리
-      onError: () => setPending({ format, phase: "failed" }),
+      onError: (error) => {
+        if (isApiError(error) && error.status === 401) {
+          setPending(null);
+          nudge();
+          return;
+        }
+        setPending({ format, phase: "failed" });
+      },
     });
   }
 

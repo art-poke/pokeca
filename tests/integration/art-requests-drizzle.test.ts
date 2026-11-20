@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
+  artRequestState,
   listOpenRequests,
   requestArt,
   requestedFormats,
@@ -52,6 +53,9 @@ describe("requestArt / requestedFormats (23505 dedup)", () => {
     expect((await requestedFormats(m1, card)).sort()).toEqual(["9pocket", "psa"]);
     // 회원별 분리.
     expect(await requestedFormats(m2, card)).toEqual([]);
+    expect((await artRequestState(card, m1))["9pocket"]).toEqual({ requested: true, waiting: null });
+    expect((await artRequestState(card, m2))["9pocket"]).toEqual({ requested: false, waiting: null });
+    expect((await artRequestState(card, null))["9pocket"]).toEqual({ requested: false, waiting: null });
 
     const rows = await db.select().from(requests).where(eq(requests.userId, m1));
     expect(rows).toHaveLength(2);
@@ -76,7 +80,7 @@ describe("listOpenRequests", () => {
     expect(psa.count).toBe(1);
     expect(nine).toMatchObject({
       name: `${TAG} 리자몽`,
-      formatLabel: "9포켓",
+      formatLabel: "9포켓 슬리브",
       cardPath: `/cards/${SET_CODE}/201-165`,
     });
     // 집계 내 9pocket이 psa보다 앞(내림차순).
@@ -92,6 +96,7 @@ describe("resolveRequests / resolvedCountByArtist", () => {
     await resolveRequests(card, "9pocket", artist);
     // 해결되면 미해결 목록·내 미해결 규격에서 빠진다.
     expect(await requestedFormats(m1, card)).toEqual(["psa"]);
+    expect((await artRequestState(card, m1))["9pocket"]).toEqual({ requested: false, waiting: null });
     const list = await listOpenRequests();
     const nine = list.find(
       (i) => i.cardLabel === `${SET_CODE} 201/165` && i.format === "9pocket",

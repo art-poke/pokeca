@@ -1,25 +1,29 @@
 import { after } from "next/server";
+import { artRequestState, requestArt } from "@/lib/art-requests";
+import { memberRoute } from "@/lib/artist-route";
+import { currentMember } from "@/lib/artists";
 import { isFormat } from "@/lib/formats";
-import { cardExists, createRequest, recordDemandIfEmpty, requestState } from "@/lib/requests";
+import { cardExists, recordDemandIfEmpty } from "@/lib/requests";
 import { visitorId } from "@/lib/visitor";
 
-// 카드 상세의 요청 상태는 방문자별이라 페이지와 따로 불러온다 (eng R8).
+// 대기 인원은 공개하고, 내 요청 여부는 로그인한 계정으로 조회한다.
 export async function GET(_request: Request, ctx: RouteContext<"/api/cards/[id]/requests">) {
   const { id } = await ctx.params;
   if (!(await cardExists(id))) return Response.json({ code: "not_found" }, { status: 404 });
-  const visitor = await visitorId();
+  const [visitor, member] = await Promise.all([visitorId(), currentMember()]);
   after(() => recordDemandIfEmpty(id, visitor).catch((e) => console.error("card_demand", e)));
-  return Response.json(await requestState(id, visitor), { headers: { "Cache-Control": "private, no-store" } });
+  return Response.json(await artRequestState(id, member?.userId ?? null), {
+    headers: { "Cache-Control": "private, no-store" },
+  });
 }
 
-// 찾기 요청 (design 5A, eng E5). 같은 방문자의 재요청은 조용히 성공으로 처리한다.
-export async function POST(request: Request, ctx: RouteContext<"/api/cards/[id]/requests">) {
-  const { id } = await ctx.params;
-  const body = await request.json().catch(() => ({}));
-  if (!isFormat(body?.format)) return Response.json({ code: "invalid_format" }, { status: 400 });
-  if (!(await cardExists(id))) return Response.json({ code: "not_found" }, { status: 404 });
-  const visitor = await visitorId();
-  if (!visitor) return Response.json({ code: "no_visitor" }, { status: 400 });
-  await createRequest(id, body.format, visitor);
-  return Response.json(await requestState(id, visitor));
-}
+export const POST = memberRoute(
+  async (request, ctx: RouteContext<"/api/cards/[id]/requests">, member) => {
+    const { id } = await ctx.params;
+    const body = await request.json().catch(() => ({}));
+    if (!isFormat(body?.format)) return Response.json({ code: "invalid_format" }, { status: 400 });
+    if (!(await cardExists(id))) return Response.json({ code: "not_found" }, { status: 404 });
+    await requestArt(member.userId, id, body.format);
+    return Response.json(await artRequestState(id, member.userId));
+  },
+);

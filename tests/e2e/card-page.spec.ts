@@ -100,21 +100,32 @@ test("an artwork hidden after the page loaded says it is no longer offered", asy
   await expect(page.getByText("이 도안은 더 이상 제공되지 않아요")).toBeVisible();
 });
 
-test("empty format chip shows the find request only when selected, and it sticks (design 5A)", async ({ page }) => {
+test("both card request buttons prompt for login and their APIs reject guests", async ({ page }) => {
   await seedArtwork({ artist: "구포켓", format: "9pocket" });
   await page.goto(CARD);
   await expect(page.getByText("도안 찾아 주세요")).toHaveCount(0);
 
-  await page.getByRole("button", { name: /^BRG/ }).click();
-  await expect(page.getByRole("button", { name: /^BRG/ })).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByRole("heading", { name: "이 카드의 BRG 도안 찾아 주세요" })).toBeVisible();
-  await page.getByRole("button", { name: "찾기 요청" }).click();
-  await expect(page.getByText("요청이 기록됐어요 · 등록되면 이 페이지에 나타나요")).toBeVisible();
+  await page.getByRole("button", { name: "BRG 요청", exact: true }).click();
+  await expect(page.getByText("로그인하면 요청할 수 있어요")).toBeVisible();
 
-  await page.reload();
-  await page.getByRole("button", { name: /^BRG/ }).click();
-  await expect(page.getByText("요청이 기록됐어요 · 등록되면 이 페이지에 나타나요")).toBeVisible();
-  await expect(page.getByRole("button", { name: "찾기 요청" })).toHaveCount(0);
+  const filter = page.getByRole("group", { name: "규격" }).getByRole("button", { name: /^BRG/ });
+  await filter.click();
+  await expect(filter).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("heading", { name: "이 카드의 BRG 도안 찾아 주세요" })).toBeVisible();
+
+  const [card] = await sql<{ id: string }[]>`select id from cards where set_code = 'sv2a' and collector_number = '201/165'`;
+  for (const endpoint of ["request", "requests"]) {
+    const response = await page.request.post(`/api/cards/${card.id}/${endpoint}`, { data: { format: "brg" } });
+    expect(response.status()).toBe(401);
+  }
+
+  await page.getByRole("button", { name: "찾기 요청", exact: true }).click();
+  const loginPrompt = page.getByRole("listitem").filter({ hasText: "로그인하면 요청할 수 있어요" }).last();
+  await loginPrompt.getByRole("button", { name: "로그인", exact: true }).click();
+  await expect(page).toHaveURL(/\/artist\/login/);
+
+  const [{ count }] = await sql<{ count: number }[]>`select count(*)::int from requests where card_id = ${card.id}`;
+  expect(count).toBe(0);
 });
 
 test("a card with no artworks asks which format, and shows waiting counts from 3 (eng E5)", async ({ page }) => {
@@ -127,14 +138,11 @@ test("a card with no artworks asks which format, and shows waiting counts from 3
   await expect(page.getByText("3명이 기다리는 중")).toBeVisible();
 
   await page.getByRole("button", { name: "PSA 찾기 요청" }).click();
-  await expect(page.getByRole("button", { name: "PSA 요청함" })).toBeDisabled();
-  await page.reload();
-  await expect(page.getByRole("button", { name: "PSA 요청함" })).toBeDisabled();
-  await expect(page.getByRole("button", { name: "PSA 0 요청함" })).toHaveAttribute("aria-pressed", "false");
+  await expect(page.getByText("로그인하면 요청할 수 있어요")).toBeVisible();
 
   const [{ count }] = await sql<{ count: number }[]>`
     select count(*)::int from requests where card_id = ${card.id} and format = 'psa'`;
-  expect(count).toBe(1);
+  expect(count).toBe(0);
 });
 
 test("report dialog from the ··· menu saves a report (design 14A)", async ({ page }) => {

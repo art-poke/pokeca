@@ -1,6 +1,6 @@
 import "server-only";
-import { and, count, eq, isNotNull, isNull } from "drizzle-orm";
-import { FORMAT_INFO, type Format, isFormat } from "@/lib/formats";
+import { and, count, eq, isNotNull, isNull, sql } from "drizzle-orm";
+import { FORMAT_INFO, FORMATS, type Format, isFormat } from "@/lib/formats";
 import { db } from "@/lib/db";
 import { cards, requests } from "@/lib/db/schema";
 import { isUniqueViolation } from "@/lib/db/errors";
@@ -28,6 +28,27 @@ export async function requestedFormats(userId: string, cardId: string): Promise<
       and(eq(requests.cardId, cardId), eq(requests.userId, userId), isNull(requests.resolvedAt)),
     );
   return data.map((r) => r.format).filter((f): f is Format => isFormat(f));
+}
+
+export async function artRequestState(cardId: string, userId: string | null) {
+  const rows = await db
+    .select({
+      format: requests.format,
+      waiting: count(),
+      requested: sql<boolean>`coalesce(bool_or(${requests.userId} = ${userId}), false)`,
+    })
+    .from(requests)
+    .where(and(eq(requests.cardId, cardId), isNull(requests.resolvedAt)))
+    .groupBy(requests.format);
+
+  const byFormat = new Map(rows.map((row) => [row.format, row]));
+  return Object.fromEntries(FORMATS.map((format) => {
+    const row = byFormat.get(format);
+    return [format, {
+      requested: row?.requested ?? false,
+      waiting: row && row.waiting >= 3 ? row.waiting : null,
+    }];
+  }));
 }
 
 export type RequestedItem = {

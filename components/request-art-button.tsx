@@ -2,8 +2,7 @@
 
 import { Megaphone } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useRequestArtMutation } from "@/domains/card-request/hooks";
+import { useCardRequestsQuery, useRequestFormatMutation } from "@/domains/card-request/hooks";
 import { isApiError } from "@/lib/api/errors";
 import { showErrorToast, showLoginNudge, showSuccessToast } from "@/lib/toast/gr-toast";
 import { FORMAT_INFO, type Format } from "@/lib/formats";
@@ -13,16 +12,14 @@ export const RequestArtButton = ({
   cardId,
   isMember,
   missingFormats,
-  requestedFormats,
 }: {
   cardId: string;
   isMember: boolean;
   missingFormats: Format[];
-  requestedFormats: Format[];
 }) => {
   const router = useRouter();
-  const [requested, setRequested] = useState<Format[]>(requestedFormats);
-  const { mutate, isPending, variables: sendingFormat } = useRequestArtMutation(cardId);
+  const { data: requests } = useCardRequestsQuery(cardId);
+  const { mutate, isPending, variables: sendingFormat } = useRequestFormatMutation(cardId);
 
   if (missingFormats.length === 0) return null;
 
@@ -31,10 +28,9 @@ export const RequestArtButton = ({
 
   function request(format: Format) {
     if (!isMember) return nudge();
-    if (requested.includes(format) || isPending) return;
+    if (requests?.[format]?.requested || isPending) return;
     mutate(format, {
       onSuccess: () => {
-        setRequested((r) => [...r, format]);
         showSuccessToast(`${FORMAT_INFO[format].label} 도안을 요청했어요`);
       },
       onError: (error) => {
@@ -51,7 +47,7 @@ export const RequestArtButton = ({
         없는 규격 요청:
       </span>
       {missingFormats.map((f) => {
-        const done = requested.includes(f);
+        const done = requests?.[f]?.requested;
         return (
           <button
             key={f}
