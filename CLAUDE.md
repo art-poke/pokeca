@@ -11,7 +11,7 @@
 - **AWS: 계정 `138681986450`, 항상 `AWS_PROFILE=artpoke`** (회사 계정 금지). 리전 `ap-northeast-1`(도쿄), ACM만 us-east-1, TF 상태버킷 `pokeca-tfstate-138681986450`(서울, key `phase1/terraform.tfstate`).
 - **아키텍처**: CloudFront → API Gateway(HTTP API) → Lambda(OpenNext server/image), 정적=S3(OAC), DB=RDS(private·SSL), 아웃바운드=NAT 인스턴스(fck-nat).
 - **앱 배포(코드 변경 시)**: `main` 푸시 시 GitHub Actions에서 자동 배포(OIDC 초기 설정은 `infra/README.md`). 로컬 수동 배포는 `AWS_PROFILE=artpoke bash scripts/deploy.sh`
-  (OpenNext build → zip(.cache 제외) → app-server.zip S3 업로드(70MB한도) → `terraform apply` → assets S3 sync → CloudFront invalidation).
+  (OpenNext build → assets S3 sync → GitHub Actions는 앱 Lambda 코드 갱신, 로컬은 `terraform apply` → CloudFront invalidation).
 - **운영 DB 마이그레이션**(RDS가 private이라 직접접속 불가 → migrate Lambda):
   ```bash
   cd infra && rm -rf lambda-migrate/sql && cp -R db/. lambda-migrate/sql/

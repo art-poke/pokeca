@@ -21,23 +21,34 @@ rm -f infra/app-server.zip infra/app-image.zip
 ( cd .open-next/server-functions/default && zip -ryq "$ROOT/infra/app-server.zip" . -x '.cache/*' )
 ( cd .open-next/image-optimization-function && zip -ryq "$ROOT/infra/app-image.zip" . )
 
-echo "▶ 2.5 app-server.zip → S3 (직접 업로드 70MB 한도 회피; app_server는 s3_bucket/s3_key 사용)"
-aws s3 cp "$ROOT/infra/app-server.zip" "s3://${PROJECT_NAME:-pokeca}-assets-${ACC}/lambda/app-server.zip" --no-progress
-
-echo "▶ 3. terraform apply"
-( cd infra && terraform apply -input=false -auto-approve )
-
-echo "▶ 4. assets S3 sync (해시=immutable, 나머지=단기)"
 ASSETS="pokeca-assets-${ACC}"
+
+echo "▶ 3. assets S3 sync"
 aws s3 sync .open-next/assets "s3://${ASSETS}/" --exclude "_next/static/*" \
   --cache-control "public,max-age=0,s-maxage=31536000,must-revalidate" --no-progress
 aws s3 sync .open-next/assets/_next/static "s3://${ASSETS}/_next/static" \
   --cache-control "public,max-age=31536000,immutable" --no-progress
 
-echo "▶ 5. CloudFront 무효화(SSR/HTML 경로만; 해시 자산은 불변이라 제외)"
-DIST=$(terraform -chdir=infra output -raw cloudfront_distribution_id)
+echo "▶ 4. Lambda 배포"
+if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+  DIST="${CLOUDFRONT_DISTRIBUTION_ID:?CloudFront 배포 ID 필요}"
+  for name in app-image app-server; do
+    function_name="pokeca-$name"
+    key="lambda/github/$name.zip"
+    aws s3 cp "infra/$name.zip" "s3://$ASSETS/$key" --no-progress
+    aws lambda update-function-code --function-name "$function_name" \
+      --s3-bucket "$ASSETS" --s3-key "$key" --query CodeSha256 --output text
+    aws lambda wait function-updated --function-name "$function_name"
+  done
+else
+  aws s3 cp infra/app-server.zip "s3://${PROJECT_NAME:-pokeca}-assets-${ACC}/lambda/app-server.zip" --no-progress
+  terraform -chdir=infra apply -input=false -auto-approve
+  DIST=$(terraform -chdir=infra output -raw cloudfront_distribution_id)
+fi
+
+echo "▶ 5. CloudFront 캐시 무효화"
 INVALIDATION=$(aws cloudfront create-invalidation --distribution-id "$DIST" --paths "/*" \
   --query Invalidation.Id --output text)
 aws cloudfront wait invalidation-completed --distribution-id "$DIST" --id "$INVALIDATION"
 
-echo "✅ 배포 완료: https://$(cd infra && terraform output -raw cloudfront_domain)"
+echo "✅ 배포 완료: https://artpokeca.com"
