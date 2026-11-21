@@ -1,0 +1,45 @@
+.stage {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, #355380 0%, transparent 65%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .original {
+    animation: settle-card 600ms cubic-bezier(.2, .7, .25, 1) both;
+  }
+
+  .piece {
+    animation: settle-card 750ms cubic-bezier(.2, .7, .25, 1) 320ms both;
+  }
+
+  .piece:nth-child(3n + 1) {
+    --card-enter-x: -18px;
+    animation-delay: 420ms;
+  }
+
+  .piece:nth-child(3n) {
+    --card-enter-x: 18px;
+    animation-delay: 520ms;
+  }
+}
+
+:global([inert]) .original,
+:global([inert]) .piece {
+  animation: none;
+}
+
+@keyframes settle-card {
+  from {
+    opacity: 0;
+    translate: var(--card-enter-x, 0) 18px;
+    scale: .94;
+  }
+
+  to {
+    opacity: 1;
+    translate: none;
+    scale: 1;
+  }
+}

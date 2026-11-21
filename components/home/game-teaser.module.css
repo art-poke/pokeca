@@ -1,0 +1,30 @@
+.dropBall {
+  display: block;
+  transform: translateY(43px) rotate(18deg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dropBall[data-play="true"] {
+    animation: drop 2.25s 2 both;
+  }
+}
+
+@keyframes drop {
+  0%, 26% {
+    transform: translateY(0) rotate(-14deg);
+  }
+
+  54% {
+    transform: translateY(43px) rotate(18deg);
+    animation-timing-function: ease-out;
+  }
+
+  65% {
+    transform: translate(2px, 35px) rotate(24deg);
+    animation-timing-function: ease-in;
+  }
+
+  75%, 100% {
+    transform: translate(4px, 43px) rotate(31deg);
+  }
+}

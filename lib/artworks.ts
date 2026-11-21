@@ -363,7 +363,9 @@ function toArtworkRow(r: ArtworkSelect): ArtworkRow {
   };
 }
 
-export type RecentArtwork = PublicArtwork & { card: { label: string; path: string; name: string } };
+export type RecentArtwork = PublicArtwork & {
+  card: { label: string; path: string; name: string; imagePath: string | null; lang: string };
+};
 
 // 최근 올라온 공개 도안(전체 카드 통틀어 최신 순) 조회. createdAt·id로 정렬해 페이지네이션이 안정적.
 async function queryRecentArtworks(limit: number, offset: number): Promise<RecentArtwork[]> {
@@ -381,6 +383,8 @@ async function queryRecentArtworks(limit: number, offset: number): Promise<Recen
       setCode: cards.setCode,
       collectorNumber: cards.collectorNumber,
       nameKo: cards.nameKo,
+      imagePath: cards.imagePath,
+      lang: cards.lang,
     })
     .from(artworks)
     .innerJoin(cards, eq(artworks.cardId, cards.id))
@@ -395,6 +399,8 @@ async function queryRecentArtworks(limit: number, offset: number): Promise<Recen
       label: `${r.setCode} ${r.collectorNumber}`,
       path: `/cards/${encodeURIComponent(r.setCode)}/${r.collectorNumber.replace("/", "-")}`,
       name: r.nameKo,
+      imagePath: r.imagePath,
+      lang: r.lang,
     },
   }));
 }
