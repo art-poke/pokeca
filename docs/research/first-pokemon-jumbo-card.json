@@ -1,0 +1,255 @@
+{
+  "researchedOn": "2026-11-21",
+  "release": {
+    "month": "1997-06",
+    "date": "1997-06-15",
+    "issue": "1997년 7월호",
+    "issueNumber": 231,
+    "magazinePriceJpy": 450,
+    "widthMm": 145,
+    "heightMm": 210,
+    "artist": "Atsuko Nishida"
+  },
+  "fx": {
+    "date": "2026-11-20",
+    "usd": 1345.855,
+    "jpy": 8.443016
+  },
+  "sources": {
+    "history": {
+      "label": "Bulbapedia · 공식 TCG 초기 무번호 프로모 배포 연표",
+      "href": "https://bulbapedia.bulbagarden.net/wiki/Unnumbered_Promotional_cards_(TCG)/1996-2005"
+    },
+    "card": {
+      "label": "Bulbapedia · 점보 카드 문구·삽화·발매 이력",
+      "href": "https://bulbapedia.bulbagarden.net/wiki/Pikachu,_Jigglypuff_and_Clefairy_(CoroCoro_promo)"
+    },
+    "magazine": {
+      "label": "Pokeboon · 코로코로 1997년 7월호 130쪽 부록 사용법과 표기 정가",
+      "href": "https://pokeboon.com/jp/pikachu-and-jigglypuff-and-clefairy-jumbo-promo/"
+    },
+    "magazinePhoto": {
+      "label": "메루카리 · 코로코로 코믹 통권 231호 표지 실물 사진",
+      "href": "https://jp.mercari.com/item/m58654987964"
+    },
+    "bundlePhoto": {
+      "label": "Yahoo! 옥션 · 그 잡지와 점보 부록이 함께 놓인 실물 사진",
+      "href": "https://auctions.yahoo.co.jp/jp/auction/p1107969245"
+    },
+    "size": {
+      "label": "스루가야 · 점보 부록 크기와 판매가",
+      "href": "https://www.suruga-ya.com/en/product/620014679"
+    },
+    "hero": {
+      "label": "ENNDALGAMES · 점보 카드 실물 사진",
+      "href": "https://www.enndalbuy2.com/product/8267"
+    },
+    "psaPolicy": {
+      "label": "PSA · 점보 홀더 규격과 접수 문의",
+      "href": "https://www.psacard.com/Services/CardsPSAGrades"
+    },
+    "psaRegistry": {
+      "label": "PSA Set Registry · 1997 CoroCoro Jumbo 판본",
+      "href": "https://www.psacard.com/psasetregistry/tcg/famous-figures/pokemon-clefairy-master-set/composition/22285"
+    },
+    "slab": {
+      "label": "Cardova Japan · 1997년 코로코로 점보 PSA 6 홀더 사진",
+      "href": "https://www.cardova.co.jp/en/auction/card/01K46M6V0EACSPH049TZPBGP52"
+    },
+    "heritage": {
+      "label": "Heritage Auctions · 2025년 PSA 7 점보 2장 묶음 낙찰",
+      "href": "https://comics.ha.com/itm/memorabilia/trading-cards/pokemon-japanese-jumbo-cards-group-of-2-psa-trading-card-game-nm-7-the-pokemon-company-1997-1998-/a/332525-58044.s"
+    },
+    "heritageCert": {
+      "label": "PSA · Heritage 옥션이 연결한 인증번호 103079647",
+      "href": "https://www.psacard.com/cert/103079647"
+    },
+    "cgcFees": {
+      "label": "CGC · 미국 Jumbo Card 서비스 요금표",
+      "href": "https://www.cgccards.com/submit/services-fees/cgc-grading/?view=cards"
+    },
+    "cgcHolder": {
+      "label": "CGC · Jumbo와 Tall Boy 홀더가 별도라는 공식 안내",
+      "href": "https://www.cgccards.com/news/article/15236/cgc-tall-boy-holders-shanghai/"
+    },
+    "cgcFaq": {
+      "label": "CGC · 비표준 카드의 홀더 적합성 안내",
+      "href": "https://www.cgccards.com/about/help-center-faqs/cgc-cards-grading/cards-accepted-by-cgc-cards/"
+    },
+    "mercari": {
+      "label": "메루카리 · 주름이 있는 미감정 카드 판매완료 및 실물",
+      "href": "https://jp.mercari.com/item/m78055345648"
+    },
+    "mercariLow": {
+      "label": "메루카리 · 눌림·접힘이 기재된 미감정 카드 판매완료",
+      "href": "https://jp.mercari.com/item/m29727679331"
+    },
+    "misprint": {
+      "label": "Misprint · eBay 미감정 단품 및 PSA 7 완료 거래 기록",
+      "href": "https://www.misprint.com/card/4781312"
+    },
+    "priceCharting": {
+      "label": "PriceCharting · eBay 4월 PSA 7 및 5월 PSA 6 완료 기록",
+      "href": "https://www.pricecharting.com/game/pokemon-japanese-promo/pikachu-jigglypuff-clefairy-corocoro"
+    },
+    "fxUsd": {
+      "label": "CurrencyBeacon · 2026-11-20 USD/KRW 환율",
+      "href": "https://currencybeacon.com/rates/USD/KRW"
+    },
+    "fxJpy": {
+      "label": "FXFeed · 2026-11-20 JPY/KRW 환율",
+      "href": "https://fxfeed.io/currencies/pairs/jpy-krw"
+    }
+  },
+  "rawSales": [
+    {
+      "date": "2026-10-17",
+      "usd": 86,
+      "condition": "MP",
+      "item": "800798004979",
+      "method": "즉시구매",
+      "source": "misprint"
+    },
+    {
+      "date": "2026-10-22",
+      "usd": 169.4,
+      "condition": "LP",
+      "item": "",
+      "method": "방식 미공개",
+      "source": "misprint"
+    },
+    {
+      "date": "2026-10-22",
+      "usd": 179.4,
+      "condition": "LP",
+      "item": "",
+      "method": "방식 미공개",
+      "source": "misprint"
+    },
+    {
+      "date": "2026-10-23",
+      "usd": 108.04,
+      "condition": "MP",
+      "item": "820218107285",
+      "method": "방식 미공개",
+      "source": "misprint"
+    },
+    {
+      "date": "2026-10-23",
+      "usd": 116.39,
+      "condition": "MP",
+      "item": "820171617624",
+      "method": "방식 미공개",
+      "source": "misprint"
+    }
+  ],
+  "gradedSales": [
+    {
+      "date": "2026-04-20",
+      "usd": 425,
+      "grade": 7,
+      "item": "117136525749",
+      "source": "priceCharting"
+    },
+    {
+      "date": "2026-05-08",
+      "usd": 393,
+      "grade": 6,
+      "item": "",
+      "source": "priceCharting"
+    },
+    {
+      "date": "2026-10-29",
+      "usd": 313,
+      "grade": 7,
+      "item": "",
+      "source": "misprint"
+    }
+  ],
+  "jpComparisons": {
+    "mercariSold": 6900,
+    "mercariLowSold": 3000,
+    "surugayaAsk": 17920
+  },
+  "heritageLot": {
+    "date": "2025-06-18",
+    "usd": 209,
+    "quantity": 2,
+    "grade": 7,
+    "items": [
+      "피카츄와 푸린과 삐삐",
+      "피카츄의 여름방학"
+    ],
+    "note": "경매사 공개 표시 결과. 묶음 시세이며 장당 가격·개별 결제는 확인되지 않음."
+  },
+  "verified": {
+    "first": "공식 포켓몬 TCG 포맷의 공개 배포 점보로 범위를 한정. 초기 프로모 연표에서 1997년 6월 15일 코로코로 코믹 7월호 부록이 가장 이르며 1996년 코로코로 피카츄·푸린은 일반 규격. 스루가야는 동일한 7월호 부록으로 확인되나 발매일 필드에는 7/15 표기. 6/15는 잡지 부록 아카이브로 대조.",
+    "magazine": "표지 실물에서 7월호 및 450엔 확인. 130쪽 사용법은 Pokeboon이 옮긴 당시 문구를 통해 확인. 편집부가 책받침이나 친구를 놀래키는 용도를 제안. 카드 앞면이 130쪽을 가리킴. 본문은 내용을 한국어로 풀었음.",
+    "grading": "Cardova의 실물 PSA 6 홀더, Heritage의 PSA 7 경매 및 PSA 공식 Registry에서 판본 접수 전례 확인. CGC Jumbo 요금표는 확인했으나 145×210mm 이 판본의 승인된 접수·인증 기록은 확인하지 못함. 업체별 기본 요금에 배송, 대행, 세금 제외.",
+    "market": "미감정 표본은 Misprint에 공개된 2026년 10/17~10/23 eBay 단품 5건, 10/29 PSA 7은 같은 판본의 별도 기록. 일부 개별 eBay 페이지는 상품 또는 상태를 확인할 수 있으나 최종 금액을 공개하지 않아 집계 기록으로 표기. 세금·배송·수수료 포함 여부 일부 미공개. PriceCharting의 최근 고가 PSA 8은 원거래 재확인 불가로 차트에서 제외. 메루카리 원문 판매완료지만 실제 거래일 비공개. 스루가야 금액은 상점 판매 표시가. 한국 실거래 표본 미확인."
+  },
+  "images": {
+    "card": {
+      "original": "https://pokeboon.com/jp/wp-content/uploads/pikachu-and-jigglypuff-and-clefairy-jumbo-promo.png",
+      "credit": "Pokeboon / © Pokémon, Atsuko Nishida",
+      "width": 300,
+      "height": 438,
+      "edit": "카드 테두리를 보존한 크기 조정 및 WebP 변환"
+    },
+    "hero": {
+      "original": "https://www.enndalbuy2.com/phone/data/enndalbuy2/product/20250729_493eef.jpg",
+      "credit": "ENNDALGAMES / © Pokémon",
+      "width": 820,
+      "height": 1093,
+      "edit": "카드 테두리를 보존한 크기 조정 및 WebP 변환"
+    },
+    "magazine": {
+      "original": "https://static.mercdn.net/item/detail/orig/photos/m58654987964_1.jpg",
+      "credit": "메루카리 출품 사진 / © 쇼가쿠칸",
+      "width": 800,
+      "height": 800,
+      "edit": "카드 테두리를 보존한 크기 조정 및 WebP 변환"
+    },
+    "bundle": {
+      "original": "https://auctions.c.yimg.jp/images.auctions.yahoo.co.jp/image/dr000/auc0409/users/b9dbcd4e94cd2cafa240a596a92a035fb22dbef5/i-img1200x1200-1695873543muualo20238.jpg",
+      "credit": "Yahoo! 옥션 출품 사진 / © 쇼가쿠칸·Pokémon",
+      "width": 920,
+      "height": 920,
+      "edit": "카드 테두리를 보존한 크기 조정 및 WebP 변환"
+    },
+    "slab": {
+      "original": "https://card-image.cardova.co.jp/db77e81c-fcdd-4dbb-b382-34e554e3b2ff.jpg",
+      "credit": "Cardova Japan 실물 사진 / © Pokémon",
+      "width": 800,
+      "height": 1093,
+      "edit": "카드 테두리를 보존한 크기 조정 및 WebP 변환"
+    },
+    "sold": {
+      "original": "https://static.mercdn.net/item/detail/orig/photos/m78055345648_1.jpg",
+      "credit": "메루카리 판매완료 출품 사진 / © Pokémon",
+      "width": 650,
+      "height": 867,
+      "edit": "카드 테두리를 보존한 크기 조정 및 WebP 변환"
+    },
+    "sold-wear": {
+      "original": "https://static.mercdn.net/item/detail/orig/photos/m78055345648_2.jpg",
+      "credit": "메루카리 판매완료 출품 사진 / © Pokémon",
+      "width": 650,
+      "height": 867,
+      "edit": "카드 테두리를 보존한 크기 조정 및 WebP 변환"
+    }
+  },
+  "rights": "원본 실물 외 편집 이미지는 별도 자유 이용 라이선스 미확인. 권리자는 각 사진 출처와 해당 판본·출판물의 권리자.",
+  "shareImage": {
+    "path": "/specs/stories/og-first-pokemon-jumbo-card.jpg",
+    "size": [
+      1200,
+      630
+    ],
+    "composition": [
+      "magazine",
+      "card"
+    ],
+    "credit": "원본 표지와 카드 이미지로 구성한 art-poke 편집 이미지"
+  }
+}

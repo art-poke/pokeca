@@ -14,6 +14,7 @@ import { storyCategoryLabels } from "@/domains/story/types";
 import { currentMember } from "@/lib/artists";
 import { listComments } from "@/lib/comments";
 import { getStoryLikes } from "@/lib/story-likes";
+import { firstJumboStory } from "../first-pokemon-jumbo-card";
 import { meleeKrw, meleePrice, meleeStory } from "../melee-pokemon-scramble";
 import { eReaderStory } from "../pokemon-e-reader";
 import { ponchoStory } from "../poncho-pikachu";
@@ -665,6 +666,88 @@ function EReaderStoryBody({ story }: { story: typeof eReaderStory }) {
   );
 }
 
+function FirstJumboStoryBody({ story }: { story: typeof firstJumboStory }) {
+  const { size, market } = story;
+  const [firstPsa7, lastPsa7] = market.psa7Trend;
+
+  return (
+    <>
+      <section aria-labelledby="jumbo-size" className="space-y-5 rounded-2xl border border-border bg-card p-4 sm:p-6">
+        <h2 id="jumbo-size" className="font-display text-xl font-bold">일반 카드 다섯 장보다 넓어요</h2>
+        <div className="mx-auto grid max-w-md grid-cols-[145fr_63fr] items-end gap-x-4 gap-y-2 text-center sm:gap-x-8">
+          <StoryImageZoom photo={story.image}>
+            <Image src={story.image.src} width={story.image.width} height={story.image.height}
+              alt={story.image.alt} unoptimized className="h-auto w-full rounded-md" />
+          </StoryImageZoom>
+          <div className="aspect-[63/88] rounded-md border-2 border-dashed border-muted-foreground/50 bg-muted" aria-hidden="true" />
+          <p className="self-start text-xs font-semibold">1997년 점보 · {size.widthMm} × {size.heightMm}mm</p>
+          <p className="self-start text-xs font-semibold">일반 카드 · {size.standardWidthMm} × {size.standardHeightMm}mm</p>
+        </div>
+        <p className="text-xs leading-relaxed text-muted-foreground">두 카드를 같은 축척으로 비교했습니다. 점보 실물은 A5(148 × 210mm)와 세로가 같고, 폭이 약 3mm 좁아요.</p>
+      </section>
+      <StorySection section={story.magazine} />
+      <StorySection section={story.joke} />
+      <StoryFigure image={size.hero} />
+      <StorySection section={story.grading} />
+      <section className="space-y-5">
+        <h2 className="font-display text-xl font-bold md:text-2xl">요즘 이 책받침은 얼마에 거래돼요?</h2>
+        <p className="text-base leading-[1.85]">
+          2026년 10월 17~23일 eBay에서 팔린 미감정 단품 {market.rawCount}건을 모아보니
+          {" "}{market.rawRange[0]}부터 {market.rawRange[1]}까지였어요. 가운데 값은 <strong>{market.rawMedian}</strong>입니다.
+          표본에는 판매자가 MP(사용감 있음)와 LP(가벼운 사용감)로 기재한 카드가 함께 들어 있어요.
+        </p>
+        <div className="space-y-4 rounded-xl border border-border bg-card p-4 sm:p-6">
+          <h3 className="font-semibold">eBay 미감정 MP 단품 · 2026년 10월</h3>
+          <PriceColumns limit={200_000} points={market.rawTrend.map((sale, index) => ({
+            ...sale, label: index === 0 ? sale.label : `${sale.label} · ${index === 1 ? "A" : "B"}`,
+          }))} />
+          <p className="text-xs text-muted-foreground">같은 날의 두 막대는 별개 거래입니다. 완료일과 금액은 Misprint의 eBay 거래 집계에서 확인했습니다.</p>
+          <ul className="space-y-1 text-xs">
+            {market.rawTrend.map((sale) => (
+              <li key={sale.usd}>
+                {sale.date} · {sale.won}
+                {sale.listing && <a href={sale.listing} className="ml-2 underline underline-offset-4">eBay 상품 사진</a>}
+              </li>
+            ))}
+            <li><a href={market.rawTrend[0].sourceLink.href} className="underline underline-offset-4">Misprint 완료 거래 집계</a></li>
+          </ul>
+        </div>
+        <p className="text-base leading-[1.85]">
+          일본에서는 메루카리 판매완료품 중 접힘·눌림이 있는 것이 {market.mercariLowSold}, 사진처럼 위쪽에 주름이 있는 것이 {market.mercariSold}였어요.
+          두 글은 일본 내 배송비가 포함된 표시 가격이고 정확한 거래 날짜는 공개되지 않았습니다. 11월 21일에 스루가야가 올려둔 중고 판매가는
+          {" "}{market.surugayaAsk}이었어요. 이쪽은 상점 호가입니다.
+        </p>
+        <div className="grid grid-cols-2 items-start gap-3">
+          <StoryFigure image={market.sold} />
+          <StoryFigure image={market.wear} />
+        </div>
+        <div className="space-y-4 rounded-xl border border-border bg-card p-4 sm:p-6">
+          <h3 className="font-semibold">PSA 7 단품의 eBay 완료 거래 · 2026년</h3>
+          <PriceColumns limit={600_000} points={market.psa7Trend} />
+          <ul className="space-y-1 text-xs text-muted-foreground">
+            {[firstPsa7, lastPsa7].map((sale) => (
+              <li key={sale.date}><a href={sale.sourceLink.href} className="underline underline-offset-4">{sale.date} · {sale.won} · eBay 거래 집계</a></li>
+            ))}
+          </ul>
+        </div>
+        <p className="text-base leading-[1.85]">
+          같은 판본 PSA 6은 5월 8일 <a href={market.psa6.sourceLink.href} className="underline underline-offset-4">{market.psa6.won} 거래 기록</a>이 있어요. 이 한 건은 위 PSA 7의 10월 표본보다 비쌌습니다.
+          거래가 뜸하니 등급이 한 칸 오를 때마다 일정하게 비싸지는 식으로 읽기 어려워요.
+          헤리티지의 2025년 6월 18일 {market.heritage}은 여기에 〈피카츄의 여름방학〉 PSA 7까지 함께 들어간 두 장 묶음이었습니다.
+          PSA 8 이상은 공개 원거래를 대조할 수 있는 표본이 부족해 시세를 잡기 어려웠어요.
+        </p>
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          해외 금액은 {market.fx.date} 비교 환율(1달러 1,345.855원, 1엔 약 8.443원)을 적용해 천 원 단위로 반올림했습니다.
+          개별 거래의 한국 결제 금액, 해외 배송비나 세금은 확인 범위에 포함되지 않습니다.
+        </p>
+      </section>
+      <div className="space-y-4">
+        {story.closing.map((paragraph) => <p key={paragraph} className="text-base leading-[1.85]">{paragraph}</p>)}
+      </div>
+    </>
+  );
+}
+
 export default async function StoryPage({ params }: StoryPageProps) {
   const { slug } = await params;
   const story = stories.find((item) => item.slug === slug);
@@ -697,6 +780,7 @@ export default async function StoryPage({ params }: StoryPageProps) {
       {story.slug === meleeStory.slug && <MeleeStoryBody story={story} />}
       {story.slug === ponchoStory.slug && <PonchoStoryBody story={story} />}
       {story.slug === eReaderStory.slug && <EReaderStoryBody story={story} />}
+      {story.slug === firstJumboStory.slug && <FirstJumboStoryBody story={story} />}
       {"blackLabel" in story && <VanGoghStoryBody story={story} />}
       <details className="border-t border-border pt-4 text-sm text-muted-foreground">
         <summary className="w-fit cursor-pointer">자료 및 사진 출처</summary>
