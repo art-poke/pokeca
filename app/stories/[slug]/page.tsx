@@ -3,16 +3,19 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { Fragment, Suspense, type ReactNode } from "react";
 import { Comments } from "@/components/comments";
+import { EReaderDemo } from "@/components/e-reader-demo";
 import { RowsSkeleton } from "@/components/skeletons";
 import { StoryLikeButton, StoryShareButton } from "@/components/story-actions";
+import { StoryImageZoom } from "@/components/story-image-zoom";
 import { StoryViewCount } from "@/components/story-view-count";
 import { storyCategoryLabels } from "@/domains/story/types";
 import { currentMember } from "@/lib/artists";
 import { listComments } from "@/lib/comments";
 import { getStoryLikes } from "@/lib/story-likes";
 import { meleeKrw, meleePrice, meleeStory } from "../melee-pokemon-scramble";
+import { eReaderStory } from "../pokemon-e-reader";
 import { ponchoStory } from "../poncho-pikachu";
 import { stories, usdToKrw } from "../stories";
 
@@ -44,12 +47,14 @@ type PricePoint = {
   amount: number;
   won: string;
   krw?: number;
+  compactWon?: string;
   venue?: string;
 };
 
 function PriceColumns({ points, limit = chartLimit }: { points: readonly PricePoint[]; limit?: number }) {
   const ticks = Array.from({ length: 5 }, (_, index) => {
     const value = (4 - index) * limit / 4 / 10000;
+    if (value >= 10_000) return `${(value / 10_000).toLocaleString("ko-KR")}억`;
     return value ? `${value.toLocaleString("ko-KR")}만` : "0";
   });
   return (
@@ -79,7 +84,7 @@ function PriceColumns({ points, limit = chartLimit }: { points: readonly PricePo
                   </p>
                 )}
                 {point.krw !== undefined && (
-                  <p className="font-bold sm:hidden">{Math.round(point.krw / 10_000).toLocaleString("ko-KR")}만</p>
+                  <p className="font-bold sm:hidden">{point.compactWon ?? `${Math.round(point.krw / 10_000).toLocaleString("ko-KR")}만`}</p>
                 )}
                 <p className={point.krw === undefined ? "break-keep font-bold" : "hidden font-bold sm:block"}>{point.won}</p>
                 {point.krw === undefined && (
@@ -91,9 +96,11 @@ function PriceColumns({ points, limit = chartLimit }: { points: readonly PricePo
         </ol>
       </div>
       <div aria-hidden className="relative col-start-1 row-start-1 h-44 text-right text-[10px] tabular-nums text-muted-foreground sm:text-xs">
-        <span className="invisible">{ticks[0]}</span>
+        <div className="invisible grid whitespace-nowrap">
+          {ticks.map((tick) => <span key={tick} className="col-start-1 row-start-1">{tick}</span>)}
+        </div>
         {ticks.map((tick, index) => (
-          <span key={tick} className="absolute right-0 -translate-y-1/2" style={{ top: `${index * 25}%` }}>
+          <span key={tick} className="absolute right-0 -translate-y-1/2 whitespace-nowrap" style={{ top: `${index * 25}%` }}>
             {tick}
           </span>
         ))}
@@ -135,14 +142,16 @@ export async function generateMetadata({ params }: StoryPageProps): Promise<Meta
 function StoryFigure({ image }: { image: StoryImage }) {
   return (
     <figure className="space-y-2 text-center">
-      <Image
-        src={image.src}
-        width={image.width}
-        height={image.height}
-        alt={image.alt}
-        unoptimized
-        className="mx-auto block h-auto max-h-80 w-auto max-w-full rounded-xl border border-border object-contain"
-      />
+      <StoryImageZoom photo={image}>
+        <Image
+          src={image.src}
+          width={image.width}
+          height={image.height}
+          alt={image.alt}
+          unoptimized
+          className="mx-auto block h-auto max-h-80 w-auto max-w-full rounded-xl border border-border object-contain"
+        />
+      </StoryImageZoom>
       {image.credit && (
         <figcaption className="text-xs leading-relaxed text-muted-foreground">{image.credit}</figcaption>
       )}
@@ -150,14 +159,19 @@ function StoryFigure({ image }: { image: StoryImage }) {
   );
 }
 
-function StorySection({ section }: { section: StorySectionData }) {
+function StorySection({ section, afterFirstImageParagraph }: { section: StorySectionData; afterFirstImageParagraph?: ReactNode }) {
   return (
     <section className="space-y-4">
       <h2 className="font-display text-xl font-bold md:text-2xl">{section.title}</h2>
       {section.body.map((paragraph) => <p key={paragraph} className="text-base leading-[1.85]">{paragraph}</p>)}
       {section.image && <StoryFigure image={section.image} />}
       {section.additionalImage && <StoryFigure image={section.additionalImage} />}
-      {section.afterImage?.map((paragraph) => <p key={paragraph} className="text-base leading-[1.85]">{paragraph}</p>)}
+      {section.afterImage?.map((paragraph, index) => (
+        <Fragment key={paragraph}>
+          <p className="text-base leading-[1.85]">{paragraph}</p>
+          {index === 0 && afterFirstImageParagraph}
+        </Fragment>
+      ))}
       {section.contents && (
         <div className="space-y-3">
           <h3 className="font-semibold">박스 안에 들어 있던 것들</h3>
@@ -414,6 +428,243 @@ function PonchoStoryBody({ story }: { story: typeof ponchoStory }) {
   );
 }
 
+function EReaderGallery({ title, images }: { title: string; images: readonly StoryImage[] }) {
+  return (
+    <section className="space-y-3">
+      <h3 className="font-semibold">{title}</h3>
+      <ul className="grid grid-cols-3 gap-x-2 gap-y-4 sm:grid-cols-5 sm:gap-x-4">
+        {images.map((image) => (
+          <li key={image.src} className="min-w-0">
+            <StoryFigure image={image} />
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function EReaderPackThumbnail({ pack }: { pack: StoryImage }) {
+  return (
+    <div className="shrink-0">
+      <StoryImageZoom photo={pack}>
+        <Image src={pack.src} width={pack.width} height={pack.height} alt={pack.alt} unoptimized className="h-12 w-auto rounded-sm object-contain sm:h-16" />
+      </StoryImageZoom>
+    </div>
+  );
+}
+
+function EReaderMarkets({ market, koreanReprint }: {
+  market: typeof eReaderStory.market;
+  koreanReprint: StoryImage;
+}) {
+  return (
+    <section className="space-y-6">
+      <h2 className="font-display text-xl font-bold md:text-2xl">같은 그림인데, 지금 얼마에 거래될까요?</h2>
+      <div className="grid grid-cols-[5.5rem_minmax(0,1fr)] items-center gap-4 rounded-xl border border-border bg-card p-4">
+        <StoryFigure image={koreanReprint} />
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold">한글판 30주년 루기아 142/103 · 미감정</h3>
+          <p className="text-xl font-bold tabular-nums">{market.korean.medianKrw.toLocaleString("ko-KR")}원</p>
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            {market.korean.asOf} 기준 최근 {market.korean.windowDays}일 번개장터 판매완료 표시가 {market.korean.count}건의 중앙값입니다.
+            개별 구매자의 결제 금액은 공개 자료에서 확인하기 어려웠어요.
+          </p>
+          <a href={market.koreanSource.href} className="text-xs underline underline-offset-4">집계 페이지 보기</a>
+        </div>
+      </div>
+      <p className="text-base leading-[1.85]">
+        제가 먼저 본 건 같은 그림의 북미 원본 149/147이었어요. 같은 홀로 카드, 같은 PSA 10인데도
+        아래처럼 거래 금액이 크게 달랐습니다. 10월의 두 건은 낙찰 뒤 <a href={market.paymentSource.href}
+          className="underline underline-offset-4">결제 확인 기록</a>까지 대조했어요.
+      </p>
+      <div className="space-y-5 rounded-xl border border-border bg-card p-4 sm:p-6">
+        <h3 className="font-semibold">북미 Aquapolis 루기아 149/147 홀로 · PSA 10</h3>
+        <PriceColumns limit={500_000_000} points={market.lugiaTrend.map((sale) => ({
+          amount: sale.usd, krw: sale.krw, won: sale.won, label: sale.date.slice(5), compactWon: sale.won,
+        }))} />
+        <ul className="space-y-1 text-xs text-muted-foreground">
+          {market.lugiaTrend.map((sale) => (
+            <li key={sale.date}>
+              <a className="underline underline-offset-4" href={sale.href}>{sale.date} 낙찰 원문</a>
+              {" · "}{sale.buyerPremium ? "구매자 수수료 포함" : "경매사 표시 금액"}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <p className="text-base leading-[1.85]">
+        일본 e3 초판과 북미 리자몽·뮤츠도 번호와 홀로 판본을 맞춰 찾아봤어요. 한 등급 안에서도 거래 시점에 따라 금액이 달라집니다.
+        리자몽 PSA 10은 9월보다 11월의 확인 건이 낮았고, 뮤츠는 PSA 9와 10의 표본 차가 컸어요.
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {market.groups.map((group) => (
+          <section key={group.name} className="grid grid-cols-[4rem_minmax(0,1fr)] items-start gap-3 rounded-xl border border-border bg-card p-4">
+            <StoryImageZoom photo={group.image}>
+              <Image src={group.image.src} width={group.image.width} height={group.image.height}
+                alt={group.image.alt} unoptimized className="h-auto w-full rounded-md" />
+            </StoryImageZoom>
+            <div className="space-y-2">
+              <h3 className="text-sm leading-snug font-semibold">{group.name}</h3>
+              <ul className="space-y-2 text-xs">
+                {group.sales.map((sale) => (
+                  <li key={sale.date}>
+                    <span className="font-semibold">PSA {sale.grade} · {sale.won}</span>
+                    <a href={sale.href} className="mt-0.5 block text-muted-foreground underline underline-offset-4">
+                      {sale.date} {sale.method === "history" ? "판매 이력" : "낙찰"}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        ))}
+      </div>
+      <p className="text-xs leading-relaxed text-muted-foreground">
+        해외 거래는 Fanatics Collect의 표시 금액을 {market.fx.asOf} 비교 환율(1달러당 {market.fx.usdToKrw.toLocaleString("ko-KR", { maximumFractionDigits: 3 })}원)로
+        환산해 만 원 단위로 반올림했습니다. 개별 낙찰과 판매 이력의 표본이며 배송비와 세금은 포함하지 않았어요.
+      </p>
+    </section>
+  );
+}
+
+function EReaderStoryBody({ story }: { story: typeof eReaderStory }) {
+  return (
+    <>
+      <StoryFigure image={story.image} />
+      <StorySection section={story.reader} afterFirstImageParagraph={
+        <EReaderDemo machop={story.machopCards[0]} />
+      } />
+      <EReaderGallery title="돌 깨는 게임을 여는 세 장" images={story.machopCards} />
+      <section className="space-y-5">
+        <StorySection section={story.japanLaunch} />
+        <div className="grid grid-cols-2 items-start gap-3 sm:grid-cols-4">
+          {story.japanPackage.map((image) => <StoryFigure key={image.src} image={image} />)}
+        </div>
+        <StoryFigure image={story.japaneseBundlePhoto} />
+        <p className="text-sm text-muted-foreground">아래 전체 앞면은 동봉 카드와 같은 번호의 일본판 e1 초판입니다. SNKRDUNK에서 확인했어요.</p>
+        <EReaderGallery title="일본 동봉 카드 10종" images={story.japaneseBundleCards} />
+      </section>
+      <section className="space-y-5">
+        <StorySection section={story.usLaunch} />
+        <div className="grid grid-cols-2 items-start gap-3 sm:grid-cols-3">
+          {story.usPackage.map((image) => <StoryFigure key={image.src} image={image} />)}
+        </div>
+        <EReaderGallery title="북미 샘플 팩 5종" images={story.usSampleCards} />
+        {story.nesBundles.map((bundle) => (
+          <div key={bundle.title} className="grid grid-cols-[4.5rem_minmax(0,1fr)] items-start gap-3 sm:grid-cols-[6rem_minmax(0,1fr)]">
+            <StoryFigure image={bundle.pack} />
+            <EReaderGallery title={bundle.title} images={bundle.cards} />
+          </div>
+        ))}
+      </section>
+      <section className="space-y-4">
+        <h2 className="font-display text-xl font-bold md:text-2xl">햄타로도 같은 홈을 지나갔어요</h2>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {story.otherProducts.map((product) => (
+            <section key={product.title} className="space-y-2 rounded-xl border border-border bg-card p-4">
+              <h3 className="font-semibold">{product.title}</h3>
+              <p className="text-sm leading-relaxed">{product.description}</p>
+              <div className="grid grid-cols-2 gap-3">
+                <StoryFigure image={product.pack} />
+                <StoryFigure image={product.card} />
+              </div>
+              <a href={product.catalog.href} className="inline-block text-xs underline underline-offset-4">공식 카드 목록 보기</a>
+            </section>
+          ))}
+        </div>
+      </section>
+      <section className="space-y-3">
+        <h2 className="font-display text-xl font-bold md:text-2xl">일본 다섯 탄과 북미 세 세트</h2>
+        <p className="text-base leading-[1.85]">{story.setIntro}</p>
+        <table className="w-full table-fixed border-collapse text-left text-xs leading-relaxed sm:text-sm">
+          <thead className="bg-muted">
+            <tr>
+              <th scope="col" className="w-[43%] p-2">일본 확장팩</th>
+              <th scope="col" className="w-[24%] p-2">일본 발매일</th>
+              <th scope="col" className="p-2">북미 대응</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.values(story.sets).map((set) => {
+              const english = story.englishSets[set.english];
+              return (
+                <tr key={set.code} className="border-b border-border">
+                  <th scope="row" className="p-2 font-medium">
+                    <div className="flex items-center gap-2">
+                      <EReaderPackThumbnail pack={set.pack} />
+                      <div className="min-w-0">
+                        <a href={set.catalog.href} className="underline underline-offset-2">{set.code} · {set.name}</a>
+                        <span lang="ja" className="block break-words font-normal text-muted-foreground">{set.japanese}</span>
+                      </div>
+                    </div>
+                  </th>
+                  <td className="p-2 tabular-nums">{set.date}</td>
+                  <td className="p-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <EReaderPackThumbnail pack={english.pack} />
+                      <div className="min-w-0">
+                        <a href={english.catalog.href} className="break-words underline underline-offset-2">{english.name}</a>
+                        <span className="block text-muted-foreground">{english.year}</span>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        <details className="rounded-lg border border-border px-3 py-2 text-sm">
+          <summary className="cursor-pointer">전체 스캔 카드 도감</summary>
+          <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+            {story.catalogs.map((catalog) => (
+              <li key={catalog.href}><a href={catalog.href} className="underline underline-offset-4">{catalog.label}</a></li>
+            ))}
+          </ul>
+        </details>
+      </section>
+      <StorySection section={story.crystals} />
+      <section className="space-y-4">
+        <h2 className="font-display text-xl font-bold md:text-2xl">이 세 장은 어느 팩에서 나왔을까?</h2>
+        <ul className="grid gap-4 sm:grid-cols-3">
+          {story.examples.map((card) => {
+            const japanese = story.sets[card.japaneseSet];
+            const english = story.englishSets[japanese.english];
+            const packs = [
+              { region: "일본", name: `${japanese.code} · ${japanese.name}`, year: japanese.date.slice(0, 4), number: card.japaneseNumber, image: japanese.pack },
+              { region: "북미", name: english.name, year: english.year, number: card.englishNumber, image: english.pack },
+            ];
+            return (
+              <li key={card.name} className="space-y-3 rounded-xl border border-border bg-card p-3">
+                <h3 className="text-center font-semibold">{card.name}</h3>
+                <StoryFigure image={{ ...card.image, credit: "북미판 카드 앞면" }} />
+                <ul className="space-y-2 border-t border-border pt-3">
+                  {packs.map((pack) => (
+                    <li key={pack.region} className="flex items-center gap-2 text-xs leading-relaxed">
+                      <EReaderPackThumbnail pack={pack.image} />
+                      <div>
+                        <p className="font-semibold">{pack.name}</p>
+                        <p className="text-muted-foreground">{pack.region} · {pack.year}년 · {pack.number}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+      <StorySection section={story.anniversary} />
+      <StoryFigure image={story.koreanPack} />
+      <div className="grid grid-cols-2 items-start gap-3 sm:gap-5">
+        {story.comparison.map((image) => <StoryFigure key={image.src} image={image} />)}
+      </div>
+      <EReaderMarkets market={story.market} koreanReprint={story.comparison[1]} />
+      <div className="space-y-4">
+        {story.closing.map((paragraph) => <p key={paragraph} className="text-base leading-[1.85]">{paragraph}</p>)}
+      </div>
+    </>
+  );
+}
+
 export default async function StoryPage({ params }: StoryPageProps) {
   const { slug } = await params;
   const story = stories.find((item) => item.slug === slug);
@@ -445,6 +696,7 @@ export default async function StoryPage({ params }: StoryPageProps) {
       </div>
       {story.slug === meleeStory.slug && <MeleeStoryBody story={story} />}
       {story.slug === ponchoStory.slug && <PonchoStoryBody story={story} />}
+      {story.slug === eReaderStory.slug && <EReaderStoryBody story={story} />}
       {"blackLabel" in story && <VanGoghStoryBody story={story} />}
       <details className="border-t border-border pt-4 text-sm text-muted-foreground">
         <summary className="w-fit cursor-pointer">자료 및 사진 출처</summary>

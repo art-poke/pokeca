@@ -1,0 +1,759 @@
+{
+  "researchedOn": "2026-11-21",
+  "sources": {
+    "nintendo": {
+      "label": "닌텐도 일본 · 카드 e리더 발매 안내, 사용 사진과 도트코드 설명",
+      "href": "https://www.nintendo.co.jp/n08/hardware/card_e/index.html"
+    },
+    "nintendoCards": {
+      "label": "닌텐도 일본 · 포켓몬, 동물의 숲, 햄타로 카드 e 상품 기록",
+      "href": "https://www.nintendo.co.jp/n08/hardware/card_e/taiou/index.html"
+    },
+    "nintendoUs": {
+      "label": "닌텐도 오브 아메리카 · 2002년 9월 16일 보도자료 원문",
+      "href": "https://nintendoworldreport.com/news/7754/new-e-reader-game-announcements"
+    },
+    "japanHistory": {
+      "label": "포켓몬 카드 게임 일본 공식 연표 · 포켓몬 카드 e",
+      "href": "https://www.pokemon-card.com/20th/chronicle/"
+    },
+    "japanDates": {
+      "label": "Bulbapedia · 일본판 확장팩별 날짜와 영문판 대응",
+      "href": "https://bulbapedia.bulbagarden.net/wiki/List_of_Japanese_TCG_Expansions"
+    },
+    "aquapolis": {
+      "label": "Pocket Moonstars · aquapolis 부스터 사진 및 세트 도감",
+      "href": "https://pocketmoonstars.com/sets/aquapolis/"
+    },
+    "lugia": {
+      "label": "Bulbapedia · 크리스탈 루기아 원본 및 복각판 번호와 카드 효과",
+      "href": "https://bulbapedia.bulbagarden.net/wiki/Lugia_(Aquapolis_149)"
+    },
+    "lugiaJp": {
+      "label": "SNKRDUNK · 일본판 e3 크리스탈 루기아 090/087 카드 앞면",
+      "href": "https://snkrdunk.com/en/trading-cards/93291"
+    },
+    "anniversaryJp": {
+      "label": "포켓몬 카드 게임 일본 · 30th CELEBRATION과 기념 루기아",
+      "href": "https://www.30th.pokemon-card.com/product/m6a"
+    },
+    "anniversaryKo": {
+      "label": "포켓몬코리아 · 30th CELEBRATION 한국 출시일과 가격",
+      "href": "https://pokemoncard.co.kr/card/960"
+    },
+    "anniversaryKoCards": {
+      "label": "포켓몬스토어 · 한글판 크리스탈 루기아 공식 이미지",
+      "href": "https://www.pokemonstore.co.kr/pages/pokemoncardgame30th/product/m6a/index.html"
+    },
+    "anniversaryUs": {
+      "label": "포켓몬 공식 · 30th Celebration Classic Collection",
+      "href": "https://www.pokemon.com/us/features/highlighting-10-cards-from-the-pokemon-tcg-30th-celebration-classic-collection"
+    },
+    "lugiaRegular": {
+      "label": "포켓몬 공식 · 30주년 일반 루기아 121/128",
+      "href": "https://www.pokemon.com/us/pokemon-tcg/pokemon-cards/series/30th/121"
+    },
+    "crystals": {
+      "label": "Bulbapedia · 크리스탈 타입 카드 체크리스트",
+      "href": "https://bulbapedia.bulbagarden.net/wiki/Crystal_Pokemon"
+    },
+    "mewtwo": {
+      "label": "Pokémon TCG API · Expedition 뮤츠 20/165",
+      "href": "https://images.pokemontcg.io/ecard1/20_hires.png"
+    },
+    "charizard": {
+      "label": "Pokémon TCG API · Skyridge 리자몽 146/144",
+      "href": "https://images.pokemontcg.io/ecard3/146_hires.png"
+    },
+    "rulebook": {
+      "label": "Wizards of the Coast · 포켓몬 e 카드 게임 설명서와 도트코드 사용법",
+      "href": "https://www.pojo.com/pokemon/rules/PokemonE-Rulebook.pdf"
+    },
+    "expeditionGames": {
+      "label": "GameFAQs · Expedition 카드를 스캔해 확인한 미니게임 목록",
+      "href": "https://gamefaqs.gamespot.com/ereader/942073-pokemon-e-expedition/faqs/19685"
+    },
+    "codeIndex": {
+      "label": "Bulbapedia · e리더 ID와 일본·영문 카드 번호 대조",
+      "href": "https://bulbapedia.bulbagarden.net/wiki/List_of_TCG_cards_by_e-Reader_card_ID"
+    },
+    "machop": {
+      "label": "Pokémon TCG API · Expedition 알통몬 117/165",
+      "href": "https://images.pokemontcg.io/ecard1/117_hires.png"
+    },
+    "japanBox": {
+      "label": "메루카리 · 일본판 AGB-010 개봉 구성 및 미개봉 애플리케이션 팩 실물",
+      "href": "https://jp.mercari.com/item/m73887438088"
+    },
+    "japanCards": {
+      "label": "메루카리 · 일본판 애플리케이션 팩 동봉 카드 10장 실물",
+      "href": "https://jp.mercari.com/item/m10789905288"
+    },
+    "usHardware": {
+      "label": "RF Generation · 북미 e-Reader 패키지 앞면과 구성",
+      "href": "https://www.rfgeneration.com/PHP/gethwinfo.php?ID=U-077-H-00010-A"
+    },
+    "usSample": {
+      "label": "헤리티지 옥션 · 북미 미개봉 샘플 팩과 동봉 5장 목록",
+      "href": "https://comics.ha.com/itm/memorabilia/trading-cards/pokemon-e-reader-5-card-set-sealed-sample-pack-nintendo-2002-/a/332624-58127.s"
+    },
+    "usCards": {
+      "label": "No-Intro · 북미 e리더기와 NES·샘플 카드 아카이브",
+      "href": "https://ereader.no-intro.org/checklists.php?sys=EngList"
+    },
+    "japanCatalog": {
+      "label": "No-Intro · 일본 닌텐도 e리더 대응 카드 전체 아카이브",
+      "href": "https://ereader.no-intro.org/checklists.php?sys=JpnList"
+    },
+    "japanAnimal": {
+      "label": "닌텐도 · 일본 동물의 숲+ 카드 e와 카드 목록",
+      "href": "https://www.nintendo.co.jp/ngc/gafj/card_e/index.html"
+    },
+    "japanAnimalPack": {
+      "label": "메루카리 · 일본 동물의 숲+ 카드 e 1탄 팩 실물",
+      "href": "https://jp.mercari.com/item/m90425600168"
+    },
+    "hamtaro": {
+      "label": "닌텐도 · 햄타로 카드 e 구성과 34종 목록",
+      "href": "https://www.nintendo.co.jp/n08/hardware/card_e/e_hamu/index.html"
+    },
+    "boosterCounts": {
+      "label": "Samurai Sword Tokyo · 일본 e1–e5 부스터 팩 내용",
+      "href": "https://www.samuraiswordtokyo.com/blogs/news/japanese-e-series-booster-packs-guide"
+    },
+    "aquapolisPack": {
+      "label": "PSA · 영문 Aquapolis 발매 및 부스터 구성",
+      "href": "https://www.psacard.com/articles/articleview/9721/psa-set-registry-collecting-2003-poke-mon-aquapolis-its-appeal-crystal-clear"
+    },
+    "paymentTracker": {
+      "label": "Chase Society · Fanatics 경매 결제 확인과 취소 추적",
+      "href": "https://chasesociety.com/data/fanatics-record-watch"
+    },
+    "fx": {
+      "label": "CurrencyBeacon · 2026년 11월 20일 USD/KRW 일별 환율",
+      "href": "https://currencybeacon.com/rates/USD/KRW"
+    },
+    "koreanMarket": {
+      "label": "TCG뉴스 · 한글 142/103 미감정 번개장터 판매완료가 집계",
+      "href": "https://tcgnews.kr/cards/ko-m6a-142"
+    },
+    "base-expansion-pack": {
+      "label": "Pocket Moonstars · base-expansion-pack 부스터 사진 및 세트 도감",
+      "href": "https://pocketmoonstars.com/japanese/base-expansion-pack/"
+    },
+    "the-town-on-no-map": {
+      "label": "Pocket Moonstars · the-town-on-no-map 부스터 사진 및 세트 도감",
+      "href": "https://pocketmoonstars.com/japanese/the-town-on-no-map/"
+    },
+    "wind-from-the-sea": {
+      "label": "Pocket Moonstars · wind-from-the-sea 부스터 사진 및 세트 도감",
+      "href": "https://pocketmoonstars.com/japanese/wind-from-the-sea/"
+    },
+    "split-earth": {
+      "label": "Pocket Moonstars · split-earth 부스터 사진 및 세트 도감",
+      "href": "https://pocketmoonstars.com/japanese/split-earth/"
+    },
+    "mysterious-mountains": {
+      "label": "Pocket Moonstars · mysterious-mountains 부스터 사진 및 세트 도감",
+      "href": "https://pocketmoonstars.com/japanese/mysterious-mountains/"
+    },
+    "expedition": {
+      "label": "Pocket Moonstars · expedition 부스터 사진 및 세트 도감",
+      "href": "https://pocketmoonstars.com/sets/expedition/"
+    },
+    "skyridge": {
+      "label": "Pocket Moonstars · skyridge 부스터 사진 및 세트 도감",
+      "href": "https://pocketmoonstars.com/sets/skyridge/"
+    },
+    "usPackPhoto": {
+      "label": "eBay 출품자 실물 사진 · 북미 리더기와 두 봉입 팩",
+      "href": "https://www.ebay.com/itm/136945765026"
+    },
+    "usOpened": {
+      "label": "Bahamut · 북미 리더·설명서·게임 팩·샘플 팩 개봉 사진",
+      "href": "https://home.gamer.com.tw/artwork.php?sn=5884851"
+    },
+    "donkeyPack": {
+      "label": "Microless · 동키콩 주니어 카드 5장 포장",
+      "href": "https://sc.microless.com/product/nintendo-donkey-kong-jr-complete-classic-video-game-in-5-e-reader-cards-5053307007628/"
+    },
+    "pinballPack": {
+      "label": "Retroversetoys · 북미 별매 핀볼 카드 5장 포장",
+      "href": "https://retroversetoys.com/products/e-reader-pinball-game-boy-advance"
+    },
+    "usTcgCatalog": {
+      "label": "No-Intro · 북미 Pokémon-e TCG 카드 코드와 앞면 목록",
+      "href": "https://ereader.no-intro.org/checklists.php?sys=EngList&search_set=Pok%C3%A9mon-e+TCG"
+    },
+    "jpTcgCatalog": {
+      "label": "No-Intro · 일본 포켓몬 카드 e 카드 코드와 앞면 목록",
+      "href": "https://ereader.no-intro.org/checklists.php?sys=JpnList&search_set=%E3%83%9D%E3%82%B1%E3%83%A2%E3%83%B3%E3%82%AB%E3%83%BC%E3%83%89%EF%BD%85"
+    },
+    "snkrE1": {
+      "label": "SNKRDUNK · e1 기본 확장팩 카드 앞면 대조",
+      "href": "https://snkrdunk.com/apparels/88208"
+    },
+    "snkrE1Machop": {
+      "label": "SNKRDUNK · e1 알통몬 021/128 앞면",
+      "href": "https://snkrdunk.com/en/trading-cards/431052"
+    },
+    "expeditionMewtwo": {
+      "label": "Bulbapedia · 뮤츠 홀로 일본 e1 118/128 및 북미 Expedition 20/165",
+      "href": "https://bulbapedia.bulbagarden.net/wiki/Mewtwo_(Expedition_20)"
+    }
+  },
+  "verified": {
+    "hardware": "일본 AGB-010은 2001-12-01, 5,800엔 세전, 애플리케이션 카드 10장 포함. 북미는 닌텐도 보도자료 기준 2002-09-16, 39.95달러, NES 게임 카드와 샘플 5장 포함. 각 숫자는 당시 현지 권장소비자가.",
+    "codes": "닌텐도 일본 안내에서 하단 베이스 코드(도감·진화 정보), 왼쪽 사이드 코드(미니게임·쇼트 무비)를 확인. 북미 보도자료에서 GBA 카트리지 슬롯과 광학 판독 확인. Expedition 알통몬 117/165 앞면에서 연속된 긴 코드 확인. 크리스탈 루기아와 홀로 뮤츠의 왼쪽 빗금은 장식. 루기아 하단 코드 ID는 D-74.",
+    "expansions": "일본 공식 연표의 5개 확장 순서와 도감의 날짜 및 북미 대응을 대조. 북미 Expedition 발매일은 자료마다 하루 차이가 있어 본문에서는 2002년으로 표기. Aquapolis는 Wizards 원문으로 확인.",
+    "lugia": "JP 원본 e3 090/087, EN 원본 149/147, JP·KO 복각 142/103. KR·JP 공식 이미지에서 기무라 나오요의 그림과 배치, 30주년 마크, 검은 하단 코드 대신 금빛 무늬 확인. 복각 실물 스캔 실험은 하지 않음.",
+    "korea": "한국 공식 상품 상세는 기존 pokemoncard.co.kr에서 열렸으며 신 도메인은 브라우저 요청 시간 초과. 2026-09-16 팩 정가 3,500원과 포켓몬스토어 한국어 142/103 이미지 확인. 당시 한국어 e 확장팩·리더 정식 발매 기록은 확인하지 못해 부재를 단정하지 않음.",
+    "bundles": "일본 닌텐도 자료와 실물 사진에서 AGB-010, 애플리케이션 팩 10장, 인쇄물 확인. 일본 10장은 공개된 개봉 사진에 모두 보임. 한국명과 번호는 사진 및 No-Intro 일본 도감 대조. 북미 샘플 5장은 헤리티지와 No-Intro 대조. NES 타이틀은 둘 중 한 세트, 각 카드 1~5번과 앞면 스캔 확인. 일본·북미 부스터 썸네일은 팩별 대표 도안. 동봉 사진과 동일한 일본판 e1 번호 10종을 SNKRDUNK의 1st Edition 카드 전체 앞면으로 대조. 메루카리 개별 사진에서도 피츄와 피카츄의 1st Edition 각인이 확인된다. SNKRDUNK 이미지는 패키지 실물과 별도로 대조용으로 표시한다.",
+    "cardPackOrigins": "루기아 일본 e3 090/087 → 북미 Aquapolis 149/147, 리자몽 일본 e5 089/088 → 북미 Skyridge 146/144, 뮤츠 홀로 일본 e1 118/128 → 북미 Expedition 20/165."
+  },
+  "images": {
+    "reader.webp": {
+      "original": "https://www.nintendo.co.jp/n08/hardware/card_e/dock02.jpg",
+      "credit": "© Nintendo",
+      "edit": "WebP 변환",
+      "width": 280,
+      "height": 220
+    },
+    "lugia-original-jp.webp": {
+      "original": "https://cdn.snkrdunk.com/upload_bg_removed/311cc856-448d-4a33-be8a-8e095ba9975e.webp?size=l",
+      "credit": "SNKRDUNK / © Pokémon, 일러스트 기무라 나오요",
+      "edit": "투명 여백 트리밍 및 WebP 최적화",
+      "width": 484,
+      "height": 686
+    },
+    "lugia-original.webp": {
+      "original": "https://images.pokemontcg.io/ecard2/149_hires.png",
+      "credit": "Pokémon TCG API / © Pokémon, 일러스트 기무라 나오요",
+      "edit": "WebP 변환",
+      "width": 600,
+      "height": 825
+    },
+    "lugia-30th.webp": {
+      "original": "https://www.30th.pokemon-card.com/images/m6a/cards/m6a_142_a3jxu2i6.webp",
+      "credit": "포켓몬 카드 게임 일본 / © Pokémon, 일러스트 기무라 나오요",
+      "edit": "가로 600px WebP",
+      "width": 600,
+      "height": 838
+    },
+    "lugia-30th-ko.webp": {
+      "original": "https://www.pokemonstore.co.kr/assets/pokemon-30-th/images/m6a_142_a3jxu2i6.png",
+      "credit": "포켓몬스토어 / © Pokémon, 일러스트 기무라 나오요",
+      "edit": "가로 600px WebP",
+      "width": 600,
+      "height": 838
+    },
+    "mewtwo.webp": {
+      "original": "https://images.pokemontcg.io/ecard1/20_hires.png",
+      "credit": "Pokémon TCG API / © Pokémon",
+      "edit": "WebP 변환",
+      "width": 600,
+      "height": 825
+    },
+    "charizard.webp": {
+      "original": "https://images.pokemontcg.io/ecard3/146_hires.png",
+      "credit": "Pokémon TCG API / © Pokémon",
+      "edit": "WebP 변환",
+      "width": 600,
+      "height": 825
+    },
+    "og-pokemon-e-reader.jpg": {
+      "original": "lugia-original.webp + lugia-30th.webp",
+      "credit": "원본 및 복각 카드 이미지로 구성한 art-poke 편집 이미지",
+      "edit": "1200×630 JPG 합성, 제목을 이 루기아카드 센터링이 왜 우쏠이에요?로 수정",
+      "width": 1200,
+      "height": 630
+    },
+    "machop.webp": {
+      "original": "https://images.pokemontcg.io/ecard1/117_hires.png",
+      "credit": "Pokémon TCG API / © Pokémon",
+      "edit": "WebP 변환",
+      "width": 600,
+      "height": 825
+    },
+    "jp-box.webp": {
+      "original": "https://static.mercdn.net/item/detail/orig/photos/m10789905288_2.jpg",
+      "credit": "메루카리 출품자 실물 사진",
+      "edit": "WebP 최적화",
+      "width": 780,
+      "height": 496
+    },
+    "jp-opened.webp": {
+      "original": "https://static.mercdn.net/item/detail/orig/photos/m73887438088_1.jpg",
+      "credit": "메루카리 출품자 실물 사진",
+      "edit": "WebP 최적화",
+      "width": 800,
+      "height": 784
+    },
+    "jp-app-pack.webp": {
+      "original": "https://static.mercdn.net/item/detail/orig/photos/m73887438088_3.jpg",
+      "credit": "메루카리 출품자 실물 사진",
+      "edit": "WebP 최적화",
+      "width": 530,
+      "height": 442
+    },
+    "jp-app-cards.webp": {
+      "original": "https://static.mercdn.net/item/detail/orig/photos/m10789905288_1.jpg",
+      "credit": "메루카리 출품자 실물 사진",
+      "edit": "WebP 최적화",
+      "width": 960,
+      "height": 960
+    },
+    "us-box.webp": {
+      "original": "https://www.rfgeneration.com/PHP/watermark.php?ID=U-077-H-00010-A;type=bf;sizex=600",
+      "credit": "RF Generation 소장품 사진",
+      "edit": "WebP 최적화",
+      "width": 550,
+      "height": 646
+    },
+    "jp-animal-pack.webp": {
+      "original": "https://static.mercdn.net/item/detail/orig/photos/m90425600168_1.jpg",
+      "credit": "메루카리 출품자 실물 사진",
+      "edit": "WebP 최적화",
+      "width": 440,
+      "height": 587
+    },
+    "jp-animal-card.webp": {
+      "original": "https://www.nintendo.co.jp/ngc/gafj/card_e/cardlist/sri1/001.jpg",
+      "credit": "© Nintendo",
+      "edit": "WebP 최적화",
+      "width": 85,
+      "height": 120
+    },
+    "hamtaro-pack.webp": {
+      "original": "https://www.nintendo.co.jp/n08/hardware/card_e/e_hamu/package.jpg",
+      "credit": "© Nintendo / 가와이 리쓰코 외",
+      "edit": "WebP 최적화",
+      "width": 105,
+      "height": 208
+    },
+    "hamtaro-card.webp": {
+      "original": "https://www.nintendo.co.jp/n08/hardware/card_e/e_hamu/list/c02.jpg",
+      "credit": "© Nintendo / 가와이 리쓰코 외",
+      "edit": "WebP 최적화",
+      "width": 110,
+      "height": 150
+    },
+    "pack-kr.webp": {
+      "original": "https://www.pokemonstore.co.kr/assets/pokemon-30-th/images/m6a_pillow_4f272152.png",
+      "credit": "포켓몬스토어 / © Pokémon",
+      "edit": "WebP 최적화",
+      "width": 520,
+      "height": 484
+    },
+    "pack-us-1.webp": {
+      "original": "https://pocketmoonstars.com/packs/ecard1-e1-booster-charizard.webp",
+      "credit": "Pocket Moonstars / © Pokémon",
+      "edit": "WebP 최적화",
+      "width": 230,
+      "height": 371
+    },
+    "pack-us-2.webp": {
+      "original": "https://pocketmoonstars.com/packs/ecard2-e2-booster-arcanine.webp",
+      "credit": "Pocket Moonstars / © Pokémon",
+      "edit": "WebP 최적화",
+      "width": 230,
+      "height": 423
+    },
+    "pack-us-3.webp": {
+      "original": "https://pocketmoonstars.com/packs/ecard3-e3-booster-ho-oh.webp",
+      "credit": "Pocket Moonstars / © Pokémon",
+      "edit": "WebP 최적화",
+      "width": 230,
+      "height": 408
+    },
+    "pack-jp-1.webp": {
+      "original": "https://pocketmoonstars.com/packs/ja-E1-e1-base-expansion-pack-pack.webp",
+      "credit": "Pocket Moonstars / © Pokémon",
+      "edit": "WebP 최적화",
+      "width": 230,
+      "height": 469
+    },
+    "pack-jp-5.webp": {
+      "original": "https://pocketmoonstars.com/packs/ja-E5-e5-mysterious-mountains-pack.webp",
+      "credit": "Pocket Moonstars / © Pokémon",
+      "edit": "WebP 최적화",
+      "width": 230,
+      "height": 462
+    },
+    "pack-jp-4.webp": {
+      "original": "https://pocketmoonstars.com/packs/ja-E4-e4-split-earth-pack.webp",
+      "credit": "Pocket Moonstars / © Pokémon",
+      "edit": "WebP 최적화",
+      "width": 230,
+      "height": 471
+    },
+    "pack-jp-3.webp": {
+      "original": "https://pocketmoonstars.com/packs/ja-E3-e3-wind-from-the-sea-pack.webp",
+      "credit": "Pocket Moonstars / © Pokémon",
+      "edit": "WebP 최적화",
+      "width": 230,
+      "height": 466
+    },
+    "pack-jp-2.webp": {
+      "original": "https://pocketmoonstars.com/packs/ja-E2-e2-the-town-on-no-map-pack.webp",
+      "credit": "Pocket Moonstars / © Pokémon",
+      "edit": "WebP 최적화",
+      "width": 230,
+      "height": 479
+    },
+    "pinball-4.webp": {
+      "original": "https://ereader.no-intro.org/Scans%20EngList/nes_pi4.jpg",
+      "credit": "No-Intro 실물 스캔 / © Nintendo",
+      "edit": "WebP 최적화",
+      "width": 167,
+      "height": 234
+    },
+    "pinball-1.webp": {
+      "original": "https://ereader.no-intro.org/Scans%20EngList/nes_pi1.jpg",
+      "credit": "No-Intro 실물 스캔 / © Nintendo",
+      "edit": "WebP 최적화",
+      "width": 167,
+      "height": 234
+    },
+    "machamp.webp": {
+      "original": "https://images.pokemontcg.io/ecard1/51_hires.png",
+      "credit": "Pokémon TCG API / © Pokémon",
+      "edit": "WebP 최적화",
+      "width": 480,
+      "height": 660
+    },
+    "manhole.webp": {
+      "original": "https://ereader.no-intro.org/Scans%20EngList/pr_mou.jpg",
+      "credit": "No-Intro 실물 스캔 / © Nintendo",
+      "edit": "WebP 최적화",
+      "width": 167,
+      "height": 234
+    },
+    "machoke.webp": {
+      "original": "https://images.pokemontcg.io/ecard1/85_hires.png",
+      "credit": "Pokémon TCG API / © Pokémon",
+      "edit": "WebP 최적화",
+      "width": 480,
+      "height": 660
+    },
+    "animal-crossing.webp": {
+      "original": "https://ereader.no-intro.org/Scans%20EngList/pr_E01.jpg",
+      "credit": "No-Intro 실물 스캔 / © Nintendo",
+      "edit": "WebP 최적화",
+      "width": 167,
+      "height": 234
+    },
+    "pinball-2.webp": {
+      "original": "https://ereader.no-intro.org/Scans%20EngList/nes_pi2.jpg",
+      "credit": "No-Intro 실물 스캔 / © Nintendo",
+      "edit": "WebP 최적화",
+      "width": 167,
+      "height": 234
+    },
+    "donkey-4.webp": {
+      "original": "https://ereader.no-intro.org/Scans%20EngList/nes_dj4.jpg",
+      "credit": "No-Intro 실물 스캔 / © Nintendo",
+      "edit": "WebP 최적화",
+      "width": 167,
+      "height": 234
+    },
+    "donkey-1.webp": {
+      "original": "https://ereader.no-intro.org/Scans%20EngList/nes_dj1.jpg",
+      "credit": "No-Intro 실물 스캔 / © Nintendo",
+      "edit": "WebP 최적화",
+      "width": 167,
+      "height": 234
+    },
+    "donkey-5.webp": {
+      "original": "https://ereader.no-intro.org/Scans%20EngList/nes_dj5.jpg",
+      "credit": "No-Intro 실물 스캔 / © Nintendo",
+      "edit": "WebP 최적화",
+      "width": 167,
+      "height": 234
+    },
+    "pinball-3.webp": {
+      "original": "https://ereader.no-intro.org/Scans%20EngList/nes_pi3.jpg",
+      "credit": "No-Intro 실물 스캔 / © Nintendo",
+      "edit": "WebP 최적화",
+      "width": 167,
+      "height": 234
+    },
+    "donkey-2.webp": {
+      "original": "https://ereader.no-intro.org/Scans%20EngList/nes_dj2.jpg",
+      "credit": "No-Intro 실물 스캔 / © Nintendo",
+      "edit": "WebP 최적화",
+      "width": 167,
+      "height": 234
+    },
+    "donkey-3.webp": {
+      "original": "https://ereader.no-intro.org/Scans%20EngList/nes_dj3.jpg",
+      "credit": "No-Intro 실물 스캔 / © Nintendo",
+      "edit": "WebP 최적화",
+      "width": 167,
+      "height": 234
+    },
+    "pinball-5.webp": {
+      "original": "https://ereader.no-intro.org/Scans%20EngList/nes_pi5.jpg",
+      "credit": "No-Intro 실물 스캔 / © Nintendo",
+      "edit": "WebP 최적화",
+      "width": 167,
+      "height": 234
+    },
+    "jp-app-1.webp": {
+      "original": "https://cdn.snkrdunk.com/upload_bg_removed/7bd52ba9-a40e-4184-9254-66dd8504a206.webp?size=l",
+      "source": "https://snkrdunk.com/en/trading-cards/431052",
+      "credit": "SNKRDUNK / © Pokémon",
+      "edit": "투명 바깥 여백만 제거. 카드 전체 앞면 유지.",
+      "width": 484,
+      "height": 686,
+      "edition": "1st Edition",
+      "number": "021/128"
+    },
+    "jp-app-2.webp": {
+      "original": "https://cdn.snkrdunk.com/upload_bg_removed/94fa58d9-3e12-4f16-8b81-59de2e208ad7.webp?size=l",
+      "source": "https://snkrdunk.com/en/trading-cards/431073",
+      "credit": "SNKRDUNK / © Pokémon",
+      "edit": "투명 바깥 여백만 제거. 카드 전체 앞면 유지.",
+      "width": 484,
+      "height": 686,
+      "edition": "1st Edition",
+      "number": "042/128"
+    },
+    "jp-app-3.webp": {
+      "original": "https://cdn.snkrdunk.com/upload_bg_removed/bc439b92-c230-4ca7-97cf-a548564de0f6.webp?size=l",
+      "source": "https://snkrdunk.com/en/trading-cards/431115",
+      "credit": "SNKRDUNK / © Pokémon",
+      "edit": "투명 바깥 여백만 제거. 카드 전체 앞면 유지.",
+      "width": 484,
+      "height": 686,
+      "edition": "1st Edition",
+      "number": "089/128"
+    },
+    "jp-app-4.webp": {
+      "original": "https://cdn.snkrdunk.com/upload_bg_removed/84d5f56f-a62f-42e1-b01f-f8e536399ea2.webp?size=l",
+      "source": "https://snkrdunk.com/en/trading-cards/431111",
+      "credit": "SNKRDUNK / © Pokémon",
+      "edit": "투명 바깥 여백만 제거. 카드 전체 앞면 유지.",
+      "width": 484,
+      "height": 686,
+      "edition": "1st Edition",
+      "number": "082/128"
+    },
+    "jp-app-5.webp": {
+      "original": "https://cdn.snkrdunk.com/upload_bg_removed/ca74fa43-914f-4845-a5ef-c28eec791f49.webp?size=l",
+      "source": "https://snkrdunk.com/en/trading-cards/431033",
+      "credit": "SNKRDUNK / © Pokémon",
+      "edit": "투명 바깥 여백만 제거. 카드 전체 앞면 유지.",
+      "width": 484,
+      "height": 686,
+      "edition": "1st Edition",
+      "number": "002/128"
+    },
+    "jp-app-6.webp": {
+      "original": "https://cdn.snkrdunk.com/upload_bg_removed/a3002950-482c-4cec-b48e-0cd5764f45ec.webp?size=l",
+      "source": "https://snkrdunk.com/en/trading-cards/431103",
+      "credit": "SNKRDUNK / © Pokémon",
+      "edit": "투명 바깥 여백만 제거. 카드 전체 앞면 유지.",
+      "width": 484,
+      "height": 686,
+      "edition": "1st Edition",
+      "number": "073/128"
+    },
+    "jp-app-7.webp": {
+      "original": "https://cdn.snkrdunk.com/upload_bg_removed/e808ae86-6ae2-4111-a3c6-919b1ee59496.webp?size=l",
+      "source": "https://snkrdunk.com/en/trading-cards/431047",
+      "credit": "SNKRDUNK / © Pokémon",
+      "edit": "투명 바깥 여백만 제거. 카드 전체 앞면 유지.",
+      "width": 484,
+      "height": 686,
+      "edition": "1st Edition",
+      "number": "016/128"
+    },
+    "jp-app-8.webp": {
+      "original": "https://cdn.snkrdunk.com/upload_bg_removed/8e11730d-b0b6-4b17-95b1-0b19d573e58d.webp?size=l",
+      "source": "https://snkrdunk.com/en/trading-cards/431050",
+      "credit": "SNKRDUNK / © Pokémon",
+      "edit": "투명 바깥 여백만 제거. 카드 전체 앞면 유지.",
+      "width": 484,
+      "height": 686,
+      "edition": "1st Edition",
+      "number": "019/128"
+    },
+    "jp-app-9.webp": {
+      "original": "https://cdn.snkrdunk.com/upload_bg_removed/626aa8d0-a53b-43d8-96b6-62867fef754a.webp?size=l",
+      "source": "https://snkrdunk.com/en/trading-cards/431078",
+      "credit": "SNKRDUNK / © Pokémon",
+      "edit": "투명 바깥 여백만 제거. 카드 전체 앞면 유지.",
+      "width": 484,
+      "height": 686,
+      "edition": "1st Edition",
+      "number": "047/128"
+    },
+    "jp-app-10.webp": {
+      "original": "https://cdn.snkrdunk.com/upload_bg_removed/19fbaf78-0eef-4bf4-9b30-20e665fc44e9.webp?size=l",
+      "source": "https://snkrdunk.com/en/trading-cards/431032",
+      "credit": "SNKRDUNK / © Pokémon",
+      "edit": "투명 바깥 여백만 제거. 카드 전체 앞면 유지.",
+      "width": 484,
+      "height": 686,
+      "edition": "1st Edition",
+      "number": "001/128"
+    },
+    "us-sample-pack.webp": {
+      "original": "https://i.ebayimg.com/images/g/KNAAAeSwHyJpZq-o/s-l1600.webp",
+      "credit": "eBay 출품자 xpixelsandpacksx 실물 사진",
+      "edit": "WebP 최적화",
+      "width": 720,
+      "height": 960
+    },
+    "us-opened.webp": {
+      "original": "https://truth.bahamut.com.tw/s01/202402/cca72749c17e8b7e479922e600024359.JPG",
+      "credit": "Bahamut · zx040458 개봉 사진",
+      "edit": "WebP 최적화",
+      "width": 840,
+      "height": 630
+    },
+    "donkey-pack.webp": {
+      "original": "https://microless.com/cdn/products/e99611cb0c8c4b713e0e20cb479a7d55-hi.jpg",
+      "credit": "Microless 상품 사진 / © Nintendo",
+      "edit": "WebP 최적화",
+      "width": 320,
+      "height": 457
+    },
+    "pinball-pack.webp": {
+      "original": "https://retroversetoys.com/cdn/shop/products/IMG_2554-PhotoRoom.png?v=1658748575",
+      "credit": "Retroversetoys 상품 사진 / © Nintendo",
+      "edit": "WebP 최적화",
+      "width": 320,
+      "height": 320
+    }
+  },
+  "imageRights": "공식 제품 자료와 카드 앞면의 저작권은 각 권리자에 있음. 기사 내 판본 비교 및 사용법 설명용. 별도 공개 라이선스는 확인되지 않음.",
+  "fx": {
+    "asOf": "2026-11-20",
+    "usdToKrw": 1345.855
+  },
+  "market": {
+    "lugiaUs": [
+      {
+        "date": "2026-04-20",
+        "usd": 78000,
+        "grade": 10,
+        "href": "https://www.fanaticscollect.com/weekly/7d7f27c2-31db-11f1-b10c-0a58a9feac02",
+        "buyerPremium": null,
+        "method": "auction",
+        "note": "Fanatics 원문 표시 금액. 해당 화면에 수수료 별도 문구 없음. 인증 28450018. 같은 인증 번호의 4월 5일 동일 금액 기록은 중복 가능성으로 제외."
+      },
+      {
+        "date": "2026-10-12",
+        "usd": 336000,
+        "grade": 10,
+        "href": "https://www.fanaticscollect.com/weekly/af454eb0-bb5d-11f1-a6c4-06fff3ee0a41",
+        "buyerPremium": true,
+        "method": "auction",
+        "note": "인증 104049167. Chase Society에서 10월 27일 결제 확인."
+      },
+      {
+        "date": "2026-10-19",
+        "usd": 360000,
+        "grade": 10,
+        "href": "https://www.fanaticscollect.com/weekly/c7f86684-c12c-11f1-8093-0a58a9feac02",
+        "buyerPremium": true,
+        "method": "auction",
+        "note": "인증 14726230. Chase Society에서 10월 27일 결제 확인."
+      }
+    ],
+    "lugiaJp": [
+      {
+        "date": "2026-03-23",
+        "usd": 25200,
+        "grade": 10,
+        "href": "https://www.fanaticscollect.com/weekly/fad92f26-1d4d-11f1-97c2-0a58a9feac02",
+        "buyerPremium": true,
+        "method": "auction",
+        "note": "1st Edition, 인증 28249511."
+      },
+      {
+        "date": "2026-06-19",
+        "usd": 45600,
+        "grade": 10,
+        "href": "https://www.fanaticscollect.com/premier/92ea636c-5650-11f1-adf0-0a58a9feac02",
+        "buyerPremium": true,
+        "method": "auction",
+        "note": "1st Edition, 인증 95208547, Fanatics Eye Appeal Top 30%."
+      },
+      {
+        "date": "2026-08-10",
+        "usd": 9300,
+        "grade": 8,
+        "href": "https://www.fanaticscollect.com/weekly/365e1dae-8c7f-11f1-8419-0a58a9feac02",
+        "buyerPremium": true,
+        "method": "auction",
+        "note": "1st Edition."
+      }
+    ],
+    "charizard": [
+      {
+        "date": "2026-03-16",
+        "usd": 28200,
+        "grade": 9,
+        "href": "https://www.fanaticscollect.com/weekly/f11b9f74-181f-11f1-9e12-06de3774fbb3",
+        "buyerPremium": true,
+        "method": "auction"
+      },
+      {
+        "date": "2026-09-21",
+        "usd": 192000,
+        "grade": 10,
+        "href": "https://www.fanaticscollect.com/buy-now/03483f4a-2214-475b-b92a-c0baed98786d",
+        "buyerPremium": null,
+        "method": "history",
+        "note": "판매 이력 표의 값. 페이지 상단 120,000달러는 8/31 별도 거래. 인증 65711506 경제 추적에서 결제 확인."
+      },
+      {
+        "date": "2026-11-20",
+        "usd": 117000,
+        "grade": 10,
+        "href": "https://www.fanaticscollect.com/buy-now/03483f4a-2214-475b-b92a-c0baed98786d",
+        "buyerPremium": null,
+        "method": "history",
+        "note": "Fanatics 같은 등급 판매 이력 11/20 행. 당시 입찰·배송·수수료는 해당 행에 표시되지 않음."
+      }
+    ],
+    "mewtwo": [
+      {
+        "date": "2026-02-22",
+        "usd": 1470,
+        "grade": 9,
+        "href": "https://www.fanaticscollect.com/weekly/a8e1bdb8-0214-11f1-814c-0a58a9feac02",
+        "buyerPremium": true,
+        "method": "auction"
+      },
+      {
+        "date": "2026-09-07",
+        "usd": 96000,
+        "grade": 10,
+        "href": "https://www.fanaticscollect.com/weekly/f030f710-9daa-11f1-8360-0a58a9feac02",
+        "buyerPremium": true,
+        "method": "auction",
+        "note": "인증 49454870. Chase Society에서 결제 확인."
+      },
+      {
+        "date": "2026-09-28",
+        "usd": 9300,
+        "grade": 9,
+        "href": "https://www.fanaticscollect.com/buy-now/d76c0500-7d00-4954-85c8-355924e6de69",
+        "buyerPremium": null,
+        "method": "history",
+        "note": "Fanatics 같은 등급 판매 이력 9/28 행. 페이지 상단 $700은 이 행과 별개."
+      }
+    ],
+    "korean": {
+      "medianKrw": 48000,
+      "count": 9,
+      "asOf": "2026-11-20",
+      "windowDays": 120,
+      "note": "TCG뉴스가 번개장터 표시 판매완료가를 집계. 개별 합의가·결제 금액 및 한글판 PSA 확정 거래는 별도로 확인되지 않음."
+    }
+  }
+}
