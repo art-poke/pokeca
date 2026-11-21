@@ -17,3 +17,8 @@ Codex에서는 현재 세션에서 사용 가능한 스킬만 호출한다. `CLA
 gstack 명령이나 `ego-browser`가 없으면 현재 세션의 도구로 해당 작업을 진행한다.
 일본판 카드 카탈로그 추가, 검색 누락 조사, 운영 반영에는
 `.agents/skills/snkrdunk-catalog/SKILL.md`를 사용한다.
+
+## 카드 이야기 편집
+
+카드 이야기의 새 글 작성과 기존 글 편집에는 `.agents/skills/card-story-editor/SKILL.md`를 사용한다.
+이 레포에서 카드 주제로 “글 작성해줘”라고 요청하면 이 스킬을 적용한다.

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  BookOpen,
   ChevronLeft,
   ChevronRight,
   Gamepad2,
@@ -26,6 +27,7 @@ const NAV = [
   { href: "/ranking", label: "랭킹", icon: Trophy },
   { href: "/play", label: "몬스터볼 게임", icon: Gamepad2 },
   { href: "/requests", label: "도안 요청해요", icon: Megaphone },
+  { href: "/stories", label: "카드 이야기", icon: BookOpen },
   { href: "/community", label: "커뮤니티", icon: MessagesSquare },
   { href: "/me", label: "마이페이지", icon: User },
 ] as const;

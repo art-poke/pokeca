@@ -1,4 +1,4 @@
-export type CommentTarget = "artwork" | "post";
+export type CommentTarget = "artwork" | "post" | "story";
 
 export type CommentNode = {
   id: string;

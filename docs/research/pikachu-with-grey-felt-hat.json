@@ -1,0 +1,178 @@
+{
+  "topic": "Pikachu with Grey Felt Hat · SVP EN 085",
+  "researchedOn": "2026-11-21",
+  "usdToKrw": 1336.20,
+  "sources": {
+    "amsterdam": {
+      "label": "UNESCO 암스테르담 운하 지구",
+      "href": "https://whc.unesco.org/en/urban-heritage-atlas/Amsterdam/",
+      "method": "유네스코 도시유산 지도 및 케이저르스흐라흐트 운하 자료",
+      "findings": ["암스테르담은 네덜란드 수도. 도심 운하 지구에는 케이저르스흐라흐트 등 주요 운하와 운하변 주택이 있음."]
+    },
+    "fanaticsBlackLabel": {
+      "label": "Fanatics Collect 블랙라벨 경매 원문",
+      "href": "https://www.fanaticscollect.com/premier/f065f5d6-c353-11f1-a3b0-02fffb96cfc9",
+      "method": "Ego Lite에서 종료 경매 원문과 카드 사진 확인",
+      "findings": ["2026-10-23 BGS 10 BLACK LABEL SVP 085 한 장 판매. 입찰 33건. 구매자 수수료 포함 150,000달러. 인증번호 0018572662."]
+    },
+    "fanaticsBgs10": {
+      "label": "Fanatics Collect BGS 10 일반 표기 경매",
+      "href": "https://www.fanaticscollect.com/weekly/7bffd24c-6121-11f0-8ee7-02087e3951b5/2023-pokemon-sv-black-star-promo-van-gogh-pikachu-with-grey-felt-hat-85-bgs-10",
+      "method": "종료 경매 원문",
+      "findings": ["2025년 7월 경매, BGS 10 표기(블랙라벨 표기 없음), 구매자 수수료 포함 3,960달러. 인증번호 0017458518."]
+    },
+    "beckett": {
+      "label": "Beckett 카드 등급 기준",
+      "href": "https://beckett.com/grading",
+      "method": "감정사 공식 등급 안내",
+      "findings": ["센터링, 모서리, 가장자리, 표면을 평가. Perfect Pristine 10 블랙라벨과 Pristine 10 골드라벨을 구분."]
+    },
+    "vincentPhoto": {
+      "label": "19세 빈센트 반 고흐 사진 원본",
+      "href": "https://commons.wikimedia.org/wiki/File:Vincent_van_Gogh_January_1873.jpeg",
+      "method": "Wikimedia Commons 소장품 메타데이터 및 원본",
+      "findings": ["Jacobus Marinus Wilhelmus de Louw가 1873년 촬영한 19세 사진. 반 고흐 미술관 소장."]
+    },
+    "vincentIdentity": {
+      "label": "반 고흐 미술관의 사진 재조사",
+      "href": "https://www.vangoghmuseum.nl/en/about/news-and-press/news/mistaken-identity-vincent-and-theo",
+      "method": "미술관 발표",
+      "findings": ["13세 빈센트로 알려졌던 별개의 사진은 테오. 19세 사진은 빈센트로 확인."]
+    },
+    "kimuraWorks": {
+      "label": "2023년 협업 전시 작품 목록",
+      "href": "https://www.serebii.net/pokemon/vangoghmuseum/",
+      "method": "전시 작품 목록 조회",
+      "findings": ["기무라 나오요가 피카츄와 〈까마귀가 나는 밀밭〉을 재해석한 돈크로우·아머까오 진화 계열 작품에 참여."]
+    },
+    "leaflet": {
+      "label": "당시 관람기와 Pokémon Adventure 활동지 사진",
+      "href": "https://www.theguardian.com/games/2024/jan/16/pokemon-pandemonium-did-the-van-gogh-museum-play-its-cards-right-pikachu",
+      "method": "Ego Lite에서 본문 figure와 이미지 원본 조회",
+      "findings": ["Matt Poskitt가 촬영한 당시 Pokémon Adventure 활동지. 공식 행사 안내와 보상 조건을 대조."]
+    },
+    "exchangeRate": {
+      "label": "11월 20일 오후 3시 30분 외국환 기준가",
+      "href": "https://www.yna.co.kr/view/AKR20261120127500002",
+      "method": "서울외국환중개·연합인포맥스 자료를 인용한 연합뉴스 환율 표",
+      "findings": ["2026-11-20 15:30 기준 1달러당 1,336.20원, 1유로당 1,467.82원. 본문은 이 환율로 통일하여 천 원 단위로 반올림."]
+    },
+    "announcement": {
+      "label": "포켓몬 × 반 고흐 미술관 협업 발표",
+      "href": "https://press.pokemon.com/en/The-Pokemon-Company-International-Partners-With-The-Van-Gogh-Museum-Fo",
+      "method": "웹 원문",
+      "findings": ["미술관 개관 50주년 협업. 2023-09-28부터 2024-01-07까지 전시 안내.", "원화 6점을 포켓몬 작가들이 재해석. 해너츠는 해바라기, 잠만보와 먹고자는 반 고흐의 방에서 영감을 받음.", "미술관 활동지 완수 보상 및 포켓몬센터 협업 상품 사은품으로 피카츄 카드 배포 안내.", "반 고흐가 일본 판화에서 영향을 받았다는 협업 배경."]
+    },
+    "museumArtwork": {
+      "label": "반 고흐 미술관 소장 자화상",
+      "href": "https://www.vangoghmuseum.nl/en/collection/s0016V1962",
+      "method": "웹 원문 및 소장품 메타데이터",
+      "findings": ["회색 펠트 모자를 쓴 자화상, 1887년, 소장품 번호 s0016V1962."]
+    },
+    "museumCollaboration": {
+      "label": "반 고흐 미술관 협업 작품과 작가 표기",
+      "href": "https://www.vangoghmuseum.nl/en/about/collaborate/van-gogh-museum-brand-licenses/collaboration-license-partners",
+      "method": "Ego Lite 및 원문 이미지 태그 조회",
+      "findings": ["미술관은 자화상을 재해석한 피카츄 작품에 Naoyo Kimura를 표기."]
+    },
+    "annualReport": {
+      "label": "반 고흐 미술관 2023년 연차보고서",
+      "href": "https://www.vangoghmuseum.nl/assets/2558a768-fcf2-43ac-afdd-225d83d4e50f/Annual%20Report%202023%20Van%20Gogh%20Museum?c=eb1cff099c08b84d781a718c2b0951d1db51904baaf1d5de3bc518ed5ea5f4e8",
+      "method": "공식 PDF",
+      "findings": ["보고서는 즉시 되팔 목적으로 온 방문객과 안전 문제를 언급. 2023-10-14부터 미술관 현장 카드 배포 중단."]
+    },
+    "retail": {
+      "label": "포켓몬 공식 카드 이미지와 매장 배포 공지",
+      "href": "https://www.pokemon.com/uk/news/get-a-pokemon-van-gogh-museum-pikachu-with-grey-felt-hat-promo-card",
+      "method": "Ego Lite 및 웹 원문",
+      "findings": ["2024-02-10부터 네덜란드 참여 매장에서 TCG 상품 단일 거래 29.99유로 이상 구매 시 사은품 증정.", "공식 카드 이미지는 영문 SVP EN 085."]
+    },
+    "pristine": {
+      "label": "Pristine Auction 9056118",
+      "href": "https://www.pristineauction.com/a9056118-Pikachu-with-Grey-Felt-Hat-Pokemon-2023-Scarlet-Violet-Promos-85-PSA-10",
+      "method": "경매 원문",
+      "findings": ["2024-06-19 PSA 10 낙찰 237.14달러, 구매자 수수료 40.31달러, 표시 합계 277.45달러. 입찰 14건."]
+    },
+    "ebay": {
+      "label": "eBay 종료 경매 189033472944",
+      "href": "https://www.ebay.com/itm/189033472944",
+      "method": "경매 원문",
+      "findings": ["2026-10-12 PSA 10 낙찰 2,475달러. 입찰 60건. 페이지에 배송비 25달러 별도 표시."]
+    },
+    "psa": {
+      "label": "PSA 동급 카드 거래 기록",
+      "href": "https://www.psacard.com/cert/153747001/psa",
+      "method": "PSA 인증 페이지 내 동급 거래 표",
+      "findings": ["2026-11-09 PSA 10 eBay Auction 2,425달러, 로트 407326112053. 같은 날 고정가 거래 2,452.98달러 및 가격 제안 거래 2,223.63달러.", "eBay 로트 407326112053 직접 열람은 실패해 PSA 기록으로만 확인. 동급 거래 표는 계속 갱신됨."]
+    },
+    "sniper": {
+      "label": "sniper.cards 미국 eBay 거래 집계",
+      "href": "https://sniper.cards/en/card/pikachu-grey-felt-hat-085-svp/",
+      "method": "2026-11-19 갱신본",
+      "findings": ["최근 14일 PSA 10 중앙값 2,427달러, 64건. PSA 9 중앙값 836달러, 46건. 미국 eBay 판매 완료 표본, 배송비 제외.", "같은 집계의 PSA 10 월 중앙값 2026-05 2,922달러, 2026-10 2,502달러.", "동일 표본 내 2,427 / 836 = 2.90배."]
+    },
+    "tcgmetric": {
+      "label": "TCGMetric의 TCGplayer 미감정 카드 가격",
+      "href": "https://www.tcgmetric.com/card/518861?v=Normal",
+      "method": "2026-11-13자 TCGplayer 시장 지표 인용 페이지",
+      "findings": ["미감정 카드 시장 지표 947.45달러. 개별 낙찰값 또는 eBay 중앙값이 아님."]
+    }
+  },
+  "images": {
+    "amsterdam": {
+      "local": "public/specs/stories/amsterdam-keizersgracht.webp",
+      "origin": "https://upload.wikimedia.org/wikipedia/commons/f/f5/Amsterdam_-_Keizersgracht.jpg",
+      "sourcePage": "https://commons.wikimedia.org/wiki/File:Amsterdam_-_Keizersgracht.jpg",
+      "credit": "Jorge Franganillo / Wikimedia Commons",
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "method": "Ego Lite에서 사진 및 라이선스 확인 후 원본 다운로드, 크기 조정 및 WebP 변환"
+    },
+    "blackLabel": {
+      "local": "public/specs/stories/grey-felt-hat-bgs-black-label.webp",
+      "source": "fanaticsBlackLabel",
+      "credit": "Fanatics Collect, October Premier Auction Lot 7"
+    },
+    "museumIllustration": {
+      "local": "public/specs/stories/museum-counter-illustration.webp",
+      "method": "ImageGen 오리지널 삽화. 실제 전시장 사진과 구분해 표시.",
+      "credit": "카드 이야기 제작 삽화"
+    },
+    "surprisedPikachu": {
+      "local": "public/specs/stories/pikachu-surprised.webp",
+      "origin": "https://i.kym-cdn.com/entries/icons/original/000/027/475/Screen_Shot_2018-10-25_at_11.02.15_AM.png",
+      "reference": "https://knowyourmeme.com/memes/surprised-pikachu/",
+      "credit": "Pokémon 애니메이션 1기 10화 장면 / Know Your Meme"
+    },
+    "vincentPhoto": {
+      "local": "public/specs/stories/van-gogh-age-19.webp",
+      "origin": "https://upload.wikimedia.org/wikipedia/commons/e/eb/Vincent_van_Gogh_January_1873.jpeg",
+      "credit": "Jacobus Marinus Wilhelmus de Louw / Van Gogh Museum, Amsterdam (Vincent van Gogh Foundation) / Wikimedia Commons"
+    },
+    "leaflet": {
+      "local": "public/specs/stories/pokemon-adventure-leaflet.webp",
+      "origin": "https://i.guim.co.uk/img/media/e78933868aa190516f5523c96c5d11c6a7759740/469_0_1579_948/master/1579.jpg?width=900&dpr=1&s=none&crop=none",
+      "credit": "Matt Poskitt / The Guardian"
+    },
+    "portrait": {
+      "local": "public/specs/stories/van-gogh-self-portrait.webp",
+      "origin": "https://iiif.micr.io/pMtwg/full/800,/0/default.jpg",
+      "credit": "Vincent van Gogh, Van Gogh Museum, Amsterdam (Vincent van Gogh Foundation)"
+    },
+    "card": {
+      "local": "public/specs/stories/grey-felt-hat-card.webp",
+      "origin": "https://mcdn.pokemon.com/pokemon-prod/image/upload/v1/live/static-assets/content-assets/cms2/img/cards/web/SVP/SVP_EN_85.png",
+      "credit": "The Pokémon Company International"
+    },
+    "kimura": {
+      "local": "public/specs/stories/kimura-pikachu.webp",
+      "origin": "https://www.vangoghmuseum.nl/assets/f3fab8fc-65a2-41ad-bf2d-c204c65ccb90?w=300&x=433&y=457&cropWidth=1493&cropHeight=2738&c=95b8731b10f46e58f05fc486d02acaa687165f5248992e162752f1c076db24ec",
+      "credit": "Naoyo Kimura, The Pokémon Company International / Van Gogh Museum"
+    },
+    "exhibition": {
+      "local": "public/specs/stories/van-gogh-pokemon-exhibition.webp",
+      "source": "annualReport",
+      "method": "PDF 파일 10번째 페이지에 포함된 전시장 사진 추출",
+      "credit": "반 고흐 미술관 2023년 연차보고서"
+    }
+  }
+}

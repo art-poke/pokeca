@@ -18,6 +18,9 @@ export const proxy = auth((request) => {
     const devStudioPreview =
       process.env.NODE_ENV !== "production" && area === "/artist" && !pathname.startsWith("/api/");
     if (devStudioPreview) return withVisitor(request);
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ code: "unauthorized" }, { status: 401 });
+    }
     const login = request.nextUrl.clone();
     login.pathname = `${area}/login`;
     login.search = "";

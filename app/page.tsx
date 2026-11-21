@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 export default function Home() {
   return (
     <div className="space-y-10 md:space-y-12">
+      <h1 className="sr-only">확장 아트 아카이브</h1>
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
         <HomeBanner />
       </div>

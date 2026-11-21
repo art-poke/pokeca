@@ -55,4 +55,12 @@ jobs:
         run: bash scripts/deploy.sh
 
       - name: Check production
-        run: curl --fail --silent --show-error --location --retry 5 --retry-all-errors --max-time 30 https://artpokeca.com/ --output /dev/null
+        run: |
+          base=https://artpokeca.com
+          curl --fail --silent --show-error --location --retry 5 --retry-all-errors --max-time 30 "$base/" --output /dev/null
+          for slug in pikachu-with-grey-felt-hat melee-pokemon-scramble; do
+            image="/specs/stories/og-$slug.jpg"
+            curl --fail --silent --show-error --max-time 30 "$base$image" --output /dev/null
+            curl --fail --silent --show-error --max-time 30 -A 'Twitterbot/1.0' "$base/stories/$slug" --output story.html
+            grep -Fq "$image" story.html
+          done

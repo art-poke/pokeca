@@ -3,9 +3,10 @@ import { and, asc, count, eq, isNull } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { comments } from "@/lib/db/schema";
 import { UUID } from "@/lib/uuid";
+import { stories } from "@/app/stories/stories";
+import type { CommentTarget } from "@/domains/comment/api/types";
 
-// 다형 댓글(도안·게시글) + 1단계 대댓글. 작성자 표시명은 작성 시점 스냅샷.
-export type CommentTarget = "artwork" | "post";
+export type { CommentTarget } from "@/domains/comment/api/types";
 
 export class CommentError extends Error {
   constructor(public code: string) {
@@ -80,9 +81,13 @@ export async function createComment(opts: {
   if (!body) throw new CommentError("empty");
   if (body.length > 2000) throw new CommentError("too_long");
   if (!UUID.test(opts.targetId)) throw new CommentError("not_found");
+  if (opts.target === "story" && !stories.some(({ id }) => id === opts.targetId)) {
+    throw new CommentError("not_found");
+  }
 
   let parentId: string | null = null;
   if (opts.parentId) {
+    if (!UUID.test(opts.parentId)) throw new CommentError("invalid_parent");
     // 대댓글은 1단계만: 부모는 같은 대상의 루트 댓글이어야 한다.
     const rows = await db
       .select({

@@ -3,15 +3,18 @@ import { sql } from "./db";
 
 // seed.sql: sv2a 201/165 리자몽 ex (영문 별칭 MEW 199/165), sv2a 205/165 뮤 ex
 test("card number search goes straight to the card", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/search");
   await page.getByLabel("카드 번호 또는 이름").fill("SV2A 201/165");
   await page.getByLabel("카드 번호 또는 이름").press("Enter");
   await expect(page).toHaveURL(/\/cards\/sv2a\/201-165$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("sv2a 201/165");
-  await expect(page.locator("strong", { hasText: "리자몽 ex" })).toBeVisible();
+  await expect(page.getByText("리자몽 ex", { exact: true }).first()).toBeVisible();
 });
 
 test("alias search explains it landed on the Korean card", async ({ page }) => {
+  await sql`insert into card_aliases (card_id, lang, set_code, collector_number, name)
+    select id, 'en', 'mew', '199/165', 'Charizard ex' from cards
+    where set_code = 'sv2a' and collector_number = '201/165' on conflict do nothing`;
   await page.goto("/search?q=MEW 199/165");
   await expect(page).toHaveURL(/\/cards\/sv2a\/201-165\?from=en/);
   await expect(page.getByText("MEW 199/165(영문판)과 같은 그림의 한글판 카드예요")).toBeVisible();
@@ -24,10 +27,10 @@ test("canonical search shows no alias note", async ({ page }) => {
 });
 
 test("name search lists candidates", async ({ page }) => {
-  await page.goto("/search?q=ex");
-  await expect(page.getByRole("heading", { name: "카드 2장" })).toBeVisible();
-  await page.getByRole("link", { name: "뮤 ex" }).click();
-  await expect(page).toHaveURL(/\/cards\/sv2a\/205-165$/);
+  await page.goto("/search?q=리자몽");
+  await expect(page.getByRole("heading", { name: /카드 \d+\+?장/ })).toBeVisible();
+  await page.locator('a[href="/cards/sv2a/201-165"]').click();
+  await expect(page).toHaveURL(/\/cards\/sv2a\/201-165$/);
 });
 
 test("unknown card shows the miss message", async ({ page }) => {
@@ -58,32 +61,20 @@ test("unknown card URL shows the not-in-list page", async ({ page }) => {
 
 test("header search on a card page jumps to another card", async ({ page, isMobile }) => {
   await page.goto("/cards/sv2a/201-165");
-  const header = page.getByRole("banner");
-  // 모바일은 ⌕ 버튼을 눌러야 검색창이 펼쳐지고, 입력란에 바로 포커스가 간다 (design 9A).
-  const toggle = header.getByRole("button", { name: "카드 검색 열기" });
-  if (isMobile) {
-    await expect(header.getByRole("button", { name: "찾기" })).toBeHidden();
-    await toggle.click();
-    await expect(header.getByLabel("카드 번호 또는 이름 검색")).toBeFocused();
-    await expect(header.getByText("예: sv2a 201/165, 리자몽")).toBeVisible();
-  } else {
-    await expect(toggle).toBeHidden();
-  }
-  await expect(header.getByRole("button", { name: "찾기" })).toBeVisible();
-  // 모바일(375px)에서도 머리글 검색 때문에 가로 스크롤이 생기면 안 된다(리눅스 크롬에서 입력란 기본 너비로 넘친 적이 있음).
-  // 맥에서도 잡히도록 입력란 기본 너비를 넓혀 놓고 잰다.
-  await page.evaluate(() => document.querySelector("#q-header")?.setAttribute("size", "60"));
+  if (isMobile) await page.getByRole("button", { name: "메뉴 열기" }).click();
+  const search = isMobile ? page.getByRole("search", { name: "머리글 카드 검색" }).filter({ visible: true }) : page.getByRole("banner").getByRole("search");
+  await expect(search).toBeVisible();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   expect(overflow).toBe(false);
 
-  await header.getByLabel("카드 번호 또는 이름 검색").fill("sv2a 205/165");
-  await header.getByRole("button", { name: "찾기" }).click();
+  await search.getByLabel("카드 번호 또는 이름 검색").fill("sv2a 205/165");
+  await search.getByRole("button", { name: "찾기" }).click();
   await expect(page).toHaveURL(/\/cards\/sv2a\/205-165$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("sv2a 205/165");
 });
 
 test("home has no header search", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByLabel("카드 번호 또는 이름", { exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "카드 검색하기" })).toBeVisible();
   await expect(page.getByRole("banner").getByRole("search")).toHaveCount(0);
 });

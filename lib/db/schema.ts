@@ -239,7 +239,7 @@ export const favorites = pgTable(
   (t) => ({ pk: primaryKey({ columns: [t.userId, t.cardId] }) }),
 );
 
-// 다형 댓글(도안·게시글) + 1단계 대댓글 (infra/db/01_app.sql의 public.comments 거울).
+// 다형 댓글(도안·게시글·카드 이야기) + 1단계 대댓글.
 // target_id/parent_id는 FK 없는 다형 참조. author_name은 작성 시점 표시명 스냅샷.
 export const comments = pgTable("comments", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -255,6 +255,16 @@ export const comments = pgTable("comments", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
 });
+
+export const storyLikes = pgTable("story_likes", {
+  storyId: uuid("story_id").notNull(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+}, (t) => ({ pk: primaryKey({ columns: [t.storyId, t.userId] }) }));
+
+export const storyViews = pgTable("story_views", {
+  storyId: uuid("story_id").notNull(),
+  visitorId: uuid("visitor_id").notNull(),
+}, (t) => ({ pk: primaryKey({ columns: [t.storyId, t.visitorId] }) }));
 
 // 찾기/도안 요청 (infra/db/01_app.sql의 public.requests 거울).
 // 익명 규격별 "찾기요청"(visitor_id) 과 회원 카드/규격 요청(user_id)이 한 테이블에 들어온다.
