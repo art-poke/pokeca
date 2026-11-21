@@ -49,7 +49,7 @@ export default function Home() {
           </Suspense>
         </section>
 
-        <aside className="space-y-4">
+        <aside aria-labelledby="ranking-heading" className="space-y-4">
           <section aria-labelledby="ranking-heading" className="rounded-2xl border border-border bg-background p-5">
             <h2 id="ranking-heading" className="flex items-center gap-2 font-display text-lg font-bold text-foreground">
               <Crown className="size-5 text-primary" aria-hidden />
