@@ -181,14 +181,11 @@ describe("evidence view is admin only", () => {
   });
 
   it("cannot be read without a signed URL (private bucket blocks anonymous access)", async () => {
-    await recorded();
-    const [path] = await evidencePaths();
-    // 서명 없는 평문 GET은 비공개 버킷(public-access-block)이 거부해야 한다.
-    const region = process.env.AWS_REGION ?? "ap-northeast-1";
-    const raw = `https://${process.env.S3_BUCKET_EVIDENCE}.s3.${region}.amazonaws.com/${path
-      .split("/")
-      .map(encodeURIComponent)
-      .join("/")}`;
+    const eventId = await recorded();
+    const signed = await evidenceUrl(eventId);
+    expect(signed).toBeTruthy();
+    const raw = new URL(signed!);
+    raw.search = "";
     const res = await fetch(raw);
     expect(res.ok).toBe(false);
     expect([401, 403]).toContain(res.status);

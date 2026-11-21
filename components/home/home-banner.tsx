@@ -22,7 +22,7 @@ const SLIDES: Slide[] = [
     subtitle: "카드 번호만 입력하면 딱 맞는 도안이 나와요.",
     cta: "카드 검색하기",
     href: "/search",
-    gradient: "from-red-500 via-red-600 to-ink-900",
+    gradient: "from-red-700 via-red-800 to-ink-900",
   },
   {
     tag: "누구나 작가",
@@ -59,7 +59,7 @@ export const HomeBanner = () => {
       {SLIDES.map((slide, i) => (
         <div
           key={slide.title}
-          aria-hidden={i !== index}
+          inert={i !== index}
           className={cn(
             "absolute inset-0 bg-gradient-to-br transition-opacity duration-700",
             slide.gradient,
@@ -68,7 +68,7 @@ export const HomeBanner = () => {
         >
           <PokeballMark className="pointer-events-none absolute -right-10 -top-10 size-64 opacity-10 md:size-80" />
           <div className="relative flex h-full flex-col justify-center gap-3 p-6 md:p-12">
-            <span className="w-fit rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
+            <span className="w-fit rounded-full bg-black/25 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
               {slide.tag}
             </span>
             <h2 className="whitespace-pre-line font-display text-2xl font-bold leading-tight text-white md:text-4xl">

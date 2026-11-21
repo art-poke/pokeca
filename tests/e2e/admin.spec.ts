@@ -2,7 +2,6 @@ import { expect, test, type Page } from "@playwright/test";
 import { ADMIN, clearArtworks, ensureUser, NOT_ADMIN, previewPng, seedArtwork, sql } from "./db";
 
 // 어드민 화면 (design 11A, eng E1·E6·E7). 데스크톱에서만, 순서대로 돈다.
-test.describe.configure({ mode: "serial" });
 test.skip(({ isMobile }) => isMobile, "admin runs on desktop");
 
 test.beforeAll(async () => {
@@ -28,21 +27,21 @@ test("admin pages send signed-out and non-admin users to login", async ({ page }
   await expect(page.getByText("이 계정은 어드민 목록에 없어요")).toBeVisible();
 });
 
-test("register an artwork with uploaded files, then it is downloadable on the card page", async ({ page }) => {
+test("register an artwork with uploaded files and open its detail", async ({ page }) => {
   await login(page);
   await expect(page.getByRole("heading", { name: "작품", exact: true })).toBeVisible();
   await page.getByRole("link", { name: "작품 등록" }).click();
 
   await page.getByLabel("카드 번호 또는 이름").fill("sv2a 205/165");
   await page.getByRole("button", { name: "카드 찾기" }).click();
-  await expect(page.getByText("선택한 카드: sv2a 205/165")).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: /선택:.*sv2a 205\/165/i })).toBeVisible();
   await page.getByLabel("작가 이름(닉네임)").fill("업로드작가");
   await page.getByLabel("PSA").check();
   const png = await previewPng();
   const file = (name: string) => ({ name, mimeType: "image/png", buffer: png });
   // 미리보기는 비워 둔다: 서버가 원본에서 만든다.
-  await page.getByLabel(/^원본 파일/).setInputFiles(file("original.png"));
-  await page.getByLabel(/미리보기·다운로드하는 것을 허락받았어요/).check();
+  await page.getByLabel("클릭·드래그로 올리기", { exact: true }).setInputFiles(file("original.png"));
+  await page.getByLabel(/보관·미리보기·다운로드를 허락받았어요/).check();
   await page.getByLabel(/^허락 근거/).setInputFiles(file("dm.png"));
   await page.getByRole("button", { name: "등록" }).click();
 
@@ -53,10 +52,11 @@ test("register an artwork with uploaded files, then it is downloadable on the ca
   const evidence = page.getByRole("link", { name: /근거 보기/ });
   const res = await page.request.get((await evidence.getAttribute("href"))!, { maxRedirects: 0 });
   expect(res.status()).toBe(302);
-  expect(res.headers().location).toContain("/consent-evidence/");
+  expect(res.headers().location).toContain(process.env.S3_BUCKET_EVIDENCE!);
 
-  await page.goto("/cards/sv2a/205-165");
-  const img = page.getByRole("img", { name: "@업로드작가의 PSA 확장 아트 도안" });
+  const [artwork] = await sql<{ id: string }[]>`select id from artworks where artist_name = '업로드작가'`;
+  await page.goto(`/artworks/${artwork.id}`);
+  const img = page.getByRole("img", { name: /@업로드작가/ });
   await expect(img).toBeVisible();
   await expect.poll(() => img.evaluate((el: HTMLImageElement) => el.naturalWidth)).toBeGreaterThan(0);
   await expect(page.getByRole("button", { name: /다운로드/ })).toBeVisible();

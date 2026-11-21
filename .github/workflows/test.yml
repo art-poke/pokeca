@@ -1,7 +1,5 @@
 name: test
 
-# eng D8·D15: push·PR마다 실행한다. Vercel에서 이 검사를 필수로 지정하면 실패 시 프로덕션 배포가 막힌다.
-# 모든 브랜치 push에서 돌고, 결과는 해당 커밋의 PR 체크로도 보인다.
 on:
   push:
   workflow_dispatch:
@@ -14,6 +12,39 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: pokeca
+          POSTGRES_PASSWORD: pokeca
+          POSTGRES_DB: pokeca
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U pokeca -d pokeca"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+      s3:
+        image: rustfs/rustfs@sha256:ee717072290bec9b11abfc0365f8310b00df1cd9b3639943edae47bdef05044a
+        env:
+          RUSTFS_ACCESS_KEY: pokeca-test
+          RUSTFS_SECRET_KEY: pokeca-test-secret
+        ports:
+          - 9000:9000
+    env:
+      DATABASE_URL: postgresql://pokeca:pokeca@127.0.0.1:5432/pokeca
+      AWS_ENDPOINT_URL_S3: http://127.0.0.1:9000
+      AWS_ACCESS_KEY_ID: pokeca-test
+      AWS_SECRET_ACCESS_KEY: pokeca-test-secret
+      AWS_REGION: us-east-1
+      S3_BUCKET_UPLOADS: pokeca-test-artworks
+      S3_BUCKET_EVIDENCE: pokeca-test-consent-evidence
+      AUTH_SECRET: ci-auth-secret-for-isolated-test-environment
+      AUTH_TRUST_HOST: "true"
+      REPORT_HASH_SECRET: ci-report-hash-secret
+      CRON_SECRET: ci-cron-secret
     steps:
       - uses: actions/checkout@v4
 
@@ -24,27 +55,20 @@ jobs:
 
       - run: npm ci
 
-      - name: Start local Supabase
-        run: npx supabase start -x studio,mailpit,imgproxy,vector,logflare,supavisor,realtime,edge-runtime
-
-      - name: Export Supabase env
+      - name: Prepare PostgreSQL and S3 test fixtures
         run: |
-          npx supabase status -o env > supabase.env
-          set -a; . ./supabase.env; set +a
-          {
-            echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL"
-            echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$PUBLISHABLE_KEY"
-            echo "SUPABASE_SECRET_KEY=$SECRET_KEY"
-            echo "SUPABASE_DB_URL=$DB_URL"
-            echo "REPORT_HASH_SECRET=ci-report-hash-secret"
-            echo "CRON_SECRET=ci-cron-secret"
-          } >> "$GITHUB_ENV"
+          npm run db:migrate
+          curl --fail --silent --show-error --retry 20 --retry-all-errors --retry-delay 2 "$AWS_ENDPOINT_URL_S3/health"
+          for bucket in "$S3_BUCKET_UPLOADS" "$S3_BUCKET_EVIDENCE"; do
+            aws s3api create-bucket --bucket "$bucket"
+            aws s3api put-bucket-cors --bucket "$bucket" --cors-configuration \
+              '{"CORSRules":[{"AllowedOrigins":["http://127.0.0.1:3100"],"AllowedMethods":["PUT"],"AllowedHeaders":["*"]}]}'
+          done
 
+      - run: npx playwright install --with-deps chromium
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
-
-      - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
 
       - uses: actions/upload-artifact@v4

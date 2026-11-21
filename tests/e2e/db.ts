@@ -1,3 +1,4 @@
+import { encode } from "next-auth/jwt";
 import {
   DeleteObjectsCommand,
   ListObjectsV2Command,
@@ -155,4 +156,19 @@ export async function sessionCookies(email: string, password: string, baseURL: s
 // blocked: needs kakao/google console (sub C follow-up)
 export async function socialSessionCookies(_email: string, _baseURL: string): Promise<never> {
   throw new Error("socialSessionCookies blocked: needs kakao/google OAuth console (sub C follow-up)");
+}
+
+// 앱과 같은 Auth.js 코덱으로 격리된 E2E 환경의 소셜 세션을 구성한다.
+export async function memberSessionCookie(baseURL: string) {
+  const email = "member-e2e@example.com";
+  const [user] = await sql<{ id: string }[]>`
+    insert into users (email, name) values (${email}, '테스트 수집가')
+    on conflict (email) do update set name = excluded.name
+    returning id`;
+  const url = new URL(baseURL);
+  const salt = url.protocol === "https:" ? "__Secure-authjs.session-token" : "authjs.session-token";
+  const secret = process.env.AUTH_SECRET;
+  if (!secret) throw new Error("E2E 회원 세션에 AUTH_SECRET이 필요합니다.");
+  const value = await encode({ token: { sub: user.id, email, name: "테스트 수집가", provider: "kakao" }, secret, salt });
+  return { name: salt, value, domain: url.hostname, path: "/" };
 }
