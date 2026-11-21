@@ -22,6 +22,7 @@ export function CardTile({ card }: { card: CardTileData }) {
   return (
     <Link
       href={cardPath(setCode, collectorNumber)}
+      prefetch={false}
       className="group flex flex-col gap-2 rounded-2xl border border-border bg-background p-2 transition-shadow hover:shadow-md active:scale-[0.99] sm:gap-2.5 sm:p-2.5"
     >
       <div className="relative">

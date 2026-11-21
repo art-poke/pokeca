@@ -27,7 +27,7 @@ export function ArtworkItem({
       className="group overflow-hidden rounded-2xl border border-border bg-background transition-shadow hover:shadow-md"
       data-testid="artwork"
     >
-      <Link href={`/artworks/${artwork.id}`} className="block">
+      <Link href={`/artworks/${artwork.id}`} prefetch={false} className="block">
         <AppImage
           src={`/api/thumbnails/${artwork.id}`}
           alt={`${artwork.title} (@${artwork.artistName})`}

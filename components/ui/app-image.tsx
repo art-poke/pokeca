@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { AppImageFallback } from "./app-image-fallback";
 import { APP_IMAGE_PRESETS, type AppImageVariant } from "./app-image-presets";
@@ -19,7 +19,11 @@ type AppImageProps = {
 
 // 로딩=스켈레톤, 로드=페이드인, 실패/빈값=폴백. 바깥 aspect 박스로 자리를 선확보해 CLS=0.
 // 지금은 plain <img>로 그린다(302 프록시·서명 URL 동작). CDN+next/image 전환 시 이 내부만 교체.
-export const AppImage = ({
+export const AppImage = (props: AppImageProps) => (
+  <ImageWithStatus key={props.src ?? ""} {...props} />
+);
+
+const ImageWithStatus = ({
   src,
   alt,
   variant = "photo",
@@ -34,6 +38,11 @@ export const AppImage = ({
   const ratio = aspectRatio ?? preset.aspectRatio;
   const [status, setStatus] = useState<"loading" | "loaded" | "error">(src ? "loading" : "error");
   const showFallback = status === "error" || !src;
+  const syncCompletedImage = useCallback((image: HTMLImageElement | null) => {
+    // The browser may finish loading the SSR image before React attaches its event handlers.
+    if (!image?.complete) return;
+    setStatus(image.naturalWidth > 0 ? "loaded" : "error");
+  }, []);
 
   return (
     <div
@@ -47,6 +56,7 @@ export const AppImage = ({
         // next/image는 CDN+옵티마이저 전환 뒤 적용. 그 전엔 302/서명 URL을 plain img로 따라간다.
         // eslint-disable-next-line @next/next/no-img-element
         <img
+          ref={syncCompletedImage}
           src={src}
           alt={alt}
           sizes={sizes ?? preset.sizes}

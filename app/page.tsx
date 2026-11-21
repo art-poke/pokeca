@@ -110,7 +110,7 @@ export default function Home() {
         <ul className="grid gap-4 md:grid-cols-3">
           {latestStories.map((story) => (
             <li key={story.slug}>
-              <Link href={`/stories/${story.slug}`} className="group flex h-full flex-col overflow-hidden rounded-2xl border border-blue-100 bg-white hover:border-blue-400">
+              <Link href={`/stories/${story.slug}`} prefetch={false} className="group flex h-full flex-col overflow-hidden rounded-2xl border border-blue-100 bg-white hover:border-blue-400">
                 <div className="relative aspect-[120/63] overflow-hidden bg-blue-100">
                   <Image src={story.shareImage.url} alt="" fill unoptimized sizes="(min-width: 768px) 33vw, 100vw" className="object-cover motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-[1.03]" />
                 </div>
