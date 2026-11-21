@@ -1,0 +1,120 @@
+.demo {
+  overflow: hidden;
+  border-radius: 1rem;
+  background: #21243a;
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  max-width: 35rem;
+  height: clamp(13.5rem, 47vw, 17rem);
+  margin-inline: auto;
+}
+
+.console,
+.reader,
+.slot,
+.card {
+  position: absolute;
+  left: 50%;
+}
+
+.console {
+  bottom: 8%;
+  width: 58%;
+  height: 52%;
+  padding: 0.6rem min(5vw, 1.4rem);
+  transform: translateX(-50%);
+  border: 2px solid #afabdb;
+  border-radius: 26% 26% 38% 38% / 20% 20% 60% 60%;
+  background: linear-gradient(#8781bf, #5d578d);
+  box-shadow: 0 0.5rem 0 #423e63;
+}
+
+.screen {
+  display: grid;
+  width: 76%;
+  height: 68%;
+  margin-inline: auto;
+  place-items: center;
+  border: 0.45rem solid #292c40;
+  border-radius: 0.35rem;
+  background: #c8d797;
+  color: #273a29;
+  font-size: clamp(0.6rem, 2.75vw, 0.9rem);
+  font-weight: 800;
+}
+
+.controls {
+  display: flex;
+  justify-content: space-between;
+  color: #28283f;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.reader {
+  top: 22%;
+  width: 42%;
+  height: 26%;
+  transform: translateX(-50%);
+  border: 2px solid #686b83;
+  border-radius: 0.6rem 0.6rem 0.2rem 0.2rem;
+  background: linear-gradient(#4e5168, #242638);
+}
+
+.slot {
+  z-index: 2;
+  top: 42%;
+  width: 44%;
+  height: 11%;
+  transform: translateX(-50%);
+  border-top: 0.3rem solid #0e1121;
+  border-radius: 0.25rem;
+  background: linear-gradient(#666b84, #34384e);
+  box-shadow: 0 0.2rem 0 #26293f;
+}
+
+.card {
+  z-index: 1;
+  top: 42%;
+  width: clamp(3.1rem, 15%, 5rem);
+  transform: translate(-50%, -52%) rotate(-90deg);
+}
+
+.card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 5%;
+  box-shadow: 0 0.25rem 0.6rem #10132180;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .card {
+    left: 21%;
+    transform: translate(-50%, -53%) rotate(-90deg);
+  }
+
+  .result {
+    opacity: 0;
+  }
+
+  .demo[data-playing="true"] .card {
+    animation: swipe-card 1.7s ease-in-out 180ms both;
+  }
+
+  .demo[data-playing="true"] .result {
+    animation: reveal-result 240ms ease 1.55s both;
+  }
+}
+
+@keyframes swipe-card {
+  0%, 12% { left: 21%; }
+  83%, 100% { left: 79%; }
+}
+
+@keyframes reveal-result {
+  to { opacity: 1; }
+}
