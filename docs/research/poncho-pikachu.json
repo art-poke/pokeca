@@ -1,0 +1,87 @@
+{
+  "checkedOn": "2026-11-21",
+  "fx": { "asOf": "2026-11-20 15:30 KST", "USD": 1336.2, "JPY": 8.3943 },
+  "sources": {
+    "hiroshima": { "label": "포켓몬 카드 공식 · 히로시마 잉어킹·갸라도스 박스", "href": "https://www.pokemon-card.com/products/xy/hiroshima.html" },
+    "charizard": { "label": "포켓몬 카드 공식 · 메가리자몽 X·Y 박스와 내용물", "href": "https://www.pokemon-card.com/products/xy/boxlz.html" },
+    "rayquaza": { "label": "포켓몬 카드 공식 · 초록·검정 레쿠쟈 박스와 내용물", "href": "https://www.pokemon-card.com/products/xy/skytree.html" },
+    "skytree": { "label": "포켓몬센터 공식 · 도쿄 스카이트리타운 매장 사진", "href": "https://shop.pokemon.co.jp/ja/shop/pokemoncenter-skytreetown/" },
+    "vulpix37": { "label": "포켓몬 카드 공식 · 알로라 식스테일 037/SM-P", "href": "https://www.pokemon-card.com/card-search/details.php/card/33400" },
+    "vulpix38": { "label": "포켓몬 카드 공식 · 식스테일 038/SM-P", "href": "https://www.pokemon-card.com/card-search/details.php/card/33401" },
+    "megaCampaign": { "label": "PokéBoon · 2015년 203/XY-P 배포 공지 보존 자료", "href": "https://pokeboon.com/jp/promo_event/tsuyo-kawa-pikachu-mega-campaign-first-series/" },
+    "vulpixContentsPhoto": { "label": "Catawiki · 식스테일 박스 구성품 실물 사진", "href": "https://www.catawiki.com/en/l/50460099-the-pokemon-company-pokemon-poncho-wearing-pikachu-promo-box-sun-moon-vulpix-poncho-pikachu-japanse-promo-box-2017" },
+    "vulpixContents": { "label": "카이토리 컬렉터 · 식스테일 박스 구성품 및 수량", "href": "https://kaitoricollector.com/card-kind/pokemoncard/pokemoncard-unopened/pricelist/200000012609/" },
+    "vulpixBox": { "label": "오타츄 아키하바라 · 식스테일 박스 발매일 및 카드 기록", "href": "https://otachu-akiba.com/2go/%E6%AD%B4%E4%BB%A3%E3%81%AE%E3%83%94%E3%82%AB%E3%83%81%E3%83%A5%E3%82%A6%E3%82%92%E7%94%BB%E5%83%8F%E4%BB%98%E3%81%8D%E3%81%A7%E5%A4%A7%E7%B4%B9%E4%BB%8B/%E3%80%90%E7%AC%AC2%E5%9B%9E%E3%80%91%E6%AD%B4%E4%BB%A3%E3%81%AE%E3%83%94%E3%82%AB%E3%83%81%E3%83%A5%E3%82%A6/" },
+    "checklist": { "label": "Bulbapedia · XY-P 프로모 카드별 배포 이력", "href": "https://bulbapedia.bulbagarden.net/wiki/XY-P_Promotional_cards_(TCG)" },
+    "megaTokyoStore": { "label": "탄세이샤 · 2014년 메가도쿄 매장 설계 기록 (사진 Taichi Misonoo)", "href": "https://www.tanseisha.co.jp/en/works/detail/57888" },
+    "early": { "label": "Bulbapedia · 메가도쿄 098/XY-P와 204/XY-P 배포 차이", "href": "https://bulbapedia.bulbagarden.net/wiki/Mega_Tokyo%27s_Pikachu_(XY-P_Promo_98)" },
+    "scans": { "label": "Pooka · 일본판 프로모 카드 이미지", "href": "https://pooka.app/card-spotlights/poncho-pikachu" },
+    "psa207": { "label": "PSA · 207/XY-P PSA 10 POP 및 eBay 거래", "href": "https://www.psacard.com/cert/127972463/psa" },
+    "psa230": { "label": "PSA · 230/XY-P PSA 10 POP 및 거래", "href": "https://www.psacard.com/cert/51156366/psa" },
+    "psa231": { "label": "PSA · 231/XY-P PSA 10 POP 및 11월 거래", "href": "https://www.psacard.com/cert/49294461/psa" },
+    "psa231October": { "label": "PSA · 231/XY-P 10월 거래 기록", "href": "https://www.psacard.com/cert/109771024/psa" },
+    "fanatics208": { "label": "Fanatics Collect · 208/XY-P PSA 10 POP 및 10월 경매", "href": "https://www.fanaticscollect.com/weekly/2d23cc28-b7b5-11f1-8861-0a58a9feac02" },
+    "fanaticsArchive": { "label": "Fanatics Collect · 231/XY-P 2025년 판매 내역", "href": "https://www.fanaticscollect.com/fixed/ddfa7fca-a496-11f0-8c52-02360c279fd7/2016-pokemon-japanese-xy-promo-full-art-rayquaza-poncho-pikachu-231-psa-10-gem-mint" },
+    "fanatics231": { "label": "Fanatics Collect · 231/XY-P 11월 9일 경매, 30회 입찰", "href": "https://www.fanaticscollect.com/weekly/d65b146a-d257-11f1-9817-0a58a9feac02" },
+    "populationGuide": { "label": "PSA · Population Report 안내", "href": "https://www.psacard.com/Pop" },
+    "snkr231": { "label": "SNKRDUNK · 231/XY-P 판매 완료 내역", "href": "https://snkrdunk.com/apparels/91397/sales-histories" },
+    "snkr208": { "label": "SNKRDUNK · 208/XY-P 판매 완료 내역", "href": "https://snkrdunk.com/apparels/126338/sales-histories" },
+    "fx": { "label": "연합뉴스 · 11월 20일 오후 3시 30분 환율표", "href": "https://www.yna.co.kr/view/AKR20261120127500002" }
+  },
+  "pop10": [
+    { "card": "207", "name": "메가리자몽 X", "count": 2473, "source": "psa207" },
+    { "card": "208", "name": "메가리자몽 Y", "count": 2480, "source": "fanatics208" },
+    { "card": "230", "name": "초록 메가레쿠쟈", "count": 2366, "source": "psa230" },
+    { "card": "231", "name": "검정 메가레쿠쟈", "count": 2207, "source": "psa231" }
+  ],
+  "sales231": [
+    { "date": "2025-12-15", "venue": "Fanatics Collect", "type": "판매 완료", "currency": "USD", "amount": 8100, "source": "fanaticsArchive" },
+    { "date": "2026-10-12", "venue": "eBay", "type": "경매", "currency": "USD", "amount": 18750, "source": "psa231October", "cert": "63199190", "listing": "377546652740" },
+    { "date": "2026-10-14", "venue": "SNKRDUNK", "type": "판매 완료", "currency": "JPY", "amount": 2600000, "source": "snkr231" },
+    { "date": "2026-11-09", "venue": "SNKRDUNK", "type": "판매 완료", "currency": "JPY", "amount": 2745000, "source": "snkr231" },
+    { "date": "2026-11-17", "venue": "eBay", "type": "경매", "currency": "USD", "amount": 15250, "source": "psa231", "cert": "63199190", "listing": "377645768270" }
+  ],
+  "comparisons": {
+    "snkr231Psa9": { "date": "2026-10-11", "JPY": 1200000 },
+    "snkr208Psa10": { "date": "2026-11-09", "JPY": 2860000 },
+    "snkr208Psa9": { "date": "2026-10-11", "JPY": 1780000 },
+    "fanatics231Psa10": { "date": "2026-11-09", "USD": 15600, "bids": 30, "includesBuyerPremium": true },
+    "ebay207Psa10": { "date": "2026-11-15", "USD": 22699.35, "cert": "176831008", "listing": "307262725411" }
+  },
+  "release": {
+    "megaTokyo98": "2014-12-12 개점 기념 구매 증정",
+    "hiroshima": { "date": "2015-06-26", "JPYBeforeTax": 2500, "cards": ["150/XY-P", "151/XY-P"], "distribution": "전 포켓몬센터 판매", "packs": { "バンデットリング": 5 }, "deckCases": 1, "sleeves": 62, "cardBoxes": 1 },
+    "megaPurchase203": { "date": "2015-12-12", "eligiblePurchaseJPY": 1000 },
+    "charizard": { "date": "2016-01-01", "JPYBeforeTaxEach": 2500, "xBox": ["206/XY-P", "207/XY-P"], "yBox": ["206/XY-P", "208/XY-P"], "packsPerBox": { "破天の怒り": 2, "ライジングフィスト": 1, "ファントムゲート": 1, "エメラルドブレイク": 1 }, "deckCasesPerBox": 1, "sleevesPerBox": 62, "cardBoxesPerBox": 1, "cardBoxCapacity": 750 },
+    "megaTokyo204": "2016-01-16·17 별도 이벤트 참가 카드",
+    "skytree": { "date": "2016-07-06", "JPYBeforeTax": 2500, "cards": ["230/XY-P", "231/XY-P"], "packsInProductTable": { "爆熱の闘士": 2, "冷酷の反逆者": 2 }, "additionalPackInProductGraphic": { "エメラルドブレイク": 1 }, "deckCases": 1, "sleeves": 62, "cardBoxes": 1 },
+    "megaBattle": { "period": "2016-07-23~2016-08-31 중 점포별 일정", "points": 3, "cards": ["274/XY-P", "275/XY-P"] },
+    "vulpix": { "date": "2017-02-01", "cards": ["037/SM-P", "038/SM-P"], "packs": { "コレクション サン": 1, "コレクション ムーン": 1 }, "deckCases": 1, "sleeves": 64, "cardBoxes": 1 }
+  },
+  "imageOrigins": {
+    "xyPromoScans": "https://cdn.pooka.app/card/ja-xyp-{numberWithoutPadding}.png",
+    "xyNumbers": [98, 150, 151, 203, 204, 206, 207, 208, 230, 231, 274, 275],
+    "vulpix37": "https://www.pokemon-card.com/assets/images/card_images/large/SMP/033400_P_PONCHOWOKITAPIKACHUU.jpg",
+    "vulpix38": "https://www.pokemon-card.com/assets/images/card_images/large/SMP/033401_P_PONCHOWOKITAPIKACHUU.jpg",
+    "hiroshima": "https://www.pokemon-card.com/products/xy/images/hiroshima_img_01.png",
+    "charizard": "https://www.pokemon-card.com/products/xy/images/boxlz_img_01.png",
+    "rayquaza": "https://www.pokemon-card.com/products/xy/images/skytree_img_01.png",
+    "skytreeShop": "https://shop.pokemon.co.jp/ja/shop/pokemoncenter-skytreetown/images/mv/mv-pokemoncenter-skytreetown-001.webp",
+    "boxContents": {
+      "pokemonImageBase": "https://www.pokemon-card.com/products/xy/images/",
+      "charizard": ["boxlz_img_02.png", "boxlz_img_04.png", "boxlz_img_05.png", "boxlz_img_06.png", "boxlz_img_09.png", "boxlz_img_10.png", "boxlz_img_11.png"],
+      "rayquaza": ["skytree_img_03.png", "skytree_img_05.png", "skytree_img_06.png", "skytree_img_07.png"],
+      "hiroshima": ["hiroshima_img_02.png"],
+      "vulpix": "https://assets.catawiki.com/image/cw_normal/plain/assets/catawiki/assets/2021/8/9/4/f/6/4f69dc4d-3f67-4fe1-933b-b4ef0e8ebe80.jpg",
+      "credits": "리자몽·레쿠쟈·히로시마는 포켓몬 공식 구성품 이미지, 식스테일은 Catawiki 판매자 촬영 실물. 원본 비율로 WebP 변환."
+    },
+    "megaTokyoOpening": { "href": "https://www.tanseisha.co.jp/resource/57888-1.jpg.webp", "credit": "Taichi Misonoo 촬영, 탄세이샤 매장 설계 사례", "edit": "원본 비율 유지, 1000px WebP로 축소" },
+    "credits": "포켓몬 카드 및 상품 이미지는 Pokémon/Creatures/Nintendo/GAME FREAK. 전시용 축소 및 WebP 변환. 공유 썸네일은 207·231 실제 카드 스캔을 재배치한 편집 이미지."
+  },
+  "method": [
+    "SNKRDUNK 본 상품 페이지의 売買履歴를 Ego Lite에서 열고 날짜·등급·1장 수량이 명시된 완료 거래만 채록. 상대 시간과 호가는 차트에서 제외.",
+    "eBay 직접 상품 주소는 웹 도구에서 열리지 않아 PSA 동급 거래 표에서 금액, 방식, 인증번호, 상품번호를 채록. 10월 12일과 11월 17일 항목은 같은 인증번호로 표기됨. 결제 완료 또는 재판매 경위는 확인할 수 없음.",
+    "POP은 확인일에 읽을 수 있었던 PSA 10 인증 레코드 기준. 208은 해당 등급의 Fanatics 낙찰 페이지에 표시된 POP으로 출처를 달리 표기. 발행·미감정·현재 매물 수가 아님.",
+    "원화는 단일 기준 환율로 환산 후 천 원 단위 반올림. 확실히 표기된 Fanatics 구매자 수수료를 포함한 금액은 그대로 사용하고 나머지 자료에 미표기된 비용을 추정하지 않음."
+  ]
+}

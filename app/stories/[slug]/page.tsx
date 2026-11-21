@@ -13,6 +13,7 @@ import { currentMember } from "@/lib/artists";
 import { listComments } from "@/lib/comments";
 import { getStoryLikes } from "@/lib/story-likes";
 import { meleeKrw, meleePrice, meleeStory } from "../melee-pokemon-scramble";
+import { ponchoStory } from "../poncho-pikachu";
 import { stories, usdToKrw } from "../stories";
 
 type StoryPageProps = PageProps<"/stories/[slug]">;
@@ -29,6 +30,8 @@ type StorySectionData = {
   body: readonly string[];
   image?: StoryImage;
   additionalImage?: StoryImage;
+  afterImage?: readonly string[];
+  contents?: readonly (StoryImage & { caption: string; fullWidth?: boolean })[];
   note?: string;
 };
 
@@ -71,7 +74,7 @@ function PriceColumns({ points, limit = chartLimit }: { points: readonly PricePo
                 <p className="font-semibold">{point.label}</p>
                 {point.venue && (
                   <p className="text-[10px] text-muted-foreground">
-                    <span className="sm:hidden">{point.venue === "SNKRDUNK" ? "스니커덩크" : point.venue}</span>
+                    <span className="sm:hidden">{point.venue === "SNKRDUNK" ? "스니커덩크" : point.venue === "Fanatics Collect" ? "패너틱스" : point.venue}</span>
                     <span className="hidden sm:inline">{point.venue}</span>
                   </p>
                 )}
@@ -154,6 +157,23 @@ function StorySection({ section }: { section: StorySectionData }) {
       {section.body.map((paragraph) => <p key={paragraph} className="text-base leading-[1.85]">{paragraph}</p>)}
       {section.image && <StoryFigure image={section.image} />}
       {section.additionalImage && <StoryFigure image={section.additionalImage} />}
+      {section.afterImage?.map((paragraph) => <p key={paragraph} className="text-base leading-[1.85]">{paragraph}</p>)}
+      {section.contents && (
+        <div className="space-y-3">
+          <h3 className="font-semibold">박스 안에 들어 있던 것들</h3>
+          <ul className="grid items-start gap-4 sm:grid-cols-2">
+            {section.contents.map((item) => (
+              <li key={item.src} className={item.fullWidth ? "sm:col-span-2" : undefined}>
+                <figure className="mx-auto w-fit space-y-2 text-center">
+                  <Image src={item.src} width={item.width} height={item.height} alt={item.alt} unoptimized
+                    className="block h-auto max-w-full rounded-lg border border-border" />
+                  <figcaption className="text-sm font-medium">{item.caption}</figcaption>
+                </figure>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {section.note && (
         <aside className="rounded-xl border-l-4 border-primary/40 bg-muted px-4 py-3 text-sm leading-relaxed text-foreground">
           * {section.note}
@@ -331,18 +351,80 @@ function MeleeStoryBody({ story }: { story: typeof meleeStory }) {
   );
 }
 
+function PonchoStoryBody({ story }: { story: typeof ponchoStory }) {
+  return (
+    <>
+      <StoryFigure image={story.image} />
+      {story.sections.map(({ cards, ...section }) => (
+        <div key={section.title} className="space-y-5">
+          <StorySection section={section} />
+          <ul aria-label={`${section.title} 카드 목록`} className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            {cards.map((card) => (
+              <li key={card.label}>
+                <figure className="space-y-2 text-center">
+                  <Image src={card.src} width={card.width} height={card.height} alt={card.alt} unoptimized
+                    className="mx-auto block h-auto max-h-56 w-auto max-w-full rounded-lg object-contain sm:max-h-64" />
+                  <figcaption>
+                    <span className="block text-sm font-semibold">{card.name}</span>
+                    <span className="text-xs tabular-nums text-muted-foreground">{card.label}</span>
+                  </figcaption>
+                </figure>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+      <StorySection section={story.market} />
+      <figure className="space-y-5 rounded-2xl border border-border bg-background p-3 sm:p-6">
+        <figcaption className="text-sm font-semibold">검정 메가레쿠쟈 231/XY-P · PSA 10 판매 완료 사례 (원화)</figcaption>
+        <PriceColumns limit={32_000_000} points={story.sales.map((sale) => ({
+          ...sale,
+          label: sale.date.slice(2).replaceAll("-", "."),
+        }))} />
+        <ul className="divide-y divide-border border-t border-border text-xs text-muted-foreground">
+          {story.sales.map((sale) => (
+            <li key={sale.date} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-2.5">
+              <a href={sale.source.href} className="font-semibold text-foreground underline underline-offset-4">
+                {sale.date} · {sale.venue} · {sale.type}
+              </a>
+              <span className="tabular-nums">{sale.won}</span>
+            </li>
+          ))}
+        </ul>
+      </figure>
+      <section className="space-y-3" aria-labelledby="poncho-pop">
+        <h2 id="poncho-pop" className="font-display text-xl font-bold">박스 판초 네 장의 PSA 10 등록 수</h2>
+        <p className="text-sm text-muted-foreground">11월 21일 확인 · 208번은 Fanatics Collect 낙찰 페이지에 표시된 PSA POP</p>
+        <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {story.population.map(({ image, count, source }) => (
+            <div key={image.label} className="rounded-xl border border-border p-3 text-center">
+              <dt className="text-sm">
+                <Image src={image.src} width={image.width} height={image.height} alt={image.alt} unoptimized
+                  className="mx-auto mb-3 block h-auto w-24 max-w-full rounded-md" />
+                <a href={source.href} className="font-semibold underline underline-offset-4">{image.label}</a>
+                <span className="mt-1 block break-keep text-xs text-muted-foreground">{image.name}</span>
+              </dt>
+              <dd className="mt-2 text-xl font-bold tabular-nums">{count.toLocaleString("ko-KR")}장</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+      {story.closing.map((section) => <StorySection key={section.title} section={section} />)}
+    </>
+  );
+}
+
 export default async function StoryPage({ params }: StoryPageProps) {
   const { slug } = await params;
   const story = stories.find((item) => item.slug === slug);
   if (!story) notFound();
   const attribution = "introImage" in story ? story.introImage.attribution : undefined;
-  const sections = "blackLabel" in story ? [...story.sections, ...story.closingSections, story.blackLabel.story] : story.sections;
-  const references = [...new Map(
-    [
-      ...sections.flatMap((section) => section.sources),
-      ...story.links,
-    ].map((source) => [source.href, source]),
-  ).values()];
+  const sectionSources = "blackLabel" in story
+    ? [...story.sections, ...story.closingSections, story.blackLabel.story].flatMap((section) => section.sources)
+    : story.slug === meleeStory.slug
+      ? story.sections.flatMap((section) => section.sources)
+      : [];
+  const references = [...new Map([...sectionSources, ...story.links].map((source) => [source.href, source])).values()];
 
   return (
     <article className="mx-auto max-w-3xl space-y-9">
@@ -361,7 +443,9 @@ export default async function StoryPage({ params }: StoryPageProps) {
       <div className="space-y-4">
         {story.intro.map((paragraph) => <p key={paragraph} className="text-base leading-[1.85]">{paragraph}</p>)}
       </div>
-      {story.slug === meleeStory.slug ? <MeleeStoryBody story={story} /> : <VanGoghStoryBody story={story} />}
+      {story.slug === meleeStory.slug && <MeleeStoryBody story={story} />}
+      {story.slug === ponchoStory.slug && <PonchoStoryBody story={story} />}
+      {"blackLabel" in story && <VanGoghStoryBody story={story} />}
       <details className="border-t border-border pt-4 text-sm text-muted-foreground">
         <summary className="w-fit cursor-pointer">자료 및 사진 출처</summary>
         <ul className="mt-3 space-y-2">
