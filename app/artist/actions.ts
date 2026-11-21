@@ -15,6 +15,7 @@ import {
   type SocialProvider,
 } from "@/lib/artists";
 import { ArtworkError } from "@/lib/artworks";
+import { artworkUploadCardId, artworkUploadPath } from "@/lib/artwork-upload-path";
 
 // 작가 server action. 로그인이 필요한 action은 requireProfile()로 시작한다.
 
@@ -23,10 +24,12 @@ export type FormState = { error: string } | null;
 // 카카오·구글 로그인 시작. Auth.js가 공급자 화면과 /api/auth/callback/[provider]을 처리한다.
 // 이미 로그인했으면 provider를 현재 계정에 링크(머지)하지 않도록 마이페이지로 보낸다.
 export async function socialLogin(form: FormData) {
-  if (await currentSocialUser()) redirect("/me");
+  const cardId = artworkUploadCardId(form.get("cardId"));
+  const destination = cardId ? artworkUploadPath(cardId) : "/me";
+  if (await currentSocialUser()) redirect(destination);
   const provider = String(form.get("provider"));
   if (!SOCIAL_PROVIDERS.includes(provider as SocialProvider)) redirect("/artist/login");
-  await signIn(provider, { redirectTo: "/me" });
+  await signIn(provider, { redirectTo: destination });
 }
 
 // 회원 탈퇴. 확인 문구를 그대로 입력해야 한다. 성공 시 null → 클라가 signOut으로 세션 쿠키를 지운다.

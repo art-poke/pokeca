@@ -328,7 +328,13 @@ function FileField({
   );
 }
 
-export function NewArtworkForm({ mode = "admin" }: { mode?: "admin" | "artist" }) {
+export function NewArtworkForm({
+  mode = "admin",
+  initialCard = null,
+}: {
+  mode?: "admin" | "artist";
+  initialCard?: Card | null;
+}) {
   const artist = mode === "artist";
   const api = artist ? "/api/artist" : "/api/admin";
   const router = useRouter();
@@ -336,7 +342,7 @@ export function NewArtworkForm({ mode = "admin" }: { mode?: "admin" | "artist" }
   const { mutateAsync: createArtwork } = useCreateArtworkMutation(api);
   const [id] = useState(() => crypto.randomUUID());
   const [cards, setCards] = useState<Card[] | null>(null);
-  const [card, setCard] = useState<Card | null>(null);
+  const [card, setCard] = useState(initialCard);
   const [format, setFormat] = useState<Format>(FORMATS[0]);
   const [nineMode, setNineMode] = useState<NineMode>("pieces");
   const [slots, setSlots] = useState<(Piece | null)[]>(() => freshSlots(FORMATS[0], "pieces"));

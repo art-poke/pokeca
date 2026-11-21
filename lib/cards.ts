@@ -140,6 +140,14 @@ export type CardDetail = {
 };
 
 export async function getCard(setCode: string, collectorNumber: string): Promise<CardDetail | null> {
+  return findCard(and(eq(cards.setCode, setCode), eq(cards.collectorNumber, collectorNumber)));
+}
+
+export async function getCardById(cardId: string): Promise<CardDetail | null> {
+  return findCard(eq(cards.id, cardId));
+}
+
+async function findCard(condition: ReturnType<typeof and>): Promise<CardDetail | null> {
   const rows = await db
     .select({
       id: cards.id,
@@ -154,7 +162,7 @@ export async function getCard(setCode: string, collectorNumber: string): Promise
     })
     .from(cards)
     .innerJoin(sets, eq(cards.setCode, sets.code))
-    .where(and(eq(cards.setCode, setCode), eq(cards.collectorNumber, collectorNumber)))
+    .where(condition)
     .limit(1);
   const data = rows[0] ?? null;
   if (!data) return null;
