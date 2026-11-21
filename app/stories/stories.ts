@@ -212,4 +212,5 @@ const vanGoghStory = {
   ],
 } as const;
 
+// Append new articles in publication order. Research dates can be identical.
 export const stories = [vanGoghStory, meleeStory, ponchoStory] as const;
