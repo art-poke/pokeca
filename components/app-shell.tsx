@@ -80,6 +80,7 @@ const NavLinks = ({
         <Link
           key={href}
           href={href}
+          prefetch={false}
           onClick={onNavigate}
           title={collapsed ? label : undefined}
           aria-current={active ? "page" : undefined}
