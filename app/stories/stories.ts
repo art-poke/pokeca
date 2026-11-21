@@ -14,7 +14,7 @@ function inWon(dollars: number) {
 const vanGoghStory = {
   id: "98869a9b-6dae-47c1-9722-cad75a7be315",
   slug: "pikachu-with-grey-felt-hat",
-  shareImage: { url: "/stories/og-pikachu-with-grey-felt-hat.jpg", width: 1200, height: 630, alt: "반 고흐의 자화상과 회색 펠트 모자를 쓴 피카츄 카드" },
+  shareImage: { url: "/specs/stories/og-pikachu-with-grey-felt-hat.jpg", width: 1200, height: 630, alt: "반 고흐의 자화상과 회색 펠트 모자를 쓴 피카츄 카드" },
   category: "promo",
   title: "피카츄는 왜 반 고흐의 모자를 썼을까?",
   summary: "미술관에서 숙제하면 주던 피카츄가 경매장에선 2억 원을 넘겼다고요? 일단 모자부터 보세요. 이 녀석, 그림에도 가격표에도 사연이 한가득입니다.",
@@ -27,7 +27,7 @@ const vanGoghStory = {
     "암스테르담이 어디냐면요, 유럽의 네덜란드 수도예요. 아래는 도심의 케이저르스흐라흐트 운하인데, 물길 양옆으로 좁고 높은 집들이 줄 서 있는 게 딱 암스테르담 풍경이에요. 이 도시에 있는 반 고흐 미술관에서 고흐츄 이야기가 시작됩니다.",
   ],
   introImage: {
-    src: "/stories/amsterdam-keizersgracht.webp",
+    src: "/specs/stories/amsterdam-keizersgracht.webp",
     width: 1100,
     height: 734,
     alt: "네덜란드 암스테르담 케이저르스흐라흐트 운하와 물가에 늘어선 집들",
@@ -39,14 +39,14 @@ const vanGoghStory = {
     },
   },
   image: {
-    src: "/stories/grey-felt-hat-card.webp",
+    src: "/specs/stories/grey-felt-hat-card.webp",
     width: 245,
     height: 342,
     alt: "노란 테두리 안에 회색 펠트 모자를 쓴 피카츄가 그려진 SVP EN 085 카드",
     credit: "Pikachu with Grey Felt Hat · SVP EN 085. © The Pokémon Company International.",
   },
   portrait: {
-    src: "/stories/van-gogh-self-portrait.webp",
+    src: "/specs/stories/van-gogh-self-portrait.webp",
     width: 640,
     height: 777,
     alt: "파란 붓질의 배경 앞에서 회색 펠트 모자를 쓴 반 고흐의 자화상",
@@ -61,7 +61,7 @@ const vanGoghStory = {
         "그리고 모자를 씌운 사람이 따로 있죠. 미술관 소개를 보니 피카츄를 그린 건 기무라 나오요(Naoyo Kimura)였어요. 고흐가 일본 판화를 보고 그림을 배웠는데, 100년이 훌쩍 지나 일본의 일러스트레이터가 그 사람 그림에 피카츄를 들여보낸 거예요. 저는 이 얘기를 알고 나니까 카드가 한 번 더 예뻐 보이더라고요.",
       ],
       image: {
-        src: "/stories/kimura-pikachu.webp",
+        src: "/specs/stories/kimura-pikachu.webp",
         width: 300,
         height: 550,
         alt: "반 고흐 미술관이 소개한 Naoyo Kimura의 회색 펠트 모자 피카츄 작품",
@@ -76,7 +76,7 @@ const vanGoghStory = {
         "검색창에 반 고흐를 치면 수염 난 자화상이 먼저 나오잖아요. 그런데 열아홉 살 사진을 보면 수염도 없고 머리는 단정하고, 눈빛은 또 제법 익숙해요. 위의 자화상과 번갈아 보니까 새삼 한 사람이 십 년 넘게 나이를 먹고 자기 얼굴을 그린 거구나 싶더라고요.",
       ],
       image: {
-        src: "/stories/van-gogh-age-19.webp",
+        src: "/specs/stories/van-gogh-age-19.webp",
         width: 560,
         height: 849,
         alt: "단정한 머리에 재킷을 입은 열아홉 살 빈센트 반 고흐의 흑백 초상 사진",
@@ -93,14 +93,14 @@ const vanGoghStory = {
         "입장권을 끊고 그림을 찾아다니는 코스였으니, 저라면 카드 받고 나서도 활동지까지 챙겨왔을 것 같아요. 그리고 집에서 주문한 분들도 있었어요. 포켓몬센터는 온라인 협업 상품에 같은 카드를 사은품으로 붙였거든요.",
       ],
       image: {
-        src: "/stories/pokemon-adventure-leaflet.webp",
+        src: "/specs/stories/pokemon-adventure-leaflet.webp",
         width: 900,
         height: 540,
         alt: "2023년 반 고흐 미술관에서 배포한 Pokémon Adventure 활동지를 전시장 안에서 들어 보인 사진",
         credit: "실제 Pokémon Adventure 활동지. Matt Poskitt 촬영, The Guardian.",
       },
       additionalImage: {
-        src: "/stories/van-gogh-pokemon-exhibition.webp",
+        src: "/specs/stories/van-gogh-pokemon-exhibition.webp",
         width: 693,
         height: 451,
         alt: "노란 벽에 포켓몬과 반 고흐 협업 그림이 걸린 전시장에 서 있는 피카츄 마스코트",
@@ -116,7 +116,7 @@ const vanGoghStory = {
         "그리고 2024년 2월 10일, 이번엔 미술관 대신 네덜란드의 참여 매장에 고흐츄가 나타납니다. 카드 상품을 한 번에 29.99유로(글 작성 기준 약 44,000원) 이상 사면, 재고가 있는 동안 한 장을 사은품으로 주는 행사였어요. 29.99유로는 장바구니에 담아야 하는 금액이고요. 어쩌다 보니 이 피카츄를 만나는 방법이 미술관 숙제에서 카드팩 쇼핑으로 바뀌었습니다.",
       ],
       image: {
-        src: "/stories/museum-counter-illustration.webp",
+        src: "/specs/stories/museum-counter-illustration.webp",
         width: 900,
         height: 600,
         alt: "회색 모자를 쓴 파란 비둘기가 미술관의 텅 빈 배포 창구를 바라보는 삽화",
@@ -141,7 +141,7 @@ const vanGoghStory = {
     { date: "2026.11.09", grade: "PSA 10", venue: "eBay 경매", amount: 2425, won: inWon(2425), note: "PSA 동급 거래 기록 기준", source: sources.psa },
   ],
   auctionReaction: {
-    src: "/stories/pikachu-surprised.webp",
+    src: "/specs/stories/pikachu-surprised.webp",
     width: 560,
     height: 324,
     alt: "눈을 동그랗게 뜨고 입을 벌린 피카츄의 애니메이션 장면",
@@ -171,7 +171,7 @@ const vanGoghStory = {
     won: inWon(150000),
     source: sources.fanaticsBlackLabel,
     image: {
-      src: "/stories/grey-felt-hat-bgs-black-label.webp",
+      src: "/specs/stories/grey-felt-hat-bgs-black-label.webp",
       width: 480,
       height: 753,
       alt: "Fanatics Collect에서 판매된 BGS 10 블랙라벨 고흐츄 카드와 인증 케이스",

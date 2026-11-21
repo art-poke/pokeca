@@ -16,7 +16,7 @@ export function meleePrice(amount: number, currency: "USD" | "JPY" = "JPY") {
 export const meleeStory = {
   id: "b77a7bcc-e79f-4d5f-b788-c221fc31d29f",
   slug: "melee-pokemon-scramble",
-  shareImage: { url: "/stories/og-melee-pokemon-scramble.jpg", width: 1200, height: 630, alt: "난전 포켓몬 스크램블의 각진 장난감 피카츄와 뮤츠 카드" },
+  shareImage: { url: "/specs/stories/og-melee-pokemon-scramble.jpg", width: 1200, height: 630, alt: "난전 포켓몬 스크램블의 각진 장난감 피카츄와 뮤츠 카드" },
   category: "promo",
   title: "카트라이더 닮은 피카츄가 4천만 원이라고요?",
   summary: "각진 뮤츠가 너무 귀여워서 한 장만 사려 했거든요. 2009년 Wii 장난감 포켓몬부터 16장 세트 바깥의 19번 이브이, 그리고 4천만 원 넘게 팔린 피카츄까지 낋여왔습니다.",
@@ -29,7 +29,7 @@ export const meleeStory = {
     "그래서 피카츄 가격부터 눌러봤죠. 일본에서 한 장에 4천만 원 넘게 팔린 기록이 있더라고요. 잠깐만요, 이거 16장 세트 가격인가? 싶어서 수량부터 다시 봤어요. 네, 한 장이었습니다. 일단 그림부터 같이 봐요.",
   ],
   image: {
-    src: "/stories/melee-pikachu.webp", width: 493, height: 680,
+    src: "/specs/stories/melee-pikachu.webp", width: 493, height: 680,
     alt: "2009년 일본판 난전 포켓몬 스크램블 피카츄 007/016 카드. 각진 귀와 둥근 몸을 가진 장난감 피카츄",
   },
   sections: [
@@ -39,7 +39,7 @@ export const meleeStory = {
         "2009년 6월 16일, 일본 WiiWare에 《난전! 포켓몬 스크램블》이 나왔어요. 영어 이름은 Pokémon Rumble. 제목의 Melee는 일본어 ‘난전’을 옮긴 말이라 일본판 카드 거래 제목에 자주 보입니다. 검색창에서 Pokémon Rumble도 같이 나오니, 카드 보러 갈 땐 아래쪽 로고와 언어를 먼저 보면 편해요.",
         "주인공은 신기한 나사로 움직이는 포켓몬 장난감이에요. 저 각진 피카츄들이 우르르 몰려 나와서 마지막 한 마리가 남을 때까지 기술을 쏩니다. 스크린샷을 보니 카드만 보고 귀엽다고 했던 애들이 게임에선 제법 살벌하게 싸우더라고요. 둥글둥글한 피카츄도 좋아하지만, 저는 조립 설명서에 들어 있을 것처럼 생긴 이쪽에 한 표입니다.",
       ],
-      image: { src: "/stories/melee-game.webp", width: 321, height: 179, alt: "포켓몬 공식 사이트에 공개된 2009년 WiiWare 난전 포켓몬 스크램블 게임 화면" },
+      image: { src: "/specs/stories/melee-game.webp", width: 321, height: 179, alt: "포켓몬 공식 사이트에 공개된 2009년 WiiWare 난전 포켓몬 스크램블 게임 화면" },
       sources: [sources.game, sources.checklist],
     },
     {
@@ -49,8 +49,8 @@ export const meleeStory = {
         "룰도 꽤 난전입니다. 2~7명이 둘러앉아 누가 마지막까지 버틸지 먼저 찍고, 주사위로 쓸 기술과 맞을 상대를 정해요. 내 최애 골라놓고 신나게 주사위를 굴렸는데 그 주사위가 최애한테 기술을 날리는 쪽으로 굴러갈 수도 있는 거죠. 이 구성이 통째로 있었으니 당시에는 피카츄 007/016 한 장을 사는 게 아니라 친구들 불러서 한 판 하려고 사는 물건이었습니다.",
         "이 게임은 맥도날드에도 갔어요. 일본에서 닌텐도 DS를 들고 매장에 가면 하루에 장난감 포켓몬 하나를 모으고, 여덟 마리에 치즈버거, 열여섯 마리에 빅맥을 받을 수 있었다고 합니다. 별도 추첨 경품에 이 카드 게임도 있었고요. 카드 보러 왔다가 2009년 일본 맥도날드의 빅맥 획득 조건까지 공부하게 될 줄은 몰랐습니다.",
       ],
-      image: { src: "/stories/melee-box.webp", width: 320, height: 251, alt: "2009년 일본 포켓몬센터에서 판매한 난전 포켓몬 스크램블 카드 게임 박스" },
-      additionalImage: { src: "/stories/melee-board.webp", width: 320, height: 250, alt: "카드와 배틀 매트, 주사위가 놓인 공식 제품 소개 사진" },
+      image: { src: "/specs/stories/melee-box.webp", width: 320, height: 251, alt: "2009년 일본 포켓몬센터에서 판매한 난전 포켓몬 스크램블 카드 게임 박스" },
+      additionalImage: { src: "/specs/stories/melee-board.webp", width: 320, height: 250, alt: "카드와 배틀 매트, 주사위가 놓인 공식 제품 소개 사진" },
       sources: [sources.release, sources.rally],
     },
     {
@@ -60,7 +60,7 @@ export const meleeStory = {
         "Bulbapedia에 정리된 당시 이벤트를 보면, Wii 게임을 클리어한 뒤 표시되는 숫자를 클럽에 입력해 응모했고 당첨자 100명에게 세 장이 든 팩을 줬다고 해요. 일본 중고점 스루가야에도 같은 세 번호가 ‘캠페인 당첨 경품’으로 등록돼 있습니다. 당첨 인원은 도감에 남아 있는 기록이고, 지금 몇 장이나 남았는지는 확인할 수 없어요.",
         "그래서 ‘Melee 프로모’라고 검색할 때는 한 번 더 보게 됩니다. 피카츄·뮤츠·뮤는 그 16장짜리 판매 세트에 있었고, 분모를 넘어간 세 녀석이 추첨 경품이에요. 영어판 《Pokémon Rumble》도 기본 16종을 냈으니, 같은 포즈가 보여도 어느 판본인지 카드 사진부터 확인할 만합니다.",
       ],
-      image: { src: "/stories/melee-prizes.webp", width: 342, height: 512, alt: "일본 포켓몬 다이스키클럽 난전 포켓몬 스크램블 3장 추첨 경품 팩" },
+      image: { src: "/specs/stories/melee-prizes.webp", width: 342, height: 512, alt: "일본 포켓몬 다이스키클럽 난전 포켓몬 스크램블 3장 추첨 경품 팩" },
       sources: [sources.checklist, sources.prizes],
     },
   ],
@@ -70,7 +70,7 @@ export const meleeStory = {
     cards: research.baseSet.cards.map(({ number, name }) => ({
       number,
       name,
-      src: `/stories/melee/${number.split("/")[0]}.webp`,
+      src: `/specs/stories/melee/${number.split("/")[0]}.webp`,
     })),
   },
   market: {
@@ -91,8 +91,8 @@ export const meleeStory = {
     source: sources[row.source as keyof typeof sources],
   })),
   gallery: [
-    { src: "/stories/melee-mewtwo.webp", width: 493, height: 680, alt: "짧은 발과 큰 꼬리를 가진 장난감 뮤츠 일본판 009/016" },
-    { src: "/stories/melee-mew.webp", width: 493, height: 680, alt: "공중에 떠 있는 분홍색 장난감 뮤 일본판 010/016" },
+    { src: "/specs/stories/melee-mewtwo.webp", width: 493, height: 680, alt: "짧은 발과 큰 꼬리를 가진 장난감 뮤츠 일본판 009/016" },
+    { src: "/specs/stories/melee-mew.webp", width: 493, height: 680, alt: "공중에 떠 있는 분홍색 장난감 뮤 일본판 010/016" },
   ],
   closing: {
     title: "그래서 뮤츠 한 장은 살 만했느냐고요",

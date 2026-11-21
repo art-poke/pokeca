@@ -66,7 +66,7 @@ export default async function StoriesPage({ searchParams }: PageProps<"/stories"
             </p>
           </div>
           <Image
-            src="/stories/pokemon-card-back.webp"
+            src="/specs/stories/pokemon-card-back.webp"
             width={360}
             height={492}
             alt=""

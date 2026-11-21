@@ -120,7 +120,7 @@
   },
   "images": {
     "amsterdam": {
-      "local": "public/stories/amsterdam-keizersgracht.webp",
+      "local": "public/specs/stories/amsterdam-keizersgracht.webp",
       "origin": "https://upload.wikimedia.org/wikipedia/commons/f/f5/Amsterdam_-_Keizersgracht.jpg",
       "sourcePage": "https://commons.wikimedia.org/wiki/File:Amsterdam_-_Keizersgracht.jpg",
       "credit": "Jorge Franganillo / Wikimedia Commons",
@@ -128,48 +128,48 @@
       "method": "Ego Lite에서 사진 및 라이선스 확인 후 원본 다운로드, 크기 조정 및 WebP 변환"
     },
     "blackLabel": {
-      "local": "public/stories/grey-felt-hat-bgs-black-label.webp",
+      "local": "public/specs/stories/grey-felt-hat-bgs-black-label.webp",
       "source": "fanaticsBlackLabel",
       "credit": "Fanatics Collect, October Premier Auction Lot 7"
     },
     "museumIllustration": {
-      "local": "public/stories/museum-counter-illustration.webp",
+      "local": "public/specs/stories/museum-counter-illustration.webp",
       "method": "ImageGen 오리지널 삽화. 실제 전시장 사진과 구분해 표시.",
       "credit": "카드 이야기 제작 삽화"
     },
     "surprisedPikachu": {
-      "local": "public/stories/pikachu-surprised.webp",
+      "local": "public/specs/stories/pikachu-surprised.webp",
       "origin": "https://i.kym-cdn.com/entries/icons/original/000/027/475/Screen_Shot_2018-10-25_at_11.02.15_AM.png",
       "reference": "https://knowyourmeme.com/memes/surprised-pikachu/",
       "credit": "Pokémon 애니메이션 1기 10화 장면 / Know Your Meme"
     },
     "vincentPhoto": {
-      "local": "public/stories/van-gogh-age-19.webp",
+      "local": "public/specs/stories/van-gogh-age-19.webp",
       "origin": "https://upload.wikimedia.org/wikipedia/commons/e/eb/Vincent_van_Gogh_January_1873.jpeg",
       "credit": "Jacobus Marinus Wilhelmus de Louw / Van Gogh Museum, Amsterdam (Vincent van Gogh Foundation) / Wikimedia Commons"
     },
     "leaflet": {
-      "local": "public/stories/pokemon-adventure-leaflet.webp",
+      "local": "public/specs/stories/pokemon-adventure-leaflet.webp",
       "origin": "https://i.guim.co.uk/img/media/e78933868aa190516f5523c96c5d11c6a7759740/469_0_1579_948/master/1579.jpg?width=900&dpr=1&s=none&crop=none",
       "credit": "Matt Poskitt / The Guardian"
     },
     "portrait": {
-      "local": "public/stories/van-gogh-self-portrait.webp",
+      "local": "public/specs/stories/van-gogh-self-portrait.webp",
       "origin": "https://iiif.micr.io/pMtwg/full/800,/0/default.jpg",
       "credit": "Vincent van Gogh, Van Gogh Museum, Amsterdam (Vincent van Gogh Foundation)"
     },
     "card": {
-      "local": "public/stories/grey-felt-hat-card.webp",
+      "local": "public/specs/stories/grey-felt-hat-card.webp",
       "origin": "https://mcdn.pokemon.com/pokemon-prod/image/upload/v1/live/static-assets/content-assets/cms2/img/cards/web/SVP/SVP_EN_85.png",
       "credit": "The Pokémon Company International"
     },
     "kimura": {
-      "local": "public/stories/kimura-pikachu.webp",
+      "local": "public/specs/stories/kimura-pikachu.webp",
       "origin": "https://www.vangoghmuseum.nl/assets/f3fab8fc-65a2-41ad-bf2d-c204c65ccb90?w=300&x=433&y=457&cropWidth=1493&cropHeight=2738&c=95b8731b10f46e58f05fc486d02acaa687165f5248992e162752f1c076db24ec",
       "credit": "Naoyo Kimura, The Pokémon Company International / Van Gogh Museum"
     },
     "exhibition": {
-      "local": "public/stories/van-gogh-pokemon-exhibition.webp",
+      "local": "public/specs/stories/van-gogh-pokemon-exhibition.webp",
       "source": "annualReport",
       "method": "PDF 파일 10번째 페이지에 포함된 전시장 사진 추출",
       "credit": "반 고흐 미술관 2023년 연차보고서"
