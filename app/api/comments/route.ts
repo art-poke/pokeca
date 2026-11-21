@@ -1,7 +1,7 @@
 import { CommentError, createComment } from "@/lib/comments";
 import { memberRoute } from "@/lib/artist-route";
 
-// 댓글 작성(회원). body: { target: 'artwork'|'post', targetId, body, parentId? }
+// 댓글 작성(회원). body: { target, targetId, body, parentId? }
 export const POST = memberRoute(async (request, _ctx, member) => {
   const b = (await request.json()) as {
     target?: unknown;
@@ -9,7 +9,7 @@ export const POST = memberRoute(async (request, _ctx, member) => {
     body?: unknown;
     parentId?: unknown;
   };
-  if (b.target !== "artwork" && b.target !== "post") {
+  if (b.target !== "artwork" && b.target !== "post" && b.target !== "story") {
     return Response.json({ code: "invalid_target" }, { status: 400 });
   }
   try {

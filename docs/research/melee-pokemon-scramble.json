@@ -1,0 +1,77 @@
+{
+  "researchedOn": "2026-11-21",
+  "fx": { "asOf": "2026-11-20 15:30 KST", "USD": 1336.2, "JPY": 8.3943 },
+  "release": { "wiiWareJapan": "2009-06-16", "cardSetJapan": "2009-07-10", "jpyBeforeTax": 477, "cards": 16, "players": "2–7", "distribution": "Pokémon Center stores in Japan" },
+  "sources": {
+    "game": { "label": "포켓몬 공식 WiiWare 게임 소개 및 화면", "href": "https://www.pokemon.co.jp/special/pokemonscramble/about/" },
+    "release": { "label": "포켓몬 공식 카드 세트 발매 안내와 구성품", "href": "https://www.pokemon.co.jp/special/pokemonscramble/cardgame/" },
+    "rally": { "label": "포켓몬 공식 닌텐도 DS 맥도날드 랠리 공지", "href": "https://www.pokemon.co.jp/special/pokemonscramble/hotnews/news02.html" },
+    "checklist": { "label": "Bulbapedia 일본판·영어판 카드 목록과 추첨 기록", "href": "https://bulbapedia.bulbagarden.net/wiki/Pok%C3%A9mon_Rumble_(TCG)" },
+    "setScans": { "label": "Serebii 일본판 카드 도감 · 기본 16종 앞면", "href": "https://serebii.net/card/meleepokemonscramble/" },
+    "prizes": { "label": "스루가야 다이스키클럽 당첨 경품 3종", "href": "https://www.suruga-ya.jp/product/detail/620015874" },
+    "ebayArchive": { "label": "PriceCharting eBay 판매 완료 집계 · 일본판 피카츄 #007", "href": "https://www.pricecharting.com/game/pokemon-japanese-melee-pokemon-scramble/pikachu-7" },
+    "psa10": { "label": "PSA 동급 거래 기록 · eBay #297918306067 및 #297952180841", "href": "https://www.psacard.com/cert/78267866/psa" },
+    "psa2": { "label": "PSA 2 인증번호와 eBay #406374203669 경매 기록", "href": "https://www.psacard.com/cert/124267329/psa" },
+    "snkrPikachu": { "label": "SNKRDUNK 피카츄 007/016 · 판매 완료 내역 및 호가", "href": "https://snkrdunk.com/apparels/93195" },
+    "snkrMewtwo": { "label": "SNKRDUNK 뮤츠 009/016 · 판매 완료 내역 및 호가", "href": "https://snkrdunk.com/apparels/93198" },
+    "snkrMew": { "label": "SNKRDUNK 뮤 010/016 · 판매 완료 내역 및 호가", "href": "https://snkrdunk.com/apparels/93196" },
+    "snkrArchive": { "label": "SNKRDUNK 2023년 6월 뮤츠 시세 기사", "href": "https://snkrdunk.com/articles/18750/" },
+    "fx": { "label": "연합뉴스 2026년 11월 20일 오후 3시 30분 환율표", "href": "https://www.yna.co.kr/view/AKR20261120127500002" }
+  },
+  "baseSet": {
+    "scanUrlTemplate": "https://serebii.net/card/meleepokemonscramble/{numberWithoutPadding}.jpg",
+    "scanCredit": "Serebii 일본판 카드 도감의 Pokémon 카드 스캔. 원본 해상도 유지, WebP 변환.",
+    "cards": [
+      { "number": "001/016", "name": "이상해꽃" },
+      { "number": "002/016", "name": "체리꼬" },
+      { "number": "003/016", "name": "나인테일" },
+      { "number": "004/016", "name": "히드런" },
+      { "number": "005/016", "name": "아쿠스타" },
+      { "number": "006/016", "name": "갸라도스" },
+      { "number": "007/016", "name": "피카츄" },
+      { "number": "008/016", "name": "썬더" },
+      { "number": "009/016", "name": "뮤츠" },
+      { "number": "010/016", "name": "뮤" },
+      { "number": "011/016", "name": "디그다" },
+      { "number": "012/016", "name": "루카리오" },
+      { "number": "013/016", "name": "스컹탱크" },
+      { "number": "014/016", "name": "바리톱스" },
+      { "number": "015/016", "name": "꼬렛" },
+      { "number": "016/016", "name": "비버통" }
+    ]
+  },
+  "imageOrigins": {
+    "game": "https://www.pokemon.co.jp/special/pokemonscramble/about/images/img-about-03.jpg",
+    "box": "https://www.pokemon.co.jp/special/pokemonscramble/cardgame/images/img-cardgame-04.jpg",
+    "board": "https://www.pokemon.co.jp/special/pokemonscramble/cardgame/images/img-cardgame-02.jpg",
+    "pikachu": "https://cdn.snkrdunk.com/upload_bg_removed/11dbbc0c-138c-4cec-98bc-2c7bf72f4cf2.webp",
+    "mew": "https://cdn.snkrdunk.com/upload_bg_removed/89ba255d-1b96-4a89-9023-f08c5049dff0.webp",
+    "mewtwo": "https://cdn.snkrdunk.com/upload_bg_removed/e1d789e8-df0f-432a-98c1-b4788df8fdfc.webp",
+    "prizes": "https://cdn.suruga-ya.jp/database/pics_webp/game/620015874.jpg.webp"
+  },
+  "imageCredits": {
+    "game": "포켓몬 공식 사이트 · ©2009 Pokémon, Nintendo, Creatures, GAME FREAK. Developed by Ambrella.",
+    "boxAndBoard": "포켓몬 공식 카드 게임 안내 · ©2009 Pokémon, Nintendo, Creatures, GAME FREAK.",
+    "pikachuMewtwoMew": "SNKRDUNK 상품 이미지 · Pokémon 카드 이미지",
+    "prizes": "스루가야 상품 사진",
+    "license": "각 이미지의 공개 게시 페이지에서 별도 재사용 라이선스를 확인하지 못함."
+  },
+  "pikachuPsa10": [
+    { "date": "2024-09-15", "venue": "eBay", "kind": "판매 완료", "currency": "USD", "amount": 2850, "source": "ebayArchive" },
+    { "date": "2025-09-22", "venue": "eBay", "kind": "판매 완료", "currency": "USD", "amount": 5700, "source": "ebayArchive" },
+    { "date": "2026-01-17", "venue": "eBay", "kind": "경매", "currency": "USD", "amount": 13500, "source": "psa10", "item": "297918306067" },
+    { "date": "2026-08-06", "venue": "eBay", "kind": "고정가", "currency": "USD", "amount": 19198.37, "source": "psa10", "item": "297952180841" },
+    { "date": "2026-10-06", "venue": "SNKRDUNK", "kind": "판매 완료", "currency": "JPY", "amount": 5300000, "source": "snkrPikachu" }
+  ],
+  "snkrdunk": [
+    { "card": "피카츄", "number": "007/016", "source": "snkrPikachu", "psa10Date": "2026-10-06", "psa10Sold": 5300000, "psa10Ask": 30000000, "other": [{ "date": "2026-10-20", "grade": "PSA 8 이하", "amount": 140000 }, { "date": "2026-10-28", "grade": "PSA 8 이하", "amount": 420000 }] },
+    { "card": "뮤츠", "number": "009/016", "source": "snkrMewtwo", "psa10Date": "2026-10-06", "psa10Sold": 1630000, "psa10Ask": 2500000, "other": [{ "date": "2026-10-28", "grade": "PSA 8 이하", "amount": 130000 }, { "date": "2026-11-12", "grade": "PSA 9", "amount": 290000 }] },
+    { "card": "뮤", "number": "010/016", "source": "snkrMew", "psa10Date": "2026-09-08", "psa10Sold": 1900000, "psa10Ask": 2900000, "other": [{ "date": "2026-10-13", "grade": "SNKRDUNK D", "amount": 99000 }, { "date": "2026-11-04", "grade": "PSA 8 이하", "amount": 160000 }] }
+  ],
+  "otherSales": { "pikachuPsa2": { "date": "2025-11-23", "currency": "USD", "amount": 165, "item": "406374203669" }, "oldMewtwoMarketJpyFrom": 8000 },
+  "method": [
+    "SNKRDUNK 상품 화면을 Ego Lite로 열어 売買履歴에 표시된 1장 거래와 PSA10 판매 시작 호가를 각각 채록.",
+    "eBay 개별 페이지 하나는 웹 도구에서 열리지 않아 PSA 인증 페이지의 판매 이력과 PriceCharting의 완료 집계를 사용. 날짜별 선택 거래로 전체·연속 시세를 뜻하지 않음.",
+    "달러 및 엔을 같은 날의 환율로 환산. 수수료, 배송료, 세금 및 당시 환율의 차이는 반영하지 않음."
+  ]
+}
