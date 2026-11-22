@@ -1,0 +1,146 @@
+[
+  {
+    "game": "name",
+    "aliases": [
+      "Pikachu"
+    ],
+    "cards": [
+      {
+        "name": "피카츄",
+        "species": "pikachu",
+        "set": "SV4a",
+        "number": "236/190",
+        "source": "https://pokemoncard.co.kr",
+        "image": "https://pokemoncard.co.kr/public-assets/home/data/cards.image_www/data/wmimages/SV/SV4a/SV4a_236.webp",
+        "area": {
+          "left": 0.07727,
+          "top": 0.10423,
+          "right": 0.92273,
+          "bottom": 0.46254
+        },
+        "centers": [
+          {
+            "x": 0.34545,
+            "y": 0.23779
+          },
+          {
+            "x": 0.53182,
+            "y": 0.27036
+          },
+          {
+            "x": 0.72273,
+            "y": 0.18893
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "game": "odd",
+    "cards": [
+      {
+        "name": "리자몽",
+        "species": "charizard",
+        "set": "SV2a",
+        "number": "201/165",
+        "source": "https://pokemoncard.co.kr",
+        "image": "https://pokemoncard.co.kr/public-assets/home/data/cards.image_www/data/wmimages/SV/SV2a/SV2a_201.webp",
+        "area": {
+          "left": 0.06154,
+          "top": 0.12637,
+          "right": 0.95385,
+          "bottom": 0.56044
+        },
+        "centers": [
+          {
+            "x": 0.64615,
+            "y": 0.3022
+          },
+          {
+            "x": 0.61538,
+            "y": 0.29121
+          },
+          {
+            "x": 0.67692,
+            "y": 0.31319
+          }
+        ],
+        "oddCenters": [
+          {
+            "x": 0.6,
+            "y": 0.34066
+          }
+        ]
+      },
+      {
+        "name": "리자몽",
+        "species": "charizard",
+        "set": "SV3",
+        "number": "134/108",
+        "source": "https://pokemoncard.co.kr",
+        "image": "https://pokemoncard.co.kr/public-assets/home/data/cards.image_www/data/wmimages/SV/SV3/SV3_134.webp",
+        "area": {
+          "left": 0.06154,
+          "top": 0.15385,
+          "right": 0.95385,
+          "bottom": 0.5989
+        },
+        "centers": [
+          {
+            "x": 0.46923,
+            "y": 0.34066
+          },
+          {
+            "x": 0.43846,
+            "y": 0.32967
+          },
+          {
+            "x": 0.5,
+            "y": 0.35165
+          }
+        ],
+        "oddCenters": [
+          {
+            "x": 0.62308,
+            "y": 0.37912
+          }
+        ]
+      },
+      {
+        "name": "피카츄",
+        "species": "pikachu",
+        "set": "SV2a",
+        "number": "173/165",
+        "source": "https://snkrdunk.com/en/trading-cards/128089",
+        "image": "https://cdn.snkrdunk.com/upload_bg_removed/4717633b-b546-46e2-87ff-8f9f64e682e8.webp",
+        "trim": true,
+        "area": {
+          "left": 0.05385,
+          "top": 0.12222,
+          "right": 0.95385,
+          "bottom": 0.57222
+        },
+        "centers": [
+          {
+            "x": 0.48462,
+            "y": 0.42222
+          },
+          {
+            "x": 0.45385,
+            "y": 0.41111
+          },
+          {
+            "x": 0.51538,
+            "y": 0.43333
+          }
+        ],
+        "oddCenters": [
+          {
+            "x": 0.66154,
+            "y": 0.38889
+          }
+        ]
+      }
+    ]
+  }
+]

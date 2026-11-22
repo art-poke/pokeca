@@ -25,7 +25,7 @@ const NAV = [
   { href: "/", label: "홈", icon: Home },
   { href: "/search", label: "카드 검색", icon: Search },
   { href: "/ranking", label: "랭킹", icon: Trophy },
-  { href: "/play", label: "몬스터볼 게임", icon: Gamepad2 },
+  { href: "/games", label: "게임", icon: Gamepad2 },
   { href: "/requests", label: "도안 요청해요", icon: Megaphone },
   { href: "/stories", label: "카드 이야기", icon: BookOpen },
   { href: "/community", label: "커뮤니티", icon: MessagesSquare },
@@ -61,8 +61,10 @@ const subscribeCollapsed = (cb: () => void) => {
   };
 };
 
+const isWithin = (pathname: string, href: string) => pathname === href || pathname.startsWith(`${href}/`);
+
 const isActive = (pathname: string, href: string) =>
-  href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+  isWithin(pathname, href) || (href === "/games" && ["/play", "/card-fragments"].some((path) => isWithin(pathname, path)));
 
 const NavLinks = ({
   pathname,
@@ -83,7 +85,7 @@ const NavLinks = ({
           prefetch={false}
           onClick={onNavigate}
           title={collapsed ? label : undefined}
-          aria-current={active ? "page" : undefined}
+          aria-current={pathname === href ? "page" : active ? "location" : undefined}
           className={cn(
             "flex items-center rounded-xl text-sm font-semibold transition-colors",
             collapsed ? "justify-center p-2.5" : "gap-3 px-3 py-2.5",
@@ -132,16 +134,16 @@ export const AppShell = ({
       <header className="sticky top-0 z-40 flex h-14 items-center gap-2 border-b border-border bg-background/90 px-3 backdrop-blur md:px-4">
         <button
           type="button"
-          className="inline-flex size-10 items-center justify-center rounded-lg text-ink-700 transition-colors hover:bg-gray-100 lg:hidden"
+          className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg text-ink-700 transition-colors hover:bg-gray-100 lg:hidden"
           onClick={() => setOpen(true)}
           aria-label="메뉴 열기"
         >
           <Menu className="size-6" />
         </button>
-        <Link href="/" className="shrink-0" aria-label="Extended Art Archive 홈">
-          <Logo />
+        <Link href="/" className="min-w-0" aria-label="Extended Art Archive 홈">
+          <Logo className="max-w-full" />
         </Link>
-        <div className="ml-auto flex items-center gap-3">
+        <div className="ml-auto flex shrink-0 items-center gap-3">
           {showSearch && (
             <div className="hidden w-64 md:block lg:w-80">
               <SearchBar variant="header" />
