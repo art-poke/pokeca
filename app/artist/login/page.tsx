@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
-import { Suspense } from "react";
 import { GoogleIcon, KakaoIcon } from "@/components/ui/brand-icons";
 import { PokeballMark } from "@/components/ui/logo";
 import { currentSocialUser } from "@/lib/artists";
+import { artworkUploadCardId, artworkUploadPath } from "@/lib/artwork-upload-path";
 import { socialLogin } from "../actions";
 
 export const metadata = { title: "로그인 · Extended Art Archive" };
@@ -10,7 +10,9 @@ export const metadata = { title: "로그인 · Extended Art Archive" };
 // 로그인은 카카오·구글뿐. 로그인하면 누구나 작품을 저장하고 곧 작가가 된다(마이페이지에서 주소 이름 설정).
 // 이미 로그인했으면 로그인 버튼을 보이지 않게 /me로 보낸다(다른 provider 링크=계정 머지 방지).
 export default async function LoginPage(props: PageProps<"/artist/login">) {
-  if (await currentSocialUser()) redirect("/me");
+  const [user, query] = await Promise.all([currentSocialUser(), props.searchParams]);
+  const cardId = artworkUploadCardId(query.cardId);
+  if (user) redirect(cardId ? artworkUploadPath(cardId) : "/me");
   return (
     <div className="mx-auto flex w-full max-w-md flex-col items-center py-4 md:py-8">
       <CardShowcase />
@@ -26,11 +28,10 @@ export default async function LoginPage(props: PageProps<"/artist/login">) {
           </p>
         </div>
 
-        <Suspense>
-          <Failed searchParams={props.searchParams} />
-        </Suspense>
+        {query.error && <Failed />}
 
         <form action={socialLogin} className="mt-6 flex flex-col gap-3">
+          {cardId && <input type="hidden" name="cardId" value={cardId} />}
           <button
             type="submit"
             name="provider"
@@ -95,8 +96,7 @@ const CardBackMark = () => (
   </svg>
 );
 
-async function Failed({ searchParams }: { searchParams: PageProps<"/artist/login">["searchParams"] }) {
-  if (!(await searchParams).error) return null;
+function Failed() {
   return (
     <p className="mt-5 rounded-lg bg-accent px-4 py-3 text-center text-sm font-semibold text-accent-foreground">
       로그인하지 못했어요. 다시 시도해 주세요.

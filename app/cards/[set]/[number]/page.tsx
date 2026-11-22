@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { Suspense } from "react";
 import { CardImageZoom } from "@/components/card-image-zoom";
 import { cardImageUrl } from "@/lib/card-image";
@@ -6,6 +7,8 @@ import { FavoriteButton } from "@/components/favorite-button";
 import { FormatResults } from "@/components/FormatResults";
 import { RequestArtButton } from "@/components/request-art-button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { artworkUploadPath } from "@/lib/artwork-upload-path";
 import { PokeballMark } from "@/components/ui/logo";
 import { listPublicArtworks } from "@/lib/artworks";
 import { getCard } from "@/lib/cards";
@@ -100,6 +103,9 @@ async function Card({
               isMember={!!member}
               missingFormats={missingFormats}
             />
+            <Button asChild size="sm" variant="outline">
+              <Link href={artworkUploadPath(card.cardId)}>도안 올리기</Link>
+            </Button>
           </div>
         </div>
       </header>

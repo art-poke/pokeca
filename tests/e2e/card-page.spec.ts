@@ -18,6 +18,31 @@ async function signIn(page: Page, baseURL: string) {
   await page.context().addCookies([await memberSessionCookie(baseURL)]);
 }
 
+test("the card upload link opens the form with that card selected", async ({ page, baseURL }) => {
+  const suffix = crypto.randomUUID().slice(0, 8);
+  await page.context().addCookies([await memberSessionCookie(baseURL!, `upload-${suffix}@example.com`)]);
+  await page.goto(CARD);
+  await page.getByRole("link", { name: "도안 올리기", exact: true }).click();
+  await expect(page).toHaveURL(/\/artist\/new\?cardId=[0-9a-f-]+$/);
+  const handleInput = page.getByPlaceholder("예: my_art");
+  await expect(handleInput).toBeVisible();
+  await handleInput.fill(`upload_${suffix}`);
+  await page.getByRole("button", { name: "정하고 계속하기" }).click();
+  await expect(page.getByText("sv2a 201/165", { exact: true })).toBeVisible();
+});
+
+test("artwork shares use the card, format and public artwork thumbnail", async ({ request }) => {
+  const id = await seedArtwork({ artist: "공유작가", format: "psa" });
+  const response = await request.get(`/artworks/${id}`, {
+    headers: { "User-Agent": "facebookexternalhit/1.1" },
+  });
+  expect(response.ok()).toBeTruthy();
+  const head = (await response.text()).split("</head>")[0];
+  expect(head).toMatch(/<meta property="og:title" content="[^"]*sv2a 201\/165 PSA 확장 아트[^"]*공유작가/);
+  expect(head).toContain(`/api/thumbnails/${id}`);
+  expect(head).toContain('name="twitter:image"');
+});
+
 test("artwork tiles are ordered newest first", async ({ page }) => {
   await seedArtwork({ artist: "먼저" });
   await seedArtwork({ artist: "회원글", visibility: "members_only" });

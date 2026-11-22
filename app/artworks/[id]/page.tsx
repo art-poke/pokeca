@@ -1,7 +1,8 @@
 import { ArrowLeft } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { cache, Suspense } from "react";
 import { ArtistName, DownloadAction, SourceLink } from "@/components/ArtworkItem";
 import { Comments } from "@/components/comments";
 import { RecommendButton } from "@/components/recommend-button";
@@ -14,6 +15,39 @@ import { getEngagement } from "@/lib/engagements";
 import { FORMAT_INFO } from "@/lib/formats";
 import { currentMember } from "@/lib/artists";
 
+const loadArtwork = cache(getArtworkDetail);
+
+export async function generateMetadata({ params }: PageProps<"/artworks/[id]">): Promise<Metadata> {
+  const { id } = await params;
+  const artwork = await loadArtwork(id);
+  if (!artwork) return {};
+
+  const format = FORMAT_INFO[artwork.format].label;
+  const title = `${artwork.card.name} ${artwork.card.label} ${format} 확장 아트 · ${artwork.title}`;
+  const description = `${artwork.artistName} 님의 ${artwork.card.name} ${format} 확장 아트 도안이에요.`;
+  const url = `/artworks/${artwork.id}`;
+  const images = [{
+    url: `/api/thumbnails/${artwork.id}`,
+    alt: `${artwork.card.name} ${format} 확장 아트 도안 미리보기`,
+  }];
+
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "website",
+      siteName: "Extended Art Archive",
+      locale: "ko_KR",
+      url,
+      title,
+      description,
+      images,
+    },
+    twitter: { card: "summary_large_image", title, description, images },
+  };
+}
+
 export default function ArtworkPage(props: PageProps<"/artworks/[id]">) {
   return (
     <Suspense fallback={<ArtworkDetailSkeleton />}>
@@ -24,7 +58,7 @@ export default function ArtworkPage(props: PageProps<"/artworks/[id]">) {
 
 async function Detail({ params }: Pick<PageProps<"/artworks/[id]">, "params">) {
   const { id } = await params;
-  const artwork = await getArtworkDetail(id);
+  const artwork = await loadArtwork(id);
   if (!artwork) notFound();
 
   const member = await currentMember();

@@ -159,8 +159,7 @@ export async function socialSessionCookies(_email: string, _baseURL: string): Pr
 }
 
 // 앱과 같은 Auth.js 코덱으로 격리된 E2E 환경의 소셜 세션을 구성한다.
-export async function memberSessionCookie(baseURL: string) {
-  const email = "member-e2e@example.com";
+export async function memberSessionCookie(baseURL: string, email = "member-e2e@example.com") {
   const [user] = await sql<{ id: string }[]>`
     insert into users (email, name) values (${email}, '테스트 수집가')
     on conflict (email) do update set name = excluded.name

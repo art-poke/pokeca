@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: "Extended Art Archive",
   description: DESCRIPTION,
-  // 외부 공유 미리보기는 유저 도안이 아니라 브랜드 이미지(몬스터볼 + Extended Art Archive)로 고정.
+  // 개별 페이지에 공유 정보가 없을 때 사용할 사이트 기본 미리보기.
   openGraph: {
     type: "website",
     siteName: "Extended Art Archive",
