@@ -1,0 +1,146 @@
+[
+  {
+    "game": "name",
+    "aliases": [
+      "Ditto"
+    ],
+    "cards": [
+      {
+        "name": "메타몽",
+        "species": "ditto",
+        "set": "SV4a",
+        "number": "309/190",
+        "source": "https://pokemoncard.co.kr",
+        "image": "https://pokemoncard.co.kr/public-assets/home/data/cards.image_www/data/wmimages/SV/SV4a/SV4a_309.webp",
+        "area": {
+          "left": 0.07273,
+          "top": 0.11075,
+          "right": 0.92273,
+          "bottom": 0.45603
+        },
+        "centers": [
+          {
+            "x": 0.48182,
+            "y": 0.2443
+          },
+          {
+            "x": 0.58182,
+            "y": 0.21824
+          },
+          {
+            "x": 0.38182,
+            "y": 0.2215
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "game": "odd",
+    "cards": [
+      {
+        "name": "이브이",
+        "species": "eevee",
+        "set": "SV5a",
+        "number": "078/066",
+        "source": "https://snkrdunk.com/en/trading-cards/224086",
+        "image": "https://cdn.snkrdunk.com/upload_bg_removed/78d1fb68-c8bb-48f4-8482-e7975d3459af.webp",
+        "trim": true,
+        "area": {
+          "left": 0.05385,
+          "top": 0.09444,
+          "right": 0.95385,
+          "bottom": 0.57778
+        },
+        "centers": [
+          {
+            "x": 0.46923,
+            "y": 0.30556
+          },
+          {
+            "x": 0.43846,
+            "y": 0.29444
+          },
+          {
+            "x": 0.5,
+            "y": 0.31667
+          }
+        ],
+        "oddCenters": [
+          {
+            "x": 0.6,
+            "y": 0.27778
+          }
+        ]
+      },
+      {
+        "name": "이브이",
+        "species": "eevee",
+        "set": "SV8a",
+        "number": "223/187",
+        "source": "https://pokemoncard.co.kr",
+        "image": "https://pokemoncard.co.kr/public-assets/home/data/cards.image_www/data/wmimages/SV/SV8a/SV8a_223.webp",
+        "area": {
+          "left": 0.06154,
+          "top": 0.15385,
+          "right": 0.95385,
+          "bottom": 0.53297
+        },
+        "centers": [
+          {
+            "x": 0.54615,
+            "y": 0.38462
+          },
+          {
+            "x": 0.51538,
+            "y": 0.37363
+          },
+          {
+            "x": 0.57692,
+            "y": 0.3956
+          }
+        ],
+        "oddCenters": [
+          {
+            "x": 0.66923,
+            "y": 0.36813
+          }
+        ]
+      },
+      {
+        "name": "리자몽",
+        "species": "charizard",
+        "set": "SV4a",
+        "number": "349/190",
+        "source": "https://pokemoncard.co.kr",
+        "image": "https://pokemoncard.co.kr/public-assets/home/data/cards.image_www/data/wmimages/SV/SV4a/SV4a_349.webp",
+        "area": {
+          "left": 0.06154,
+          "top": 0.13187,
+          "right": 0.95385,
+          "bottom": 0.56044
+        },
+        "centers": [
+          {
+            "x": 0.5,
+            "y": 0.36264
+          },
+          {
+            "x": 0.46923,
+            "y": 0.35165
+          },
+          {
+            "x": 0.53077,
+            "y": 0.37363
+          }
+        ],
+        "oddCenters": [
+          {
+            "x": 0.58462,
+            "y": 0.45055
+          }
+        ]
+      }
+    ]
+  }
+]

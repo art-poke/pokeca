@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import Link from "next/link";
 import { showSuccessToast } from "@/lib/toast/gr-toast";
 import type { GameStats } from "../engine/types";
 import { useSubmitScore } from "../hooks";
@@ -52,6 +53,9 @@ export const GameBoard = ({ currentUserId }: Props) => {
     <div className="-my-6 flex h-[calc(100dvh-3.5rem)] gap-4 overflow-hidden md:-my-10">
       {/* 왼쪽: HUD + 캐비닛 */}
       <div className="flex min-w-0 flex-1 flex-col gap-2 py-2">
+        <Link href="/games" className="inline-flex min-h-11 shrink-0 items-center self-start text-sm font-semibold text-muted-foreground">
+          ← 게임 선택
+        </Link>
         <GameHud score={ui.score} nextTier={ui.nextTier} queue={ui.queue} />
         <GameCabinet>
           <div className="relative h-full w-full">

@@ -1,0 +1,135 @@
+[
+  {
+    "game": "name",
+    "aliases": [
+      "리오루",
+      "Riolu"
+    ],
+    "cards": [
+      {
+        "name": "리오르",
+        "species": "riolu",
+        "set": "SVI",
+        "number": "031/066",
+        "source": "https://pokemoncard.co.kr",
+        "image": "https://pokemoncard.co.kr/public-assets/home/data/cards.image_www/data/wmimages/SV/SVI/SVI_031_L.webp",
+        "area": {
+          "left": 0.076,
+          "top": 0.1,
+          "right": 0.92,
+          "bottom": 0.467
+        },
+        "centers": [
+          {
+            "x": 0.46,
+            "y": 0.173
+          },
+          {
+            "x": 0.55,
+            "y": 0.308
+          },
+          {
+            "x": 0.39,
+            "y": 0.259
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "game": "odd",
+    "cards": [
+      {
+        "name": "뮤츠",
+        "species": "mewtwo",
+        "set": "SV10",
+        "number": "125/098",
+        "source": "https://pokemoncard.co.kr",
+        "image": "https://pokemoncard.co.kr/public-assets/home/data/cards.image_www/data/wmimages/SV/SV10/SV10_125.webp",
+        "area": {
+          "left": 0.06154,
+          "top": 0.12088,
+          "right": 0.95385,
+          "bottom": 0.54945
+        },
+        "centers": [
+          {
+            "x": 0.66154,
+            "y": 0.26374
+          },
+          {
+            "x": 0.63077,
+            "y": 0.25275
+          },
+          {
+            "x": 0.69231,
+            "y": 0.27473
+          }
+        ],
+        "oddCenters": [
+          {
+            "x": 0.58462,
+            "y": 0.3956
+          }
+        ]
+      },
+      {
+        "name": "뮤츠",
+        "species": "mewtwo",
+        "set": "M2a",
+        "number": "237/193",
+        "source": "https://pokemoncard.co.kr",
+        "image": "https://pokemoncard.co.kr/public-assets/home/data/cards.image_www/data/wmimages/MEGA/M2a/M2a_237.webp",
+        "area": {
+          "left": 0.06154,
+          "top": 0.12088,
+          "right": 0.95385,
+          "bottom": 0.52198
+        },
+        "centers": [
+          {
+            "x": 0.6,
+            "y": 0.2967
+          },
+          {
+            "x": 0.56923,
+            "y": 0.28571
+          },
+          {
+            "x": 0.63077,
+            "y": 0.30769
+          }
+        ],
+        "oddCenters": [
+          {
+            "x": 0.46923,
+            "y": 0.36264
+          }
+        ]
+      },
+      {
+        "name": "리자몽",
+        "species": "charizard",
+        "set": "S12a",
+        "number": "212/172",
+        "image": "https://cdn.snkrdunk.com/upload_bg_removed/8f808e7f-8f06-4ff3-b02e-76ce37c237a7.webp",
+        "source": "https://snkrdunk.com/en/trading-cards/103079",
+        "trim": true,
+        "detailUrl": "https://snkrdunk.com/en/trading-cards/103079",
+        "cameo": "뮤츠",
+        "area": {
+          "left": 0.035,
+          "top": 0.227,
+          "right": 0.54,
+          "bottom": 0.56
+        },
+        "centers": [
+          {
+            "x": 0.234,
+            "y": 0.371
+          }
+        ]
+      }
+    ]
+  }
+]

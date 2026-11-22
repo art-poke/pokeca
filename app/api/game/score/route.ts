@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { gamePlayerId } from "@/lib/game-player";
 import { validateScoreSubmission } from "@/domains/game/validation";
 import {
   countRecentSubmissions,
@@ -12,10 +12,9 @@ import {
 const THROTTLE_WINDOW_MS = 3_600_000;
 const THROTTLE_MAX = 20;
 
-// 점수 제출. 로그인 필수 → 가벼운 검증 → 빈도 제한 → insert(played_at은 서버 default now()).
+// 점수 제출은 플레이어 확인, 검증, 빈도 제한을 거쳐 저장한다.
 export async function POST(request: Request) {
-  const session = await auth();
-  const userId = session?.user?.id;
+  const userId = await gamePlayerId();
   if (!userId) return Response.json({ code: "unauthorized" }, { status: 401 });
 
   let payload: unknown;
@@ -43,8 +42,7 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   const scopeParam = new URL(request.url).searchParams.get("scope");
   const scope: LeaderboardScope = scopeParam === "month" ? "month" : "all";
-  const session = await auth();
-  const userId = session?.user?.id ?? null;
+  const userId = await gamePlayerId();
   const data = await getLeaderboard(scope, { userId });
   return Response.json(data);
 }

@@ -1,0 +1,134 @@
+[
+  {
+    "game": "name",
+    "aliases": [
+      "Psyduck"
+    ],
+    "cards": [
+      {
+        "name": "고라파덕",
+        "species": "psyduck",
+        "set": "SV2a",
+        "number": "175/165",
+        "source": "https://pokemoncard.co.kr",
+        "image": "https://pokemoncard.co.kr/public-assets/home/data/cards.image_www/data/wmimages/SV/SV2a/SV2a_175.webp",
+        "area": {
+          "left": 0.09091,
+          "top": 0.13681,
+          "right": 0.93636,
+          "bottom": 0.5798
+        },
+        "centers": [
+          {
+            "x": 0.65909,
+            "y": 0.41042
+          },
+          {
+            "x": 0.67727,
+            "y": 0.42671
+          },
+          {
+            "x": 0.63636,
+            "y": 0.40391
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "game": "odd",
+    "cards": [
+      {
+        "name": "리자몽",
+        "species": "charizard",
+        "set": "SV3",
+        "number": "134/108",
+        "source": "https://pokemoncard.co.kr",
+        "image": "https://pokemoncard.co.kr/public-assets/home/data/cards.image_www/data/wmimages/SV/SV3/SV3_134.webp",
+        "area": {
+          "left": 0.06154,
+          "top": 0.15385,
+          "right": 0.95385,
+          "bottom": 0.5989
+        },
+        "centers": [
+          {
+            "x": 0.46923,
+            "y": 0.34066
+          },
+          {
+            "x": 0.43846,
+            "y": 0.32967
+          },
+          {
+            "x": 0.5,
+            "y": 0.35165
+          }
+        ],
+        "oddCenters": [
+          {
+            "x": 0.62308,
+            "y": 0.37912
+          }
+        ]
+      },
+      {
+        "name": "리자몽",
+        "species": "charizard",
+        "set": "SV4a",
+        "number": "349/190",
+        "source": "https://pokemoncard.co.kr",
+        "image": "https://pokemoncard.co.kr/public-assets/home/data/cards.image_www/data/wmimages/SV/SV4a/SV4a_349.webp",
+        "area": {
+          "left": 0.06154,
+          "top": 0.13187,
+          "right": 0.95385,
+          "bottom": 0.56044
+        },
+        "centers": [
+          {
+            "x": 0.5,
+            "y": 0.36264
+          },
+          {
+            "x": 0.46923,
+            "y": 0.35165
+          },
+          {
+            "x": 0.53077,
+            "y": 0.37363
+          }
+        ],
+        "oddCenters": [
+          {
+            "x": 0.58462,
+            "y": 0.45055
+          }
+        ]
+      },
+      {
+        "name": "뮤츠",
+        "species": "mewtwo",
+        "set": "S12a",
+        "number": "221/172",
+        "image": "https://cdn.snkrdunk.com/upload_bg_removed/66b4b560-8828-4792-9044-a3e9ebc51f7b.webp",
+        "source": "https://snkrdunk.com/en/trading-cards/103080",
+        "trim": true,
+        "detailUrl": "https://snkrdunk.com/en/trading-cards/103080",
+        "cameo": "리자몽",
+        "area": {
+          "left": 0.43,
+          "top": 0.116,
+          "right": 0.967,
+          "bottom": 0.353
+        },
+        "centers": [
+          {
+            "x": 0.705,
+            "y": 0.212
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,135 @@
+[
+  {
+    "game": "name",
+    "aliases": [
+      "Charmander"
+    ],
+    "cards": [
+      {
+        "name": "파이리",
+        "species": "charmander",
+        "set": "SV2a",
+        "number": "168/165",
+        "source": "https://pokemoncard.co.kr",
+        "image": "https://pokemoncard.co.kr/public-assets/home/data/cards.image_www/data/wmimages/SV/SV2a/SV2a_168.webp",
+        "area": {
+          "left": 0.06364,
+          "top": 0.12704,
+          "right": 0.94091,
+          "bottom": 0.57329
+        },
+        "centers": [
+          {
+            "x": 0.35909,
+            "y": 0.46906
+          },
+          {
+            "x": 0.39091,
+            "y": 0.45603
+          },
+          {
+            "x": 0.34091,
+            "y": 0.48208
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "game": "odd",
+    "cards": [
+      {
+        "name": "피카츄",
+        "species": "pikachu",
+        "set": "SV8",
+        "number": "132/106",
+        "source": "https://snkrdunk.com/en/trading-cards/408333",
+        "image": "https://cdn.snkrdunk.com/upload_bg_removed/8c2d34aa-dab1-4c89-b51c-5dd44b8eaca6.webp",
+        "trim": true,
+        "area": {
+          "left": 0.06154,
+          "top": 0.16304,
+          "right": 0.95385,
+          "bottom": 0.52174
+        },
+        "centers": [
+          {
+            "x": 0.48462,
+            "y": 0.35326
+          },
+          {
+            "x": 0.45385,
+            "y": 0.34239
+          },
+          {
+            "x": 0.51538,
+            "y": 0.36413
+          }
+        ],
+        "oddCenters": [
+          {
+            "x": 0.33846,
+            "y": 0.31522
+          }
+        ]
+      },
+      {
+        "name": "피카츄",
+        "species": "pikachu",
+        "set": "SV4a",
+        "number": "236/190",
+        "source": "https://pokemoncard.co.kr",
+        "image": "https://pokemoncard.co.kr/public-assets/home/data/cards.image_www/data/wmimages/SV/SV4a/SV4a_236.webp",
+        "area": {
+          "left": 0.06923,
+          "top": 0.1044,
+          "right": 0.92308,
+          "bottom": 0.47802
+        },
+        "centers": [
+          {
+            "x": 0.32308,
+            "y": 0.24176
+          },
+          {
+            "x": 0.29231,
+            "y": 0.23077
+          },
+          {
+            "x": 0.35385,
+            "y": 0.25275
+          }
+        ],
+        "oddCenters": [
+          {
+            "x": 0.70769,
+            "y": 0.23077
+          }
+        ]
+      },
+      {
+        "name": "글레이시아",
+        "species": "글레이시아",
+        "set": "S6a",
+        "number": "091/069",
+        "image": "https://cdn.snkrdunk.com/upload_bg_removed/65c4692e-42b6-4687-9627-2242d5c2bb5b.webp",
+        "source": "https://snkrdunk.com/en/trading-cards/93024",
+        "trim": true,
+        "detailUrl": "https://snkrdunk.com/en/trading-cards/93024",
+        "cameo": "피카츄",
+        "area": {
+          "left": 0.54,
+          "top": 0.46,
+          "right": 0.99,
+          "bottom": 0.646
+        },
+        "centers": [
+          {
+            "x": 0.79,
+            "y": 0.565
+          }
+        ]
+      }
+    ]
+  }
+]
