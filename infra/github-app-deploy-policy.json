@@ -16,8 +16,14 @@
       "Action": ["lambda:GetFunctionConfiguration", "lambda:UpdateFunctionCode"],
       "Resource": [
         "arn:aws:lambda:ap-northeast-1:138681986450:function:pokeca-app-image",
-        "arn:aws:lambda:ap-northeast-1:138681986450:function:pokeca-app-server"
+        "arn:aws:lambda:ap-northeast-1:138681986450:function:pokeca-app-server",
+        "arn:aws:lambda:ap-northeast-1:138681986450:function:pokeca-migrate"
       ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": "lambda:InvokeFunction",
+      "Resource": "arn:aws:lambda:ap-northeast-1:138681986450:function:pokeca-migrate"
     },
     {
       "Effect": "Allow",
