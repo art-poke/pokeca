@@ -31,7 +31,7 @@ CloudFront 없음(소규모라 생략, 나중 무중단 추가). 메일은 Resen
 
 ### GitHub Actions 운영 배포 (초기 설정 1회)
 
-`art-poke/pokeca`의 `main`에 푸시하면 [Deploy production](../.github/workflows/deploy-production.yml)이 기존 `scripts/deploy.sh`를 실행한다. Actions 탭에서 `main`을 선택해 수동 재실행할 수도 있다.
+`art-poke/pokeca`의 `main`에 푸시하면 [Deploy production](../.github/workflows/deploy-production.yml)이 DB 마이그레이션을 적용한 뒤 `scripts/deploy.sh`로 앱을 배포한다. Actions 탭에서 `main`을 선택해 수동 재실행할 수도 있다.
 
 1. AWS 계정 `138681986450`의 IAM에 GitHub OIDC 공급자(`https://token.actions.githubusercontent.com`, 대상 `sts.amazonaws.com`)가 없으면 추가한다.
 2. 그 공급자를 신뢰하는 전용 배포 역할을 만든다. 신뢰 정책은 아래처럼 저장소와 `main` 브랜치로 제한한다. 역할에는 [앱 배포 권한 정책](github-app-deploy-policy.json)을 인라인 정책으로 추가한다.
@@ -56,7 +56,7 @@ CloudFront 없음(소규모라 생략, 나중 무중단 추가). 메일은 Resen
    ```
 
 3. GitHub 저장소 **Settings → Secrets and variables → Actions**에서 변수 `AWS_DEPLOY_ROLE_ARN` 및 `CLOUDFRONT_DISTRIBUTION_ID`를 등록한다.
-4. 첫 실행에서 **Deploy**와 **Check production** 성공 여부를 확인한다. 앱 배포는 현재 Lambda 환경 설정을 사용한다. 인프라 변경과 운영 DB SQL 적용은 아래 절차를 사용한다.
+4. 첫 실행에서 **Apply production database migrations**, **Deploy**, **Check production** 성공 여부를 확인한다. 앱 배포는 현재 Lambda 환경 설정을 사용한다.
 
 ### 0. 상태 버킷 부트스트랩 (1회)
 
@@ -120,6 +120,8 @@ terraform destroy   # 전체 삭제. 다시 쓰려면 위 1~3 재실행.
 
 `infra/db/00_authjs.sql`·`01_app.sql`은 **기준선**(처음 만들 때 한 번)이고 더 이상 끝에 덧붙이지 않는다. 변경은 `infra/db/migrations/<YYYYMMDD_HHMMSS>_<이름>.sql` 파일로 추가한다.
 migrate Lambda(`lambda-migrate/migrate.mjs`)는 `public.schema_migrations`에 실행한 파일명을 기록하고, 기록 없는 파일만 파일명 순서로 실행한다(파일 하나 = 트랜잭션 하나). 테이블이 이미 있는 DB에서 처음 돌리면 기준선은 실행 없이 기록만 남긴다.
+
+`main` 운영 배포는 `scripts/deploy-migrations.sh`를 먼저 실행한다. 이 스크립트가 체크아웃의 `infra/db`로 마이그레이션 Lambda를 갱신하고 호출한다. DB 적용이나 Lambda 호출이 실패하면 GitHub Actions는 앱 배포를 중단한다. 기존 배포 역할에는 [갱신된 IAM 권한](github-app-deploy-policy.json)을 한 번 적용해야 한다. SQL로 포함된 시드는 자동 적용되며, 외부 이미지 업로드와 별도로 관리하는 퀴즈 문제 은행은 각 데이터의 발행 절차를 사용한다.
 
 ```bash
 npm run db:migrate                                   # 로컬(DATABASE_URL)에 같은 로직 적용
