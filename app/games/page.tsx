@@ -2,17 +2,20 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { AppImage } from "@/components/ui/app-image";
 import { GAMES } from "@/domains/card-fragments/rules";
+import guessName from "@/public/games/guess-name.webp";
+import findTheCard from "@/public/games/find-the-card.webp";
+import monsterball from "@/public/games/monsterball.webp";
 
 export const metadata = { title: "게임 · Extended Art Archive" };
 
 const games = [
-  { href: "/card-fragments/name", ...GAMES.name, image: "/games/guess-name.webp" },
-  { href: "/card-fragments/odd", ...GAMES.odd, image: "/games/find-the-card.webp" },
+  { href: "/card-fragments/name", ...GAMES.name, image: guessName.src },
+  { href: "/card-fragments/odd", ...GAMES.odd, image: findTheCard.src },
   {
     href: "/play",
     title: "몬스터볼 게임",
     description: "같은 몬스터볼을 합쳐 더 큰 몬스터볼을 만드세요.",
-    image: "/games/monsterball.webp",
+    image: monsterball.src,
   },
 ];
 
