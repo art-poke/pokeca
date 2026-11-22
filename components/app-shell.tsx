@@ -18,6 +18,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 import { SearchBar } from "@/components/search-bar";
+import { SiteFooter } from "@/components/site-footer";
 import { Logo, PokeballMark } from "@/components/ui/logo";
 import { cn } from "@/lib/utils";
 
@@ -197,16 +198,7 @@ export const AppShell = ({
             {children}
           </main>
 
-          <footer className="border-t border-border bg-background">
-            <div className="flex flex-col gap-3 px-4 py-8 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between md:px-6">
-              <p>비영리 팬 아카이브입니다. 도안의 권리는 각 아티스트에게 있습니다.</p>
-              <p>
-                <Link href="/artist/login" className="hover:text-foreground">
-                  작가로 도안 올리기
-                </Link>
-              </p>
-            </div>
-          </footer>
+          <SiteFooter />
         </div>
       </div>
 
