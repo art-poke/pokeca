@@ -1,5 +1,6 @@
 import { CalendarDays, ChevronDown } from "lucide-react";
 import Link from "next/link";
+import { cleanQuery } from "@/lib/analytics/taxonomy";
 import { dateLabel, type Filters, type period } from "@/lib/analytics/report";
 import { reportUrl } from "./navigation";
 import s from "./dashboard.module.css";
@@ -26,6 +27,11 @@ export function ReportControls({
   for (const d of dimensions)
     if (typeof q[d.key] === "string" && q[d.key])
       extras.set(d.key, String(q[d.key]));
+  const term =
+    path === "/admin/insights/search" && typeof q.term === "string"
+      ? cleanQuery(q.term)
+      : "";
+  if (term) extras.set("term", term);
   const preset = (r: string) =>
     reportUrl(path, { range: r, unit: q.unit }) +
     (extras.size ? "&" + extras : "");
@@ -94,6 +100,7 @@ export function ReportControls({
                 <input key={key} type="hidden" name={key} value={q[key]} />
               ),
           )}
+          {term && <input type="hidden" name="term" value={term} />}
           {dimensions.map((d) => (
             <label key={d.key}>
               {d.label}

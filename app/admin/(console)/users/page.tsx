@@ -61,13 +61,13 @@ async function Members({
     joined,
   });
   const list =
-    await db.execute(sql`with social as (${members}) select u.id,coalesce(a.display_name,u.name,'이름 미등록') display_name,a.handle,u.created_at,coalesce(a.provider,account.provider) provider,
+    await db.execute(sql`with social as (${members}) select u.id,coalesce(a.display_name,u.name,'이름 미등록') display_name,u.name social_name,coalesce(u.email,a.email) email,a.handle,u.created_at,coalesce(a.provider,account.provider) provider,
     a.deleted_at,u.suspended_at,d.user_id is not null admin,
     (select max(created_at) from events e where e.member_id=u.id) last_seen
     from social m join users u on m.id=u.id left join artists a on a.user_id=u.id left join admins d on d.user_id=u.id
     left join lateral (select provider from accounts where "userId"=u.id and provider in ('kakao','google') order by provider limit 1) account on true
     where (${id}::uuid is null or u.id=${id}::uuid) and (strpos(lower(coalesce(a.handle,'')),lower(${search}))>0
-    or strpos(lower(coalesce(a.display_name,u.name,'')),lower(${search}))>0 or u.id::text=${search})
+    or strpos(lower(coalesce(a.display_name,u.name,'')),lower(${search}))>0 or strpos(lower(coalesce(u.name,'')),lower(${search}))>0 or u.id::text=${search})
     and (${since}::timestamptz is null or u.created_at>=${since}::timestamptz)
     and (${provider}='' or coalesce(a.provider,account.provider)=${provider}) and (${role}='' or (d.user_id is not null)=(${role}='admin'))
     and (${state}='' or case when a.deleted_at is not null then 'withdrawn' when u.suspended_at is not null then 'suspended' else 'active' end=${state})
@@ -122,7 +122,7 @@ async function Members({
           aria-label="회원 검색"
           name="q"
           defaultValue={search}
-          placeholder="닉네임 · 핸들 · UUID"
+          placeholder="닉네임 · 소셜 이름 · 핸들 · UUID"
         />
         <label>
           가입일 이후 <input name="joined" type="date" defaultValue={joined} />
@@ -149,11 +149,18 @@ async function Members({
         <table className={styles.table}>
           <thead>
             <tr>
-              {["회원", "로그인", "가입일", "최근 관측", "상태", "역할"].map(
-                (h) => (
-                  <th key={h}>{h}</th>
-                ),
-              )}
+              {[
+                "회원",
+                "소셜 이름",
+                "이메일",
+                "로그인",
+                "가입일",
+                "최근 관측",
+                "상태",
+                "역할",
+              ].map((h) => (
+                <th key={h}>{h}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
@@ -164,7 +171,11 @@ async function Members({
                     {String(r.display_name)} {r.handle ? "@" + r.handle : ""}
                   </Link>
                 </td>
-                <td>{String(r.provider)}</td>
+                <td>
+                  {r.deleted_at ? "—" : String(r.social_name || "미제공")}
+                </td>
+                <td>{r.deleted_at ? "—" : String(r.email || "미제공")}</td>
+                <td>{analyticsLabel(String(r.provider))}</td>
                 <td>{date(r.created_at)}</td>
                 <td>{date(r.last_seen)}</td>
                 <td>

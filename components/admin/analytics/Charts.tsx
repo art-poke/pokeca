@@ -141,7 +141,33 @@ export function TrendChart({
                   strokeWidth={2.6}
                   strokeDasharray={i ? "5 3" : undefined}
                   fill={i ? "none" : `url(#${id})`}
-                  dot={rows.length === 1 ? { r: 4 } : false}
+                  dot={({
+                    cx,
+                    cy,
+                    index,
+                  }: {
+                    cx?: number;
+                    cy?: number;
+                    index: number;
+                  }) => {
+                    const isolated =
+                      rows[index - 1]?.[f.key] == null &&
+                      rows[index + 1]?.[f.key] == null;
+                    return isolated &&
+                      cx != null &&
+                      cy != null &&
+                      typeof rows[index]?.[f.key] === "number" ? (
+                      <circle
+                        key={index}
+                        cx={cx}
+                        cy={cy}
+                        r={4}
+                        fill={f.color}
+                      />
+                    ) : (
+                      <g key={index} />
+                    );
+                  }}
                   activeDot={{ r: 4 }}
                   isAnimationActive={false}
                 />
