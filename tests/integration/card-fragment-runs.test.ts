@@ -75,6 +75,32 @@ describe("card fragment runs", () => {
     expect(rows[0].count).toBe(2);
   });
 
+  it("ranks odd-card players by their best single run within the selected month", async () => {
+    const player = randomUUID();
+    const rival = randomUUID();
+    await db.execute(sql`insert into users (id, name) values (${player}, 'Replay fixture'), (${rival}, 'Best score fixture')`);
+    try {
+      await db.execute(sql`
+        insert into card_fragment_run_scores (id, user_id, game, day, wins, finished) values
+          (${randomUUID()}, ${player}, 'odd', ${day}, 3, true),
+          (${randomUUID()}, ${player}, 'odd', ${day}, 3, true),
+          (${randomUUID()}, ${player}, 'odd', ${nextDay}, 2, true),
+          (${randomUUID()}, ${player}, 'odd', '2026-10-31', 5, true),
+          (${randomUUID()}, ${rival}, 'odd', ${day}, 4, true)
+      `);
+      const records = await loadRecords("odd", month, player);
+      expect(records.bestRun).toBe(5);
+      expect(records.bestMonth).toBe(5); // Personal best monthly result considers all recorded months.
+      expect(records.ranking.find((row) => row.mine)).toMatchObject({ wins: 3 });
+      const rivalRecords = await loadRecords("odd", month, rival);
+      expect(rivalRecords.ranking.find((row) => row.mine)!.rank)
+        .toBeLessThan(records.ranking.find((row) => row.mine)!.rank);
+      expect((await loadRecords("odd", "2026-10", player)).ranking.find((row) => row.mine)).toMatchObject({ wins: 5 });
+    } finally {
+      await db.execute(sql`delete from users where id in (${player}, ${rival})`);
+    }
+  });
+
   it("rotates odd-card combinations across restarts and reveals the matching card at the scored slot", async () => {
     const shown = new Set<string>();
     const shownSpecies = new Set<string>();

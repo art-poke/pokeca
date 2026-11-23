@@ -8,11 +8,12 @@ export async function loadRecords(game: Game, month: string, userId: string) {
   const [ranking, history] = await Promise.all([
     db.execute<{ rank: number; name: string; stars: number; wins: number; mine: boolean }>(sql`
       with totals as (
-        select user_id, sum(wins)::int wins, sum(stars)::int stars
+        select user_id, ${game === "odd" ? sql`max(wins)` : sql`sum(wins)`}::int wins, sum(stars)::int stars
         from (
-          select user_id, 1 as wins, (guesses = 1 and not used_hint)::int as stars
+          select user_id, count(*)::int as wins, count(*) filter (where guesses = 1 and not used_hint)::int as stars
           from card_fragment_attempts
           where game = ${game} and day >= ${monthStart} and day < ${monthStart}::date + interval '1 month' and solved
+          group by user_id, day
           union all
           select user_id, wins, stars from card_fragment_run_scores
           where game = ${game} and day >= ${monthStart} and day < ${monthStart}::date + interval '1 month' and wins > 0
@@ -45,7 +46,8 @@ export async function loadRecords(game: Game, month: string, userId: string) {
     if (points === 0) continue;
     days.add(day);
     const month = day.slice(0, 7);
-    const total = (monthly.get(month) ?? 0) + points;
+    const previous = monthly.get(month) ?? 0;
+    const total = game === "odd" ? Math.max(previous, points) : previous + points;
     monthly.set(month, total);
     bestMonth = Math.max(bestMonth, total);
   }
