@@ -8,7 +8,7 @@ import {
   resolvedCountByArtist,
 } from "@/lib/art-requests";
 import { db } from "@/lib/db";
-import { cards, requests, sets, users } from "@/lib/db/schema";
+import { artists, cards, requests, sets, users } from "@/lib/db/schema";
 import { eq, inArray } from "drizzle-orm";
 
 // 규격별 도안 요청 → 요청방 집계 → 작가 업로드 시 해결 처리 → 작가 해결수.
@@ -36,6 +36,10 @@ beforeAll(async () => {
       { email: `${TAG}-artist@example.com` },
     ])
     .returning({ id: users.id });
+  await db.insert(artists).values([
+    { userId: m1, displayName: "도안 수집가", provider: "google" },
+    { userId: m2, displayName: "탈퇴한 회원", provider: "google", deletedAt: new Date() },
+  ]);
 });
 
 afterAll(async () => {
@@ -70,14 +74,22 @@ describe("requestArt / requestedFormats (23505 dedup)", () => {
 });
 
 describe("listOpenRequests", () => {
-  it("(카드×규격)별 미해결 요청수 집계, 내림차순", async () => {
+  it("(카드×규격)별 미해결 요청수와 공개 닉네임을 집계한다", async () => {
     await requestArt(m2, card, "9pocket"); // 9pocket: m1,m2 → 2
+    await db.insert(requests).values({
+      cardId: card,
+      format: "psa",
+      visitorId: crypto.randomUUID(),
+    });
+    await requestArt(artist, card, "9pocket");
     const list = await listOpenRequests();
     const mine = list.filter((i) => i.cardLabel === `${SET_CODE} 201/165`);
     const nine = mine.find((i) => i.format === "9pocket")!;
     const psa = mine.find((i) => i.format === "psa")!;
-    expect(nine.count).toBe(2);
-    expect(psa.count).toBe(1);
+    expect(nine.count).toBe(3);
+    expect(nine.requesters).toEqual([null, null, "도안 수집가"]);
+    expect(psa.count).toBe(2);
+    expect(psa.requesters).toEqual([null, "도안 수집가"]);
     expect(nine).toMatchObject({
       name: `${TAG} 리자몽`,
       formatLabel: "9포켓 슬리브",
@@ -92,7 +104,7 @@ describe("listOpenRequests", () => {
 
 describe("resolveRequests / resolvedCountByArtist", () => {
   it("작가 업로드 시 해당 규격 미해결 요청 해결, 해결수 집계", async () => {
-    // 9pocket 요청(m1,m2) 2건을 artist가 해결.
+    // 9pocket 요청 3건을 artist가 해결.
     await resolveRequests(card, "9pocket", artist);
     // 해결되면 미해결 목록·내 미해결 규격에서 빠진다.
     expect(await requestedFormats(m1, card)).toEqual(["psa"]);
@@ -102,8 +114,7 @@ describe("resolveRequests / resolvedCountByArtist", () => {
       (i) => i.cardLabel === `${SET_CODE} 201/165` && i.format === "9pocket",
     );
     expect(nine).toBeUndefined();
-    // artist가 해결한 요청 수 = 2.
-    expect(await resolvedCountByArtist(artist)).toBe(2);
+    expect(await resolvedCountByArtist(artist)).toBe(3);
     // 비UUID는 0.
     expect(await resolvedCountByArtist("not-a-uuid")).toBe(0);
   });
