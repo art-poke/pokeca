@@ -21,7 +21,19 @@
 
 ```sh
 node .agents/skills/card-extended-art/scripts/layout.mjs guide 9pocket card.png job/geometry job/analysis.json
-node .agents/skills/card-extended-art/scripts/layout.mjs render 9pocket card.png job/result registered-art.png
+node .agents/skills/card-extended-art/scripts/layout.mjs render 9pocket card.png job/result registered-art.png "두빅굴"
 ```
 
 첫 명령은 guide.png와 layout.json을 만든다. layout.json의 master는 가이드 규격, profiles는 각 규격의 canvas·card·label(슬랩)·edges다. edges의 segment_px는 그림 창 경계에서 측정한 구간의 두 끝점으로, 신체 말단이나 카드 은테에서의 도착점을 의미하지 않는다. 은테 밖 예상 위치는 분석한 진행 방향과 가려진 폭으로 정한다. 기존처럼 분석 인수를 생략하면 카드 배치만 담은 가이드를 얻는다. 생성된 그림에서 원본의 눈·어깨·건물 모서리 등 떨어진 지점 세 곳 이상을 같은 가이드와 대조한다. 크기나 중심이 다르면 균일 배율과 이동으로 맞추고, 잘려서 모자라는 바깥은 추가 생성한다. 서로 다른 지점이 한 변환으로 맞지 않으면 잘못 그려진 영역을 다시 그린다. 정렬한 마스터가 두 번째 명령의 registered-art.png다. 각 출력물을 검수한 뒤 해당 회차의 preview.html을 브라우저에서 열고 PNG 전환과 다운로드 대상을 확인한다.
+
+마지막 인수는 표시할 포켓몬 이름이다. 미리보기의 다운로드 버튼으로 실제 파일을 받아 `포켓몬이름_종류.png`인지 확인하고, 검수 기록의 `output`에도 같은 파일명을 기록한다.
+
+## 로컬 웹 미리보기
+
+결과 폴더만 로컬 HTTP로 열어 브라우저의 다운로드 동작을 확인한다. 포트가 사용 중이면 빈 포트로 바꾼다.
+
+```sh
+python3 -m http.server 8765 --bind 127.0.0.1 --directory job/result
+```
+
+브라우저에서 `http://127.0.0.1:8765/preview.html`을 열고 각 규격의 버튼을 눌러 실제 저장 파일명을 확인한다.

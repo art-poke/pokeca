@@ -3,7 +3,7 @@ import sharp from "sharp";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-const [mode, format, cardFile, directory, inputFile] = process.argv.slice(2);
+const [mode, format, cardFile, directory, inputFile, pokemonName] = process.argv.slice(2);
 const profiles = {
   sleeve: { width: 204, height: 276, grid: true },
   toploader: { width: 246, height: 315, grid: true },
@@ -13,7 +13,7 @@ const profiles = {
 const selected = format === "9pocket" ? ["sleeve", "toploader"] : [format];
 if (!["guide", "render"].includes(mode) || !selected.every(k => Object.hasOwn(profiles, k))
     || !cardFile || !directory || (mode === "render" && !inputFile)) {
-  throw Error("node layout.mjs guide|render 9pocket|sleeve|toploader|psa|brg CARD NEW_DIRECTORY [ANALYSIS_JSON for guide | REGISTERED_ART for render]");
+  throw Error("node layout.mjs guide|render 9pocket|sleeve|toploader|psa|brg CARD NEW_DIRECTORY [ANALYSIS_JSON for guide | REGISTERED_ART [POKEMON_NAME] for render]");
 }
 const px = mm => Math.round(mm * 300 / 25.4);
 const center = (outer, inner) => Math.round((outer - inner) / 2);
@@ -98,13 +98,17 @@ if (mode === "guide") {
   await save(blank(master.width,master.height,"#707078").composite([{input:card.data,...position(largest)}]),"guide.png");
   await writeFile(path.join(target,"layout.json"), JSON.stringify(layout, null, 2) + "\n");
 } else {
+  const labels={sleeve:"슬리브",toploader:"탑로더",psa:"PSA",brg:"BRG"};
+  const safeName = pokemonName?.normalize("NFC").replace(/[<>:"/\\|?*\u0000-\u001f]/g, "-").trim();
+  if (pokemonName !== undefined && !safeName) throw Error("다운로드에 사용할 포켓몬 이름을 입력하세요.");
   await mkdir(target, {recursive:false});
   const items=[];
   for(const key of selected) {
     const p=profiles[key],{width,height}=size(p);
     const cardPos=position(p);
     const scene=await sharp(registered).extract({width,height,left:center(master.width,width),top:center(master.height,height)}).png().toBuffer();
-    const download=key+".png";
+    const stem = safeName ? safeName + "_" + labels[key] : key;
+    const download=stem+".png";
     let preview=download;
     if(p.grid) {
       await save(sharp(scene).composite([{input:card.data,...cardPos},{input:guideLines(width,height)}]),download);
@@ -114,15 +118,28 @@ if (mode === "guide") {
         left,top,input:await blank(w,h,"#ffffff").png().toBuffer(),blend:"dest-out"
       })));
       await save(sharp(scene).composite(holes),download);
-      preview=key+"-preview.png";
+      preview=stem+"-preview.png";
       await save(sharp(path.join(target,download)).composite([{input:card.data,...cardPos}]),preview);
     }
     items.push({key,download,preview,caption:p.width+" × "+p.height+" mm · 300 DPI"+(p.grid?"":" · 창 위치는 도면 기준 추정")});
   }
-  const labels={sleeve:"슬리브",toploader:"탑로더",psa:"PSA",brg:"BRG"};
   const nav=items.map((v,i)=>'<button data-i="'+i+'" aria-pressed="'+(i===0)+'">'+labels[v.key]+'</button>').join(" ");
   await writeFile(path.join(target,"preview.html"),`<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>확장아트 미리보기</title>
 <style>body{margin:0;text-align:center;background:#181820;color:#f5f2fa;font:16px system-ui}header{padding:12px}button,a{font:inherit;color:inherit;background:#393443;padding:6px 12px;border:0;border-radius:5px}button[aria-pressed=true]{background:#665b80}img{max-width:96vw;max-height:84vh;object-fit:contain}p{margin:.6em}</style>
 <header>${nav} <a id="download" download>인쇄 PNG 다운로드</a><p id="caption"></p></header><img id="art" alt="선택한 규격의 확장아트">
-<script>const items=${JSON.stringify(items)};function show(i){const v=items[i];document.querySelector("#art").src=v.preview;document.querySelector("#download").href=v.download;document.querySelector("#caption").textContent=v.caption;for(const b of document.querySelectorAll("button"))b.setAttribute("aria-pressed",String(Number(b.dataset.i)===i))}for(const b of document.querySelectorAll("button"))b.onclick=()=>show(Number(b.dataset.i));show(0)</script></html>`);
+<script>
+const items=${JSON.stringify(items)};
+const buttons=document.querySelectorAll("button[data-i]");
+const download=document.querySelector("#download");
+function show(i) {
+  const item=items[i];
+  document.querySelector("#art").src=encodeURIComponent(item.preview);
+  download.href=encodeURIComponent(item.download);
+  download.download=item.download;
+  document.querySelector("#caption").textContent=item.caption;
+  for(const button of buttons) button.setAttribute("aria-pressed",String(Number(button.dataset.i)===i));
+}
+for(const button of buttons) button.onclick=()=>show(Number(button.dataset.i));
+show(0);
+</script></html>`);
 }
