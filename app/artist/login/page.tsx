@@ -1,3 +1,4 @@
+import { LoginOrigin } from "@/components/login-origin";
 import { redirect } from "next/navigation";
 import { GoogleIcon, KakaoIcon } from "@/components/ui/brand-icons";
 import { PokeballMark } from "@/components/ui/logo";
@@ -31,10 +32,11 @@ export default async function LoginPage(props: PageProps<"/artist/login">) {
         {query.error && <Failed />}
 
         <form action={socialLogin} className="mt-6 flex flex-col gap-3">
+          <LoginOrigin source={typeof query.source === "string"?query.source:undefined} />
           {cardId && <input type="hidden" name="cardId" value={cardId} />}
           <button
             type="submit"
-            name="provider"
+            data-track="choose_provider" name="provider"
             value="kakao"
             className="relative flex h-12 w-full items-center justify-center rounded-xl bg-[var(--color-kakao)] px-12 text-[15px] font-semibold text-[var(--color-kakao-ink)] transition-opacity hover:opacity-90 active:scale-[0.99]"
           >
@@ -43,7 +45,7 @@ export default async function LoginPage(props: PageProps<"/artist/login">) {
           </button>
           <button
             type="submit"
-            name="provider"
+            data-track="choose_provider" name="provider"
             value="google"
             className="relative flex h-12 w-full items-center justify-center rounded-xl border border-[var(--color-google-rule)] bg-[var(--color-google)] px-12 text-[15px] font-semibold text-[var(--color-google-ink)] transition-colors hover:bg-gray-50 active:scale-[0.99]"
           >

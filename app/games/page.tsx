@@ -26,7 +26,7 @@ export default function GamesPage() {
       <ul className="mt-6 grid gap-4 sm:gap-5">
         {games.map(({ href, title, description, image }, index) => (
           <li key={href}>
-            <Link href={href}
+            <Link data-track="select_game" href={href}
               className="group grid overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-colors hover:border-primary focus-visible:outline-2 focus-visible:outline-primary md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:rounded-3xl">
               <AppImage src={image} alt="" aspectRatio="2 / 1" fit="cover" className="w-full" priority={index === 0} />
               <div className="flex min-w-0 items-center justify-between gap-3 p-4 sm:p-6 lg:p-8">

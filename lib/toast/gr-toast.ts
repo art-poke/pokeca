@@ -1,3 +1,5 @@
+import { signal } from "@/lib/analytics/tracker";
+import { pageId } from "@/lib/analytics/taxonomy";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/api/error-codes";
 
@@ -16,8 +18,14 @@ export const showErrorToast = (codeOrMessage?: string) =>
 export const showErrorMessage = (message: string) => toast.error(message);
 
 /** 비회원 액션 시 로그인 유도 토스트(액션 버튼 포함). */
-export const showLoginNudge = (message: string, onLogin: () => void) =>
-  toast(message, { id: `login:${message}`, action: { label: "로그인", onClick: onLogin } });
+export function showLoginNudge(message: string, action: string, onLogin: () => void) {
+  const origin = { page:pageId(location.pathname),action,placement:"content" };
+  signal("login_prompt_viewed",{action,placement:"content"});
+  return toast(message,{id:"login:"+message,action:{label:"로그인",onClick:()=>{
+    try { sessionStorage.setItem("art_origin",JSON.stringify({...origin,time:Date.now()})); } catch {}
+    onLogin();
+  }}});
+}
 
 /** 제목 + 설명이 있는 안내 토스트(예: 인쇄 안내). */
 export const showNoticeToast = (message: string, description: string) =>

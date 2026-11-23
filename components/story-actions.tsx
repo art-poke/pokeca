@@ -22,7 +22,7 @@ export function StoryLikeButton({
   const router = useRouter();
   const { data, mutate, isPending } = useStoryLikeMutation(slug);
   const { liked, count } = data ?? initial;
-  const nudge = () => showLoginNudge("로그인하면 좋아요를 누를 수 있어요", () => router.push("/artist/login"));
+  const nudge = () => showLoginNudge("로그인하면 좋아요를 누를 수 있어요", "like_story", () => router.push("/artist/login"));
 
   function toggle() {
     if (!isMember) return nudge();
@@ -35,7 +35,7 @@ export function StoryLikeButton({
   }
 
   return (
-    <button type="button" aria-pressed={liked} disabled={isPending} onClick={toggle}
+    <button type="button" aria-pressed={liked} disabled={isPending} data-track="like_story" onClick={toggle}
       className={cn(actionClass, liked && "border-primary text-primary")}>
       <Heart className={cn("size-4", liked && "fill-current")} aria-hidden />
       좋아요 {count}

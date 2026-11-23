@@ -1,4 +1,6 @@
 import "server-only";
+import { isAdminPreviewRequest, previewAdminEmail } from "./local-admin-preview";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { eq } from "drizzle-orm";
@@ -15,13 +17,13 @@ export async function currentAdmin(): Promise<Admin | null> {
   // auth()는 JWT 검증에 불안정값(crypto/Date)을 써서 프리렌더 시 "unstable value" 오류를 낸다.
   // 옛 authClient()처럼 동적 렌더를 강제해 프리렌더-리로드 루프를 막는다.
   await connection();
-  const session = await auth();
-  const userId = session?.user?.id;
-  if (!userId) return null;
+  const preview = process.env.NODE_ENV === "development" && isAdminPreviewRequest(await headers());
+  const userId = preview ? null : (await auth())?.user?.id;
+  if (!preview && !userId) return null;
   const rows = await db
     .select({ userId: admins.userId, email: admins.email })
     .from(admins)
-    .where(eq(admins.userId, userId))
+    .where(preview ? eq(admins.email, previewAdminEmail) : eq(admins.userId, userId!))
     .limit(1);
   return rows[0] ?? null;
 }

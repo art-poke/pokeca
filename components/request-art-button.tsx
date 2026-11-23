@@ -24,7 +24,7 @@ export const RequestArtButton = ({
   if (missingFormats.length === 0) return null;
 
   const nudge = () =>
-    showLoginNudge("로그인하면 요청할 수 있어요", () => router.push("/artist/login"));
+    showLoginNudge("로그인하면 요청할 수 있어요", "request_artwork", () => router.push("/artist/login"));
 
   function request(format: Format) {
     if (!isMember) return nudge();
@@ -52,7 +52,7 @@ export const RequestArtButton = ({
           <button
             key={f}
             type="button"
-            onClick={() => request(f)}
+            data-track="request_artwork" onClick={() => request(f)}
             disabled={done || (isPending && sendingFormat === f)}
             className="rounded-full border border-border bg-background px-3 py-1.5 text-sm font-semibold text-ink-700 transition-colors hover:border-primary hover:text-primary disabled:opacity-70"
           >

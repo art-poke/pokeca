@@ -360,3 +360,31 @@
   color: var(--color-google-ink);
   border: 1px solid var(--color-google-rule);
 }
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: calc(var(--space) * 1.5);
+}
+
+.card {
+  display: grid;
+  gap: calc(var(--space) / 2);
+  padding: calc(var(--space) * 1.5);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius);
+}
+
+.cardNum {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.chart {
+  display: flex;
+  gap: 2px;
+  height: 100px;
+  align-items: end;
+  background: linear-gradient(to top, var(--color-rule) 1px, transparent 1px) 0 0 / 100% 25%;
+}
+.chart span { flex: 1; min-width: 0; background: var(--color-primary); border-radius: 3px 3px 0 0; }

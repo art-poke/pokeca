@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { after } from "next/server";
+import { headers } from "next/headers";
+import { auth } from "@/auth";
 import { Suspense } from "react";
 import { CardTile, CardTileGridSkeleton } from "@/components/card-tile";
 import { SearchBar } from "@/components/search-bar";
@@ -42,7 +43,11 @@ async function Results({ searchParams }: { searchParams: PageProps<"/search">["s
 
   const result = await searchCards(query);
   const visitor = await visitorId();
-  after(() => recordSearch(query, result, visitor).catch((e) => console.error("recordSearch", e)));
+  const requestHeaders = await headers();
+  if (!requestHeaders.has("next-router-prefetch") && !/bot|crawler|spider/i.test(requestHeaders.get("user-agent") ?? "")) {
+    const member = (await auth())?.user?.id || null;
+    await recordSearch(query, result, visitor, member).catch(()=>console.error("recordSearch failed"));
+  }
 
   // 1건이면(그리고 다음 페이지가 없으면) 카드 상세로 바로 간다. 별칭으로 맞았으면 안내 줄 표시를 붙인다.
   if (result.hits.length === 1 && !result.hasMore) {

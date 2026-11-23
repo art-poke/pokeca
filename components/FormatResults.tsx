@@ -32,7 +32,7 @@ export function FormatResults({
   const { data: requests } = useCardRequestsQuery(cardId);
   const { mutate: requestFormat, isPending } = useRequestFormatMutation(cardId);
   const nudge = () =>
-    showLoginNudge("로그인하면 요청할 수 있어요", () => router.push("/artist/login"));
+    showLoginNudge("로그인하면 요청할 수 있어요", "request_artwork", () => router.push("/artist/login"));
 
   function request(format: Format) {
     if (!isMember) return nudge();
@@ -177,7 +177,7 @@ function FindRequest({
             type="button"
             className={cn(requestButtonCls, "mt-4")}
             disabled={sending}
-            onClick={() => onRequest(format)}
+            data-track="request_artwork" onClick={() => onRequest(format)}
           >
             {sending ? "기록 중…" : "찾기 요청"}
           </button>
@@ -218,7 +218,7 @@ function FindRequestAny({
                 type="button"
                 className={requestButtonCls}
                 disabled={done || sending}
-                onClick={() => onRequest(f)}
+                data-track="request_artwork" onClick={() => onRequest(f)}
               >
                 {sending
                   ? "기록 중…"

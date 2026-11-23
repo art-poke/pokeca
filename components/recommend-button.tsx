@@ -37,7 +37,7 @@ export const RecommendButton = ({
 
   function toggle() {
     if (!isMember) {
-      showLoginNudge("로그인하면 추천할 수 있어요", () => router.push("/artist/login"));
+      showLoginNudge("로그인하면 추천할 수 있어요", "recommend_artwork", () => router.push("/artist/login"));
       return;
     }
     if (blocked) {
@@ -65,7 +65,7 @@ export const RecommendButton = ({
   return (
     <button
       type="button"
-      onClick={toggle}
+      data-track="recommend_artwork" onClick={toggle}
       disabled={pending}
       aria-pressed={recommended}
       className={cn(

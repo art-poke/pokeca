@@ -1,3 +1,4 @@
+import { recordActivity } from "@/lib/analytics/write";
 import { toggleRecommend } from "@/lib/engagements";
 import { memberRoute } from "@/lib/artist-route";
 
@@ -6,6 +7,7 @@ export const POST = memberRoute(
   async (_request, ctx: RouteContext<"/api/artworks/[id]/recommend">, member) => {
     const { id } = await ctx.params;
     const result = await toggleRecommend(member.userId, id);
+    if (result.recommended) await recordActivity("artwork_recommended",member.userId,{id});
     return Response.json(result);
   },
 );

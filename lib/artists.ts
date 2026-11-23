@@ -1,11 +1,11 @@
 import "server-only";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
-import { and, asc, desc, eq, ilike, inArray, isNotNull, ne, or } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, isNotNull, ne, or, sql } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { isUniqueViolation } from "@/lib/db/errors";
-import { accounts, artists, artworkFiles, artworks, cards, users } from "@/lib/db/schema";
+import { accounts, admins, artists, artworkFiles, artworks, cards, users } from "@/lib/db/schema";
 import { ArtworkError, attachFile, setStatus, toPublic, type PublicArtwork, type Status } from "@/lib/artworks";
 import { expectedConfirm, normalizeConfirm } from "@/lib/admin";
 import { NICKNAME_MAX } from "@/lib/profile";
@@ -524,6 +524,9 @@ export const WITHDRAWN_DISPLAY_NAME = "탈퇴한 작가";
 // 세션 쿠키 삭제는 클라가 next-auth signOut으로 한다.
 export async function withdrawMyAccount(artist: Artist): Promise<void> {
   await db.transaction(async (tx) => {
+    // Serialize withdrawal with grants and suspensions from member management.
+    await tx.execute(sql`select pg_advisory_xact_lock(74201923)`);
+    await tx.delete(admins).where(eq(admins.userId, artist.userId));
     await tx
       .update(artists)
       .set({
@@ -547,6 +550,7 @@ export async function withdrawMyAccount(artist: Artist): Promise<void> {
         and(eq(artworks.artistId, artist.userId), inArray(artworks.status, ["active", "hidden"])),
       );
     await tx.update(users).set({ name: null, email: null, image: null }).where(eq(users.id, artist.userId));
+    await tx.execute(sql`update events set member_id=null, visitor_id=null,session_id=null where member_id=${artist.userId}`);
     await tx.delete(accounts).where(eq(accounts.userId, artist.userId));
   });
   // 아바타(프로필 사진=PII) 베스트에포트 제거. 실패해도 탈퇴는 완료된 것으로 본다.

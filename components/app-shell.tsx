@@ -121,6 +121,7 @@ export const AppShell = ({
 
   // /search는 자체 큰 검색창이 주인공, 어드민·작가는 자체 폼이 있어 머리글 검색을 숨긴다.
   // 홈(/)도 본문 히어로에 검색이 있어 머리글 검색은 중복이라 뺀다.
+  if (isWithin(pathname, "/admin") && pathname !== "/admin/login") return <>{children}</>;
   const studio = pathname === "/artist" || pathname.startsWith("/artist/");
   const showSearch = !(
     pathname === "/" ||

@@ -24,6 +24,7 @@ export const users = pgTable("users", {
   email: text("email").unique(),
   emailVerified: timestamp("emailVerified", { withTimezone: true }),
   image: text("image"),
+  suspendedAt: timestamp("suspended_at", { withTimezone: true }),
   passwordHash: text("password_hash"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -64,6 +65,7 @@ export const verificationTokens = pgTable(
 
 // 어드민 허용 목록 (infra/db/01_app.sql의 public.admins 거울).
 export const admins = pgTable("admins", {
+  manageMembers: boolean("manage_members").notNull().default(false),
   userId: uuid("user_id")
     .primaryKey()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -138,6 +140,9 @@ export const searchMisses = pgTable("search_misses", {
 
 // 측정 이벤트 (infra/db/01_app.sql의 public.events 거울).
 export const events = pgTable("events", {
+  eventKey: uuid("event_key").unique(),
+  sessionId: uuid("session_id"),
+  memberId: uuid("member_id").references(() => users.id, { onDelete: "set null" }),
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
   type: text("type").notNull(),
   visitorId: uuid("visitor_id"),

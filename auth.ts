@@ -1,3 +1,5 @@
+import { unavailableMember } from "@/lib/member-status";
+import { finishOAuth } from "@/lib/analytics/oauth";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
@@ -23,6 +25,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     sessionsTable: sessions as any,
     verificationTokensTable: verificationTokens,
   }),
+  callbacks: {
+    ...authConfig.callbacks,
+    async session(args) {
+      const session = await authConfig.callbacks.session(args);
+      if (session.user.id && await unavailableMember(session.user.id)) session.user.id = "";
+      return session;
+    },
+    async signIn({ user }) {
+      return !user.id || !/^[0-9a-f-]{36}$/i.test(user.id) || !(await unavailableMember(user.id));
+    },
+  },
+  events: {
+    async signIn({user, account, isNewUser}) {
+      if (user.id && (account?.provider === "kakao" || account?.provider === "google"))
+        await finishOAuth(account.provider,user.id,!!isNewUser);
+    },
+  },
   providers: [
     ...authConfig.providers,
     Credentials({

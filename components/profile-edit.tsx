@@ -99,7 +99,7 @@ export function ProfileEdit({
       router.refresh();
     } catch (e) {
       if (isApiError(e) && e.status === 401) {
-        showLoginNudge("로그인 후 바꿀 수 있어요", () => router.push("/artist/login"));
+        showLoginNudge("로그인 후 바꿀 수 있어요", "edit_profile", () => router.push("/artist/login"));
         return;
       }
       const code = e instanceof Error ? e.message : "";

@@ -15,7 +15,7 @@ export async function login(_prev: LoginState, form: FormData): Promise<LoginSta
     await signIn("credentials", {
       email: String(form.get("email") ?? ""),
       password: String(form.get("password") ?? ""),
-      redirectTo: "/admin/artworks",
+      redirectTo: "/admin",
     });
   } catch (e) {
     if (e instanceof AuthError) return { error: "이메일 또는 비밀번호가 맞지 않아요." };

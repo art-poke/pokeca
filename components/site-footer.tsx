@@ -51,7 +51,7 @@ export function SiteFooter() {
                 <ul>
                   {links.map((link) => (
                     <li key={link.href}>
-                      <Link href={link.href} prefetch={false} className={footerLinkClass}>
+                      <Link data-track={link.href === "/artist/login" ? "publish_artwork" : undefined} data-place="footer" href={link.href} prefetch={false} className={footerLinkClass}>
                         {link.label}
                       </Link>
                     </li>

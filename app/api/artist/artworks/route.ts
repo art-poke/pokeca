@@ -1,3 +1,4 @@
+import { recordActivity } from "@/lib/analytics/write";
 import { artistRoute } from "@/lib/artist-route";
 import { artistActor } from "@/lib/artists";
 import { createArtwork, type NewArtwork } from "@/lib/artworks";
@@ -28,5 +29,6 @@ export const POST = artistRoute(async (request, _ctx, artist) => {
     },
     artistActor(artist),
   );
+  await recordActivity("artwork_published",artist.userId,{id});
   return Response.json({ id }, { status: 201 });
 });

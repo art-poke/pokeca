@@ -1,3 +1,4 @@
+import { recordActivity } from "@/lib/analytics/write";
 import { toggleFavorite } from "@/lib/favorites";
 import { memberRoute } from "@/lib/artist-route";
 
@@ -5,5 +6,6 @@ import { memberRoute } from "@/lib/artist-route";
 export const POST = memberRoute(async (request, _ctx, member) => {
   const body = await request.json();
   const favorited = await toggleFavorite(member.userId, String(body.cardId));
+  if (favorited) await recordActivity("favorite_added",member.userId);
   return Response.json({ favorited });
 });

@@ -9,6 +9,6 @@ export const metadata = { title: "몬스터볼 드롭 · Extended Art Archive" }
 // 클라 컴포넌트를 그대로 렌더한다.)
 export default async function PlayPage() {
   const userId = await gamePlayerId();
-  if (!userId) redirect("/artist/login");
+  if (!userId) redirect("/artist/login?source=game_play");
   return <GameBoard currentUserId={userId} />;
 }
