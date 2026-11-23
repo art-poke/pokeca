@@ -6,10 +6,11 @@
 // 실행한 파일 이름은 public.schema_migrations 에 남긴다. 파일 하나 = 트랜잭션 하나(실패하면 그 파일만 취소, 이후 중단).
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
+import { gunzipSync } from "node:zlib";
 
 const list = async (dir) =>
   (await readdir(dir).catch(() => []))
-    .filter((f) => f.endsWith(".sql"))
+    .filter((f) => /\.sql(?:\.gz)?$/.test(f))
     .sort();
 
 export async function migrate(client, dir) {
@@ -28,7 +29,8 @@ export async function migrate(client, dir) {
   const skipped = [];
 
   const runOne = async (name, note) => {
-    const sql = await readFile(path.join(dir, name), "utf8");
+    const bytes = await readFile(path.join(dir, name));
+    const sql = (name.endsWith(".gz") ? gunzipSync(bytes) : bytes).toString("utf8");
     await client.query("begin");
     try {
       await client.query(sql); // 다중 구문(simple query) 일괄 실행

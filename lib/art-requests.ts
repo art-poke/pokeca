@@ -1,8 +1,8 @@
 import "server-only";
-import { and, count, eq, isNotNull, isNull, sql } from "drizzle-orm";
+import { and, count, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import { FORMAT_INFO, FORMATS, type Format, isFormat } from "@/lib/formats";
 import { db } from "@/lib/db";
-import { cards, requests } from "@/lib/db/schema";
+import { artists, cards, requests } from "@/lib/db/schema";
 import { isUniqueViolation } from "@/lib/db/errors";
 import { UUID } from "@/lib/uuid";
 
@@ -60,6 +60,7 @@ export type RequestedItem = {
   format: Format;
   formatLabel: string;
   count: number;
+  requesters: (string | null)[];
 };
 
 // 요청방: (카드×규격)별 미해결 요청 수, 내림차순.
@@ -71,38 +72,47 @@ export async function listOpenRequests(limit = 100): Promise<RequestedItem[]> {
       setCode: cards.setCode,
       collectorNumber: cards.collectorNumber,
       nameKo: cards.nameKo,
+      requesterName: artists.displayName,
     })
     .from(requests)
     .innerJoin(cards, eq(requests.cardId, cards.id))
-    .where(and(isNull(requests.resolvedAt), isNotNull(requests.format)));
+    .leftJoin(artists, and(eq(requests.userId, artists.userId), isNull(artists.deletedAt)))
+    .where(and(isNull(requests.resolvedAt), isNotNull(requests.format)))
+    .orderBy(desc(requests.id));
 
   const agg = new Map<
     string,
-    { n: number; card: { setCode: string; collectorNumber: string; nameKo: string }; format: Format }
+    {
+      requesters: (string | null)[];
+      card: { setCode: string; collectorNumber: string; nameKo: string };
+      format: Format;
+    }
   >();
   for (const r of data) {
     if (!isFormat(r.format)) continue;
     const key = `${r.cardId}:${r.format}`;
     const cur = agg.get(key);
-    if (cur) cur.n += 1;
+    const requesterName = r.requesterName?.trim() || null;
+    if (cur) cur.requesters.push(requesterName);
     else
       agg.set(key, {
-        n: 1,
+        requesters: [requesterName],
         card: { setCode: r.setCode, collectorNumber: r.collectorNumber, nameKo: r.nameKo },
         format: r.format,
       });
   }
 
   return [...agg.values()]
-    .sort((a, b) => b.n - a.n)
+    .sort((a, b) => b.requesters.length - a.requesters.length)
     .slice(0, limit)
-    .map(({ n, card, format }) => ({
+    .map(({ requesters, card, format }) => ({
       cardLabel: `${card.setCode} ${card.collectorNumber}`,
       cardPath: `/cards/${encodeURIComponent(card.setCode)}/${card.collectorNumber.replace("/", "-")}`,
       name: card.nameKo,
       format,
       formatLabel: FORMAT_INFO[format].label,
-      count: n,
+      count: requesters.length,
+      requesters,
     }));
 }
 

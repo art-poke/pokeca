@@ -1,10 +1,9 @@
 import { Megaphone } from "lucide-react";
-import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { RowsSkeleton } from "@/components/skeletons";
-import { Badge } from "@/components/ui/badge";
 import { listOpenRequests } from "@/lib/art-requests";
+import { RequestDetails } from "./request-details";
 
 export const metadata = { title: "도안 요청해요 · Extended Art Archive" };
 
@@ -17,7 +16,8 @@ export default function RequestsPage() {
       </header>
       <p className="text-sm text-muted-foreground">
         아직 도안이 없는 카드를 규격별로 요청하면 여기 모여요. 많이 요청된 순서로 위에 올라가요 —
-        작가님들이 보고 그려줄 수 있게. 작가가 그 규격 도안을 올리면 자동으로 해결 처리돼요.
+        작가님들이 보고 그려줄 수 있게. 요청을 누르면 누가 요청했는지 볼 수 있어요.
+        작가가 그 규격 도안을 올리면 자동으로 해결 처리돼요.
       </p>
       <Suspense fallback={<RowsSkeleton />}>
         <List />
@@ -40,20 +40,7 @@ async function List() {
     <ol className="enter divide-y divide-border overflow-hidden rounded-2xl border border-border bg-background">
       {items.map((c, i) => (
         <li key={`${c.cardPath}-${c.format}`}>
-          <Link
-            href={c.cardPath}
-            className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-gray-50"
-          >
-            <span className="w-6 text-center text-sm font-bold text-muted-foreground">{i + 1}</span>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <span className="tabular font-semibold text-foreground">{c.cardLabel}</span>
-                <Badge variant="secondary">{c.formatLabel}</Badge>
-              </div>
-              <div className="truncate text-sm text-muted-foreground">{c.name}</div>
-            </div>
-            <Badge variant="primary">요청 {c.count}</Badge>
-          </Link>
+          <RequestDetails item={c} rank={i + 1} />
         </li>
       ))}
     </ol>

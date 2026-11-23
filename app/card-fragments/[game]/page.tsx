@@ -2,8 +2,8 @@ import Link from "next/link";
 import { ChevronDown, Trophy } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { gamePlayerId } from "@/lib/game-player";
-import { GAMES, isGame, koreaDay, moveMonth, parseRound, rankingMonth, type Game } from "@/domains/card-fragments/rules";
-import { findCurrentRound, loadPuzzle, loadRecords } from "@/domains/card-fragments/server";
+import { GAMES, isGame, koreaDay, moveMonth, rankingMonth, type Game } from "@/domains/card-fragments/rules";
+import { loadRecords } from "@/domains/card-fragments/server";
 import { PuzzleBoard } from "@/domains/card-fragments/puzzle-board";
 
 export async function generateMetadata({ params }: PageProps<"/card-fragments/[game]">) {
@@ -21,14 +21,8 @@ export default async function PuzzlePage({ params, searchParams }: PageProps<"/c
   const currentMonth = day.slice(0, 7);
   const query = await searchParams;
   const month = rankingMonth(query.month, day);
-  const requestedRound = query.round ?? query.stage;
-  const stage = requestedRound ? parseRound(requestedRound) : await findCurrentRound(game, day, userId);
-  const [puzzle, records] = await Promise.all([
-    loadPuzzle(game, day, stage, userId, { closeExpired: !requestedRound }),
-    loadRecords(game, month, userId),
-  ]);
-  if (!puzzle && stage > 1) redirect(`/card-fragments/${game}`);
-  const recordProps = { game, stage, currentMonth, month, records };
+  const records = await loadRecords(game, month, userId);
+  const recordProps = { game, currentMonth, month, records };
 
   return (
     <section className="mx-auto max-w-5xl">
@@ -41,12 +35,7 @@ export default async function PuzzlePage({ params, searchParams }: PageProps<"/c
       </header>
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(275px,20rem)] lg:gap-6">
         <div className="min-w-0">
-          {puzzle ? (
-            <PuzzleBoard key={`${game}-${day}-${stage}`} game={game} initial={puzzle}
-              requireStart={!requestedRound && (puzzle.progress.solved !== null || puzzle.deadline === null)} />
-          ) : (
-            <p className="rounded-2xl border border-border bg-card p-5">오늘은 준비된 문제가 없어요.</p>
-          )}
+          <PuzzleBoard key={game} game={game} />
         </div>
         <aside aria-label="기록과 랭킹" className="hidden min-w-0 lg:block">
           <GameRecords {...recordProps} rankingId="monthly-ranking" />
@@ -66,16 +55,15 @@ export default async function PuzzlePage({ params, searchParams }: PageProps<"/c
   );
 }
 
-function GameRecords({ game, stage, currentMonth, month, records, rankingId }: {
+function GameRecords({ game, currentMonth, month, records, rankingId }: {
   game: Game;
-  stage: number;
   currentMonth: string;
   month: string;
   records: Awaited<ReturnType<typeof loadRecords>>;
   rankingId: string;
 }) {
   const [year, monthNumber] = month.split("-").map(Number);
-  const monthLink = (offset: number) => `/card-fragments/${game}?round=${stage}&month=${moveMonth(month, offset)}#${rankingId}`;
+  const monthLink = (offset: number) => `/card-fragments/${game}?month=${moveMonth(month, offset)}#${rankingId}`;
   const monthButton = "grid size-11 place-items-center rounded-xl border border-border font-semibold hover:bg-muted";
   return (
     <div className="space-y-3">
@@ -83,7 +71,7 @@ function GameRecords({ game, stage, currentMonth, month, records, rankingId }: {
         <h2 className="font-bold">내 최고기록</h2>
         <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
           <div className="col-span-2 rounded-xl bg-muted p-3"><dt>최다 연속 정답</dt><dd className="mt-1 text-xl font-extrabold">{records.bestRun}개</dd></div>
-          <div className="rounded-xl bg-muted p-3"><dt>{game === "name" ? "한 달 최다 별" : "한 달 최다 정답"}</dt><dd className="mt-1 text-xl font-extrabold">{records.bestMonth}개</dd></div>
+          <div className="rounded-xl bg-muted p-3"><dt>{game === "name" ? "한 달 최다 별" : "월간 한 판 최고점"}</dt><dd className="mt-1 text-xl font-extrabold">{records.bestMonth}개</dd></div>
           <div className="rounded-xl bg-muted p-3"><dt>{game === "name" ? "연속 첫 답 정답" : "연속 정답"}</dt><dd className="mt-1 text-xl font-extrabold">{records.streak}일</dd></div>
         </dl>
       </section>
@@ -101,7 +89,7 @@ function GameRecords({ game, stage, currentMonth, month, records, rankingId }: {
               <li key={index} className="flex items-center gap-3 py-3 text-sm">
                 <span className="shrink-0 font-bold">{row.rank}위</span>
                 <span className="min-w-0 flex-1 truncate" title={row.name}>{row.name}{row.mine ? " (나)" : ""}</span>
-                <span className="shrink-0 text-muted-foreground">{game === "name" ? `별 ${row.stars} · ` : ""}정답 {row.wins}</span>
+                <span className="shrink-0 text-muted-foreground">{game === "name" ? `별 ${row.stars} · 정답 ${row.wins}` : `최고 ${row.wins}개`}</span>
               </li>
             ))}
           </ol>}
