@@ -49,6 +49,9 @@ jobs:
           aws-region: ap-northeast-1
           allowed-account-ids: "138681986450"
 
+      - name: Apply production database migrations
+        run: bash scripts/deploy-migrations.sh
+
       - name: Deploy
         env:
           CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
