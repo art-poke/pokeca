@@ -7,10 +7,12 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, Circle, CircleCheck, CircleX, Play, RotateCcw, Timer, Volume2, VolumeX, X } from "lucide-react";
 import { AppImage } from "@/components/ui/app-image";
 import { cn } from "@/lib/utils";
-import { beginCardFragmentPractice, playCardFragment, playCardFragmentPractice } from "./actions";
+import { beginCardFragmentRun, playCardFragmentRun } from "./actions";
+import guessName from "@/public/games/guess-name.webp";
+import findTheCard from "@/public/games/find-the-card.webp";
 import type { CardPlacement } from "./crop";
 import { currentFrame, formatPlayTime, ROUND_LIMIT_MS, type Game, type Progress } from "./rules";
-import type { PuzzleView } from "./server";
+import type { PuzzleView } from "./round-view";
 import styles from "./puzzle-board.module.css";
 
 const button = "inline-flex min-h-12 items-center justify-center rounded-xl bg-primary px-4 font-bold text-primary-foreground disabled:opacity-50";
@@ -46,21 +48,6 @@ function CardRevealFrame({ image, placement, game, alt, reveal, animate }: {
       )}
     </div>
   );
-}
-
-function readClock(key: string) {
-  try {
-    const start = Number(sessionStorage.getItem(`${key}:start`));
-    const end = Number(sessionStorage.getItem(`${key}:end`));
-    if (start > 0) return { start, end: end >= start ? end : null };
-  } catch {}
-  return { start: Date.now(), end: null };
-}
-
-function storeClock(key: string, time: number) {
-  try {
-    sessionStorage.setItem(key, String(time));
-  } catch {}
 }
 
 function Celebration() {
@@ -114,13 +101,12 @@ function playShuffle(context: AudioContext, count: number) {
   }
 }
 
-export function PuzzleBoard({ game, initial, requireStart }: { game: Game; initial: PuzzleView; requireStart: boolean }) {
+export function PuzzleBoard({ game }: { game: Game }) {
   const router = useRouter();
-  const [rankedPuzzle, setRankedPuzzle] = useState(initial);
-  const [phase, setPhase] = useState<"ready" | "countdown" | "play">(requireStart ? "ready" : "play");
+  const [puzzle, setPuzzle] = useState<PuzzleView | null>(null);
+  const [phase, setPhase] = useState<"ready" | "countdown" | "play">("ready");
   const [introAt, setIntroAt] = useState(0);
-  const [practice, setPractice] = useState<PuzzleView | null>(null);
-  const puzzle = practice ?? rankedPuzzle;
+  const [endedAt, setEndedAt] = useState<number | null>(null);
   const nameLabel = "포켓몬 이름";
   const [answer, setAnswer] = useState("");
   const [sound, setSound] = useState(false);
@@ -128,38 +114,31 @@ export function PuzzleBoard({ game, initial, requireStart }: { game: Game; initi
   const [pending, startTransition] = useTransition();
   const busy = useRef(false);
   const audio = useRef<AudioContext | null>(null);
-  const frame = currentFrame(puzzle.progress);
-  const answerCard = puzzle.reveal?.cards[puzzle.reveal.slot];
-  const finished = puzzle.progress.solved !== null;
-  const correct = puzzle.progress.solved === true;
-  const hasWrongGuess = puzzle.progress.guesses > 0 && !correct;
+  const frame = puzzle ? currentFrame(puzzle.progress) : "close";
+  const answerCard = puzzle?.reveal?.cards[puzzle.reveal.slot];
+  const finished = puzzle?.progress.solved != null;
+  const correct = puzzle?.progress.solved === true;
+  const hasWrongGuess = (puzzle?.progress.guesses ?? 0) > 0 && !correct;
   const feedback = useRef<HTMLDivElement>(null);
   const followFeedback = useRef(false);
   const [nextAt, setNextAt] = useState<number | null>(null);
   const [now, setNow] = useState(0);
   const [celebrate, setCelebrate] = useState(false);
   const [showMiss, setShowMiss] = useState(false);
-  const [elapsedMs, setElapsedMs] = useState(0);
-  const [practiceClock, setPracticeClock] = useState<{ start: number; end: number | null } | null>(null);
-  const clock = useRef<{ start: number; end: number | null } | null>(null);
-  const clockKey = `card-fragments:clock:${game}:${puzzle.day}`;
   const remaining = nextAt === null ? null : Math.max(0, Math.ceil((nextAt - now) / 1_000));
-  const timeLeft = puzzle.deadline === null ? ROUND_LIMIT_MS : Math.min(ROUND_LIMIT_MS, Math.max(0, puzzle.deadline - now));
+  const deadline = puzzle?.deadline ?? null;
+  const timeLeft = deadline === null ? ROUND_LIMIT_MS : Math.min(ROUND_LIMIT_MS, Math.max(0, deadline - now));
   const secondsLeft = Math.ceil(timeLeft / 1_000);
-  const elapsed = practiceClock ? (practiceClock.end ?? Math.max(now, practiceClock.start)) - practiceClock.start : elapsedMs;
+  const elapsed = Math.max(0, (endedAt ?? now) - introAt - START_MS);
   const introRemaining = Math.max(0, 3 - Math.floor((now - introAt) / 1_000));
-  const nextHref = `/card-fragments/${game}?round=${puzzle.stage + 1}`;
   const showFeedback = finished || hasWrongGuess;
 
   useEffect(() => {
     if (!followFeedback.current || !showFeedback) return;
     feedback.current?.scrollIntoView({ block: "nearest" });
     followFeedback.current = false;
-  }, [puzzle.progress.guesses, puzzle.progress.solved, showFeedback]);
-  const advance = useEffectEvent(() => {
-    if (practice) submit("next");
-    else router.push(nextHref);
-  });
+  }, [puzzle?.progress.guesses, puzzle?.progress.solved, showFeedback]);
+  const advance = useEffectEvent(() => submit("next"));
 
   useEffect(() => {
     if (nextAt === null) return;
@@ -179,35 +158,24 @@ export function PuzzleBoard({ game, initial, requireStart }: { game: Game; initi
 
   useEffect(() => {
     if (phase !== "play") return;
-    const timing = readClock(clockKey);
-    clock.current = timing;
-    storeClock(`${clockKey}:start`, timing.start);
-    if (initial.progress.solved === false && timing.end === null) {
-      timing.end = Date.now();
-      storeClock(`${clockKey}:end`, timing.end);
-    }
-    const tick = window.setInterval(() => {
-      const time = Date.now();
-      setNow(time);
-      setElapsedMs((timing.end ?? time) - timing.start);
-    }, 200);
+    const tick = window.setInterval(() => setNow(Date.now()), 100);
     return () => window.clearInterval(tick);
-  }, [clockKey, initial.progress.solved, phase]);
+  }, [phase]);
 
   const startRound = useEffectEvent(() => submit("start"));
   const expireRound = useEffectEvent(() => submit("timeout"));
 
   useEffect(() => {
-    if (phase !== "play" || finished || pending || error || puzzle.deadline !== null) return;
+    if (phase !== "play" || finished || pending || error || deadline !== null || !puzzle) return;
     const task = window.setTimeout(startRound, 0);
     return () => window.clearTimeout(task);
-  }, [phase, finished, pending, error, puzzle.deadline, puzzle.stage, puzzle.practiceId]);
+  }, [phase, finished, pending, error, deadline, puzzle]);
 
   useEffect(() => {
-    if (phase !== "play" || finished || puzzle.deadline === null || timeLeft > 0 || pending || error) return;
+    if (phase !== "play" || finished || deadline === null || timeLeft > 0 || pending || error) return;
     const task = window.setTimeout(expireRound, 0);
     return () => window.clearTimeout(task);
-  }, [phase, finished, puzzle.deadline, timeLeft, pending, error]);
+  }, [phase, finished, deadline, timeLeft, pending, error]);
 
   useEffect(() => () => {
     const context = audio.current;
@@ -216,7 +184,7 @@ export function PuzzleBoard({ game, initial, requireStart }: { game: Game; initi
   }, []);
 
   function submit(kind: "start" | "timeout" | "hint" | "name" | "odd" | "next", value = "") {
-    if (busy.current || (puzzle.reveal && kind !== "next")) return;
+    if (!puzzle || busy.current || (puzzle.reveal && kind !== "next")) return;
     busy.current = true;
     setError("");
     if (kind === "next") setNextAt(null);
@@ -228,9 +196,7 @@ export function PuzzleBoard({ game, initial, requireStart }: { game: Game; initi
 
     startTransition(async () => {
       try {
-        const result = practice?.practiceId
-          ? await playCardFragmentPractice(game, puzzle.day, practice.practiceId, puzzle.stage, form)
-          : await playCardFragment(game, puzzle.day, puzzle.stage, puzzle.progress.guesses, form);
+        const result = await playCardFragmentRun(game, puzzle.runId, puzzle.stage, puzzle.progress.guesses, form);
         if (!result.puzzle) {
           setError(result.error ?? "다시 시도해 주세요.");
           return;
@@ -248,19 +214,13 @@ export function PuzzleBoard({ game, initial, requireStart }: { game: Game; initi
         } else if (next.progress.solved === false) {
           followFeedback.current = true;
           setShowMiss(true);
-          if (practiceClock) setPracticeClock({ ...practiceClock, end: answeredAt });
-          else if (clock.current && clock.current.end === null) {
-            clock.current.end = answeredAt;
-            storeClock(`${clockKey}:end`, answeredAt);
-            setElapsedMs(answeredAt - clock.current.start);
-          }
+          setEndedAt(answeredAt);
         }
 
-        if (practice) setPractice(next);
-        else setRankedPuzzle(next);
+        setPuzzle(next);
         if (next.progress.guesses !== puzzle.progress.guesses) setAnswer("");
         if ((kind !== "next" && kind !== "start") || next.progress.solved === false) playFeedback(next.progress);
-        if (!practice && next.progress.solved === false) router.refresh();
+        if (kind !== "next" && next.progress.solved !== null) router.refresh();
       } catch {
         setError("문제를 처리하는 중 문제가 생겼어요. 다시 시도해 주세요.");
       } finally {
@@ -286,22 +246,22 @@ export function PuzzleBoard({ game, initial, requireStart }: { game: Game; initi
     setAnswer("");
   }
 
-  function startNewPractice() {
+  function startNewRun() {
     if (busy.current) return;
     busy.current = true;
     setError("");
     startTransition(async () => {
       try {
-        const result = await beginCardFragmentPractice(game);
+        const result = await beginCardFragmentRun(game);
         if (!result.puzzle) {
           setError(result.error ?? "새 게임을 시작할 수 없어요.");
           return;
         }
         clearRoundControls();
         const startedAt = Date.now();
-        setPracticeClock({ start: startedAt + START_MS, end: null });
+        setEndedAt(null);
         startCountdown(startedAt);
-        setPractice(result.puzzle);
+        setPuzzle(result.puzzle);
         feedback.current?.scrollIntoView({ block: "nearest" });
       } catch {
         setError("새 게임을 시작할 수 없어요. 다시 시도해 주세요.");
@@ -315,12 +275,6 @@ export function PuzzleBoard({ game, initial, requireStart }: { game: Game; initi
     setNow(time);
     setIntroAt(time);
     setPhase("countdown");
-  }
-
-  function exitPractice() {
-    clearRoundControls();
-    setPracticeClock(null);
-    setPractice(null);
   }
 
   function toggleSound() {
@@ -343,9 +297,8 @@ export function PuzzleBoard({ game, initial, requireStart }: { game: Game; initi
     }
   }
 
-  if (phase !== "play") {
-    const cover = game === "name" ? "/games/guess-name.webp" : "/games/find-the-card.webp";
-    const rankedFinished = rankedPuzzle.progress.solved === false;
+  if (phase !== "play" || !puzzle) {
+    const cover = game === "name" ? guessName.src : findTheCard.src;
     return (
       <section aria-label="게임 시작" className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
         <div className="relative isolate">
@@ -361,15 +314,10 @@ export function PuzzleBoard({ game, initial, requireStart }: { game: Game; initi
         <div className="p-4 sm:p-5">
           {phase === "ready" ? (
             <>
-              <button type="button" disabled={pending} onClick={() => rankedFinished ? startNewPractice() : startCountdown(Date.now())}
+              <button type="button" disabled={pending} onClick={startNewRun}
                 className={cn(button, "w-full gap-2")}>
                 <Play aria-hidden className="size-4 fill-current" /> {pending ? "불러오는 중…" : "게임 시작하기"}
               </button>
-              {rankedFinished && (
-                <p className="mt-3 text-center text-xs text-muted-foreground">
-                  오늘의 랭킹 도전을 마쳤어요. 새 게임은 연습으로 진행돼요.
-                </p>
-              )}
               {error && <p role="alert" className="mt-3 text-sm text-primary">{error}</p>}
             </>
           ) : (
@@ -385,7 +333,6 @@ export function PuzzleBoard({ game, initial, requireStart }: { game: Game; initi
       <div className="flex min-h-14 items-center justify-between gap-2 border-b border-border px-3 sm:px-4">
         <p className="text-sm font-semibold">
           <span className="inline-block rounded-full bg-foreground px-2.5 py-1 text-background">연속 정답 {puzzle.stage - 1 + (correct ? 1 : 0)}개</span>
-          {practice && <span className="ml-2 text-muted-foreground">연습</span>}
         </p>
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           <p className="text-xs text-muted-foreground">
@@ -450,7 +397,7 @@ export function PuzzleBoard({ game, initial, requireStart }: { game: Game; initi
       )}
       {game === "name" && (puzzle.deadline !== null || puzzle.reveal) && (
         <div className="mx-auto w-full max-w-56 px-3 pt-3 sm:max-w-64 sm:pt-5">
-          <CardRevealFrame key={`${puzzle.day}/${puzzle.stage}/${puzzle.practiceId ?? "ranked"}`}
+          <CardRevealFrame key={`${puzzle.day}/${puzzle.stage}/${puzzle.runId}`}
             game="name" image={puzzle.fragments[0].image} placement={puzzle.fragments[0].placement}
             alt={`${nameLabel} 문제의 일러스트 조각`} reveal={answerCard} animate={showFeedback} />
           {answerCard && (
@@ -486,7 +433,7 @@ export function PuzzleBoard({ game, initial, requireStart }: { game: Game; initi
               <div className="min-w-0">
                 <p className={cn("text-xs font-bold", correct ? "text-emerald-800" : "text-red-800")}>
                   {correct ? "정답이에요!" : puzzle.timedOut ? "시간 초과 · 게임 종료" : "오답이에요. 게임 종료"}
-                  {game === "name" && correct && !practice && puzzle.progress.guesses === 1 && !puzzle.progress.used_hint && <span aria-label="별 획득"> ★</span>}
+                  {game === "name" && correct && puzzle.progress.guesses === 1 && !puzzle.progress.used_hint && <span aria-label="별 획득"> ★</span>}
                 </p>
                 <p className="mt-0.5 text-xl font-black tracking-tight">
                   {game === "odd" && `${options[puzzle.reveal.slot]} · `}{answerCard?.name}
@@ -502,21 +449,15 @@ export function PuzzleBoard({ game, initial, requireStart }: { game: Game; initi
               </p>
             )}
             {correct ? (
-              practice ? (
-                <button type="button" disabled={pending} onClick={() => submit("next")} className={cn(button, "w-full gap-2")}>
-                  다음 문제 <ArrowRight aria-hidden className="size-4" />
-                </button>
-              ) : (
-                <Link href={nextHref} prefetch={false} onClick={() => setNextAt(null)} className={cn(button, "w-full gap-2")}>
-                  다음 문제 <ArrowRight aria-hidden className="size-4" />
-                </Link>
-              )
+              <button type="button" disabled={pending} onClick={() => submit("next")} className={cn(button, "w-full gap-2")}>
+                다음 문제 <ArrowRight aria-hidden className="size-4" />
+              </button>
             ) : (
               <>
-                <button type="button" onClick={startNewPractice} disabled={pending} className={cn(button, "w-full gap-2")}>
+                <button type="button" onClick={startNewRun} disabled={pending} className={cn(button, "w-full gap-2")}>
                   <RotateCcw aria-hidden className="size-4" /> {pending ? "불러오는 중…" : "새 게임 시작"}
                 </button>
-                {!practice && <p className="text-center text-xs text-muted-foreground">오늘의 랭킹 기록은 저장됐어요. 새 게임은 연습으로 진행돼요.</p>}
+                <p className="text-center text-xs text-muted-foreground">이번 게임 기록이 저장됐어요.</p>
               </>
             )}
           </div>
@@ -544,14 +485,6 @@ export function PuzzleBoard({ game, initial, requireStart }: { game: Game; initi
             </div>
           </div>
         </form>
-      )}
-      {practice && (
-        <div className="flex items-center justify-between gap-3 border-t border-border px-3 sm:px-5">
-          <p className="text-xs text-muted-foreground">연습 결과는 랭킹에 반영되지 않아요.</p>
-          <button type="button" onClick={exitPractice} disabled={pending || timeLeft === 0} className="min-h-11 shrink-0 text-sm font-semibold underline">
-            오늘 기록 보기
-          </button>
-        </div>
       )}
       {error && !finished && puzzle.deadline !== null && timeLeft === 0 && (
         <button type="button" onClick={() => submit("timeout")} disabled={pending} className="mx-3 mb-2 min-h-11 rounded-xl border border-border px-4 text-sm font-semibold">

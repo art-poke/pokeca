@@ -121,7 +121,7 @@ terraform destroy   # 전체 삭제. 다시 쓰려면 위 1~3 재실행.
 `infra/db/00_authjs.sql`·`01_app.sql`은 **기준선**(처음 만들 때 한 번)이고 더 이상 끝에 덧붙이지 않는다. 변경은 `infra/db/migrations/<YYYYMMDD_HHMMSS>_<이름>.sql` 파일로 추가한다.
 migrate Lambda(`lambda-migrate/migrate.mjs`)는 `public.schema_migrations`에 실행한 파일명을 기록하고, 기록 없는 파일만 파일명 순서로 실행한다(파일 하나 = 트랜잭션 하나). 테이블이 이미 있는 DB에서 처음 돌리면 기준선은 실행 없이 기록만 남긴다.
 
-`main` 운영 배포는 `scripts/deploy-migrations.sh`를 먼저 실행한다. 이 스크립트가 체크아웃의 `infra/db`로 마이그레이션 Lambda를 갱신하고 호출한다. DB 적용이나 Lambda 호출이 실패하면 GitHub Actions는 앱 배포를 중단한다. 기존 배포 역할에는 [갱신된 IAM 권한](github-app-deploy-policy.json)을 한 번 적용해야 한다. SQL로 포함된 시드는 자동 적용되며, 외부 이미지 업로드와 별도로 관리하는 퀴즈 문제 은행은 각 데이터의 발행 절차를 사용한다.
+`main` 운영 배포는 `scripts/deploy-migrations.sh`를 먼저 실행한다. 이 스크립트가 체크아웃의 `infra/db`로 마이그레이션 Lambda를 갱신하고 호출한다. DB 적용이나 Lambda 호출이 실패하면 GitHub Actions는 앱 배포를 중단한다. 기존 배포 역할에는 [갱신된 IAM 권한](github-app-deploy-policy.json)을 한 번 적용해야 한다. SQL로 포함된 시드는 자동 적용된다. 퀴즈 문제 은행은 발행된 로컬 DB에서 `scripts/export-card-fragment-bank.mts`로 새 `.sql.gz` 시드 마이그레이션을 만들면 카드 조각용 이미지와 함께 자동 배포된다. 새 은행마다 사용하지 않은 날짜 범위를 지정한다. 카드 검색용 외부 이미지는 별도의 업로드 절차를 사용한다.
 
 ```bash
 npm run db:migrate                                   # 로컬(DATABASE_URL)에 같은 로직 적용
