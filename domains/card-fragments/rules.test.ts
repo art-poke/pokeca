@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cropFrame, nameCropCenters, nameOpeningLevel, NAME_CROP_ZOOM, NAME_OPENING_ZOOM, oddCrop, oddVariant, ODD_VARIANT_COUNT } from "./crop";
+import { cropFrame, nameCropCenters, nameOpeningLevel, NAME_CROP_ZOOM, NAME_OPENING_ZOOM, oddCrop, oddVariant, ODD_VARIANT_COUNT, runtimeCrop } from "./crop";
 import { applyGuess, applyRoundCommand, currentFrame, formatPlayTime, initialProgress, initialTimedProgress, koreaDay, longestStreak, moveMonth, rankingMonth } from "./rules";
 
 const answer = { name: "리오르", aliases: ["Riolu"], slot: 2 };
@@ -121,6 +121,26 @@ describe("오늘의 카드조각", () => {
       expect(wide.left).toBeGreaterThanOrEqual(90);
       expect(wide.top + wide.height).toBeLessThanOrEqual(600);
     }
+  });
+
+  it.each(["name", "odd"] as const)("배경을 보여주는 %s 문제는 여유 있게 자르고 카드 제목 영역을 피한다", (game) => {
+    const source = { id: "fixture", width: 600, height: 840, area: { left: .1, top: .15, right: .9, bottom: .65 }, focus: { x: .5, y: .4 } };
+    const variants = Array.from({ length: 80 }, (_, seed) => {
+      const runId = `test-run-${seed}`;
+      const { crop, placement } = runtimeCrop(source, game, 15, runId, 0, "close");
+      expect(crop.left).toBeGreaterThanOrEqual(60);
+      expect(crop.top).toBeGreaterThanOrEqual(126);
+      expect(crop.left + crop.width).toBeLessThanOrEqual(540);
+      expect(crop.top + crop.height).toBeLessThanOrEqual(546);
+      expect(placement.left * 600).toBeCloseTo(crop.left);
+      expect(placement.top * 840).toBeCloseTo(crop.top);
+      expect(runtimeCrop(source, game, 15, runId, 0, "close").crop).toEqual(crop);
+      return crop;
+    });
+    const wide = variants.filter((crop) => crop.width >= 320 && crop.height >= 280);
+    expect(wide.length).toBeGreaterThan(10);
+    expect(new Set(wide.map((crop) => `${crop.left}/${crop.top}`)).size).toBe(4);
+    expect(variants.some((crop) => crop.width < 200)).toBe(true);
   });
 
   it("랭킹에서 지난달을 볼 수 있고 미래나 잘못된 월은 이번 달로 돌아간다", () => {

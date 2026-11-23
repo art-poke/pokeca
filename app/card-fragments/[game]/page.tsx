@@ -2,8 +2,8 @@ import Link from "next/link";
 import { ChevronDown, Trophy } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { gamePlayerId } from "@/lib/game-player";
-import { GAMES, isGame, koreaDay, moveMonth, parseRound, rankingMonth, type Game } from "@/domains/card-fragments/rules";
-import { findCurrentRound, loadPuzzle, loadRecords } from "@/domains/card-fragments/server";
+import { GAMES, isGame, koreaDay, moveMonth, rankingMonth, type Game } from "@/domains/card-fragments/rules";
+import { loadRecords } from "@/domains/card-fragments/server";
 import { PuzzleBoard } from "@/domains/card-fragments/puzzle-board";
 
 export async function generateMetadata({ params }: PageProps<"/card-fragments/[game]">) {
@@ -21,14 +21,8 @@ export default async function PuzzlePage({ params, searchParams }: PageProps<"/c
   const currentMonth = day.slice(0, 7);
   const query = await searchParams;
   const month = rankingMonth(query.month, day);
-  const requestedRound = query.round ?? query.stage;
-  const stage = requestedRound ? parseRound(requestedRound) : await findCurrentRound(game, day, userId);
-  const [puzzle, records] = await Promise.all([
-    loadPuzzle(game, day, stage, userId, { closeExpired: !requestedRound }),
-    loadRecords(game, month, userId),
-  ]);
-  if (!puzzle && stage > 1) redirect(`/card-fragments/${game}`);
-  const recordProps = { game, stage, currentMonth, month, records };
+  const records = await loadRecords(game, month, userId);
+  const recordProps = { game, currentMonth, month, records };
 
   return (
     <section className="mx-auto max-w-5xl">
@@ -41,12 +35,7 @@ export default async function PuzzlePage({ params, searchParams }: PageProps<"/c
       </header>
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(275px,20rem)] lg:gap-6">
         <div className="min-w-0">
-          {puzzle ? (
-            <PuzzleBoard key={`${game}-${day}-${stage}`} game={game} initial={puzzle}
-              requireStart={!requestedRound && (puzzle.progress.solved !== null || puzzle.deadline === null)} />
-          ) : (
-            <p className="rounded-2xl border border-border bg-card p-5">오늘은 준비된 문제가 없어요.</p>
-          )}
+          <PuzzleBoard key={game} game={game} />
         </div>
         <aside aria-label="기록과 랭킹" className="hidden min-w-0 lg:block">
           <GameRecords {...recordProps} rankingId="monthly-ranking" />
@@ -66,16 +55,15 @@ export default async function PuzzlePage({ params, searchParams }: PageProps<"/c
   );
 }
 
-function GameRecords({ game, stage, currentMonth, month, records, rankingId }: {
+function GameRecords({ game, currentMonth, month, records, rankingId }: {
   game: Game;
-  stage: number;
   currentMonth: string;
   month: string;
   records: Awaited<ReturnType<typeof loadRecords>>;
   rankingId: string;
 }) {
   const [year, monthNumber] = month.split("-").map(Number);
-  const monthLink = (offset: number) => `/card-fragments/${game}?round=${stage}&month=${moveMonth(month, offset)}#${rankingId}`;
+  const monthLink = (offset: number) => `/card-fragments/${game}?month=${moveMonth(month, offset)}#${rankingId}`;
   const monthButton = "grid size-11 place-items-center rounded-xl border border-border font-semibold hover:bg-muted";
   return (
     <div className="space-y-3">

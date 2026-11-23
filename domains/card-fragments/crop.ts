@@ -84,3 +84,29 @@ export function nameCropCenters(width: number, height: number, area: Artwork, fo
     return [center];
   });
 }
+
+export type CropSource = {
+  id: string;
+  width: number;
+  height: number;
+  area: Artwork;
+  focus: Point;
+  details?: Point[];
+};
+
+export function runtimeCrop(source: CropSource, game: "name" | "odd", round: number, runId: string, slot: number, frame: "close" | "wide") {
+  const { width, height, area, focus, details } = source;
+  let seed = slot;
+  for (const character of `${runId}/${round}`) seed = Math.imul(seed ^ character.charCodeAt(0), 16_777_619) >>> 0;
+  const edges = [0.19, 0.81].flatMap((x) => [0.22, 0.78].map((y) => ({
+    x: area.left + x * (area.right - area.left),
+    y: area.top + y * (area.bottom - area.top),
+  })));
+  const cameo = game === "odd" && round >= 3 && details?.length ? details[(seed >>> 8) % details.length] : undefined;
+  const context = cameo ?? (seed % 4 === 0 ? edges[(seed >>> 8) % edges.length] : undefined);
+  const opening = nameOpeningLevel(round);
+  const zoom = game === "odd" ? ODD_ZOOM[oddVariant(round)] : opening === null ? NAME_CROP_ZOOM[frame] : NAME_OPENING_ZOOM[opening][frame];
+  // Off-center clues cover at least two thirds of the illustration in each direction.
+  const crop = cropFrame(width, height, area, context ?? focus, context ? Math.min(zoom, frame === "wide" ? 1.2 : 1.5) : zoom);
+  return { crop, placement: cardPlacement(width, height, crop) };
+}
