@@ -204,9 +204,9 @@ export function PuzzleBoard({ game }: { game: Game }) {
         }
 
         const next = result.puzzle;
-        const round = [puzzle.day,puzzle.practiceId ?? "ranked",puzzle.stage].join("-");
-        if (kind === "start" && puzzle.deadline === null) signal("game_started",{game,round});
-        if (puzzle.progress.solved === null && next.progress.solved !== null) signal("game_finished",{game,round});
+        const round = [puzzle.runId, puzzle.stage].join("-");
+        if (kind === "start" && puzzle.deadline === null) signal("game_started", { game, round });
+        if (puzzle.progress.solved === null && next.progress.solved !== null) signal("game_finished", { game, round });
         const answeredAt = Date.now();
         if (kind === "next") {
           setCelebrate(false);
