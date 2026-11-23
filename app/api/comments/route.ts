@@ -1,3 +1,4 @@
+import { recordActivity } from "@/lib/analytics/write";
 import { CommentError, createComment } from "@/lib/comments";
 import { memberRoute } from "@/lib/artist-route";
 
@@ -25,5 +26,6 @@ export const POST = memberRoute(async (request, _ctx, member) => {
     if (e instanceof CommentError) return Response.json({ code: e.code }, { status: 400 });
     throw e;
   }
+  await recordActivity("comment_created",member.userId);
   return Response.json({ ok: true });
 });

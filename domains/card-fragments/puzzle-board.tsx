@@ -2,6 +2,7 @@
 
 import { useEffect, useEffectEvent, useRef, useState, useTransition, type CSSProperties, type FormEvent } from "react";
 import { createPortal } from "react-dom";
+import { signal } from "@/lib/analytics/tracker";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Circle, CircleCheck, CircleX, Play, RotateCcw, Timer, Volume2, VolumeX, X } from "lucide-react";
@@ -237,6 +238,9 @@ export function PuzzleBoard({ game, initial, requireStart }: { game: Game; initi
         }
 
         const next = result.puzzle;
+        const round = [puzzle.day,puzzle.practiceId ?? "ranked",puzzle.stage].join("-");
+        if (kind === "start" && puzzle.deadline === null) signal("game_started",{game,round});
+        if (puzzle.progress.solved === null && next.progress.solved !== null) signal("game_finished",{game,round});
         const answeredAt = Date.now();
         if (kind === "next") {
           setCelebrate(false);

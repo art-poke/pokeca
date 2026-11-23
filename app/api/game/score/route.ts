@@ -1,3 +1,4 @@
+import { recordActivity } from "@/lib/analytics/write";
 import { gamePlayerId } from "@/lib/game-player";
 import { validateScoreSubmission } from "@/domains/game/validation";
 import {
@@ -35,6 +36,7 @@ export async function POST(request: Request) {
   }
 
   const id = await insertGameScore(userId, payload as ScoreInput);
+  await recordActivity("game_score_saved",userId,{id});
   return Response.json({ id }, { status: 201 });
 }
 

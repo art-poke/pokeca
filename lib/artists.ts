@@ -1,7 +1,7 @@
 import "server-only";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
-import { and, asc, desc, eq, ilike, inArray, isNotNull, ne, or } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, isNotNull, ne, or, sql } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { isUniqueViolation } from "@/lib/db/errors";
@@ -547,6 +547,7 @@ export async function withdrawMyAccount(artist: Artist): Promise<void> {
         and(eq(artworks.artistId, artist.userId), inArray(artworks.status, ["active", "hidden"])),
       );
     await tx.update(users).set({ name: null, email: null, image: null }).where(eq(users.id, artist.userId));
+    await tx.execute(sql`update events set member_id=null, visitor_id=null,session_id=null where member_id=${artist.userId}`);
     await tx.delete(accounts).where(eq(accounts.userId, artist.userId));
   });
   // 아바타(프로필 사진=PII) 베스트에포트 제거. 실패해도 탈퇴는 완료된 것으로 본다.

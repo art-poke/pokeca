@@ -28,7 +28,7 @@ export function FavoriteButton({
   const { mutate, isPending } = useToggleFavoriteMutation();
 
   const nudge = () =>
-    showLoginNudge("즐겨찾기는 로그인 후 쓸 수 있어요", () =>
+    showLoginNudge("즐겨찾기는 로그인 후 쓸 수 있어요", "favorite_card", () =>
       router.push("/artist/login"),
     );
 
@@ -58,7 +58,7 @@ export function FavoriteButton({
   return (
     <button
       type="button"
-      onClick={toggle}
+      data-track="favorite_card" onClick={toggle}
       disabled={isPending}
       aria-pressed={favorited}
       className={cn(

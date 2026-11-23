@@ -55,7 +55,7 @@ async function Ranking({ searchParams }: Pick<PageProps<"/ranking">, "searchPara
           {RANK_PERIODS.map((p) => (
             <Link
               key={p}
-              href={`/ranking?period=${p}`}
+              data-track="change_ranking_period" href={`/ranking?period=${p}`}
               aria-current={period === p}
               className={cn(
                 "rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors",
@@ -112,7 +112,7 @@ async function Ranking({ searchParams }: Pick<PageProps<"/ranking">, "searchPara
             {artworks.map((a) => (
               <li key={a.artworkId} className="min-w-0">
                 <Link
-                  href={`/artworks/${a.artworkId}`}
+                  data-track="select_ranked_item" href={`/artworks/${a.artworkId}`}
                   className="flex items-center gap-3 rounded-2xl border border-border bg-background p-3.5 transition-shadow hover:shadow-md"
                 >
                   <span
@@ -175,7 +175,7 @@ const Avatar = ({ name, className }: { name: string; className?: string }) => (
 
 const NameLink = ({ a, className }: { a: ArtistRankEntry; className?: string }) =>
   a.handle ? (
-    <Link href={`/artists/${a.handle}`} className={cn("block truncate", className)}>
+    <Link data-track="select_ranked_item" href={`/artists/${a.handle}`} className={cn("block truncate", className)}>
       {a.name}
     </Link>
   ) : (

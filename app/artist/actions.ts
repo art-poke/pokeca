@@ -1,5 +1,6 @@
 "use server";
 
+import { beginOAuth } from "@/lib/analytics/oauth";
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { signIn } from "@/auth";
@@ -29,7 +30,9 @@ export async function socialLogin(form: FormData) {
   if (await currentSocialUser()) redirect(destination);
   const provider = String(form.get("provider"));
   if (!SOCIAL_PROVIDERS.includes(provider as SocialProvider)) redirect("/artist/login");
-  await signIn(provider, { redirectTo: destination });
+  const url = await signIn(provider, { redirectTo: destination, redirect: false });
+  await beginOAuth(provider, form.get("origin"));
+  redirect(url);
 }
 
 // 회원 탈퇴. 확인 문구를 그대로 입력해야 한다. 성공 시 null → 클라가 signOut으로 세션 쿠키를 지운다.

@@ -15,7 +15,7 @@ export default async function PuzzlePage({ params, searchParams }: PageProps<"/c
   const { game } = await params;
   if (!isGame(game)) notFound();
   const userId = await gamePlayerId();
-  if (!userId) redirect("/artist/login");
+  if (!userId) redirect("/artist/login?source=game_play");
 
   const day = koreaDay();
   const currentMonth = day.slice(0, 7);

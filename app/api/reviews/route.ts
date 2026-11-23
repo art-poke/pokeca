@@ -1,3 +1,4 @@
+import { recordActivity } from "@/lib/analytics/write";
 import { publishedArtistId } from "@/lib/artists";
 import { memberRoute } from "@/lib/artist-route";
 import { createReview, ReviewError } from "@/lib/reviews";
@@ -15,5 +16,6 @@ export const POST = memberRoute(async (request, _ctx, member) => {
     body: String(body.body ?? ""),
     imageUploadId: body.imageUploadId ? String(body.imageUploadId) : null,
   });
+  await recordActivity("review_created",member.userId,{id});
   return Response.json({ id }, { status: 201 });
 });

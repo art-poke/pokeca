@@ -15,6 +15,7 @@ export default function ArtworksPage(props: PageProps<"/admin/artworks">) {
   return (
     <section className={styles.console}>
       <h1 className={styles.title}>작품</h1>
+      <Link href="/admin/artworks/new" className={styles.secondary}>작품 등록</Link>
       <Suspense fallback={<p className={styles.muted}>불러오는 중…</p>}>
         <ArtworkTable searchParams={props.searchParams} />
       </Suspense>

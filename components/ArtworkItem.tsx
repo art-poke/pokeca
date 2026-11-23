@@ -72,7 +72,7 @@ export function SourceLink({ artwork }: { artwork: PublicArtwork }) {
   return (
     <span className="text-sm text-muted-foreground">
       <a
-        href={artwork.sourceUrl}
+        data-track="open_source" href={artwork.sourceUrl}
         target="_blank"
         rel="noopener noreferrer"
         className="font-medium text-ink-600 underline-offset-2 hover:text-primary hover:underline"
@@ -119,7 +119,7 @@ export function DownloadAction({ artwork }: { artwork: PublicArtwork }) {
       onError: (error) => {
         const status = isApiError(error) ? error.status : 0;
         if (status === 401) {
-          showLoginNudge("다운로드는 로그인 후 받을 수 있어요", () =>
+          showLoginNudge("다운로드는 로그인 후 받을 수 있어요", "download_artwork", () =>
             router.push("/artist/login"),
           );
           return;
@@ -138,7 +138,7 @@ export function DownloadAction({ artwork }: { artwork: PublicArtwork }) {
     <button
       type="button"
       className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-red-700 disabled:opacity-60"
-      onClick={download}
+      data-track="download_artwork" onClick={download}
       disabled={loading}
     >
       <Download className="size-4" aria-hidden />

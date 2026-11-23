@@ -6,7 +6,7 @@ import { useFormStatus } from "react-dom";
 export function SearchButton({ className }: { className: string }) {
   const { pending } = useFormStatus();
   return (
-    <button type="submit" className={className} aria-disabled={pending || undefined}>
+    <button data-track="submit_search" type="submit" className={className} aria-disabled={pending || undefined}>
       {pending ? "찾는 중…" : "찾기"}
     </button>
   );

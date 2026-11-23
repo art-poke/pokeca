@@ -40,7 +40,7 @@ async function resolveProfile(): Promise<{ profile: Artist; preview: boolean }> 
     const demo = await anyMember();
     if (demo) return { profile: demo, preview: true };
   }
-  redirect("/artist/login");
+  redirect("/artist/login?source=my_account");
 }
 
 async function Profile({ searchParams }: { searchParams: PageProps<"/me">["searchParams"] }) {

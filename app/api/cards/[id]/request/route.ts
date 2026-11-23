@@ -1,3 +1,4 @@
+import { recordActivity } from "@/lib/analytics/write";
 import { requestArt } from "@/lib/art-requests";
 import { isFormat } from "@/lib/formats";
 import { memberRoute } from "@/lib/artist-route";
@@ -8,7 +9,7 @@ export const POST = memberRoute(
     const { id } = await ctx.params;
     const body = (await request.json().catch(() => ({}))) as { format?: unknown };
     if (!isFormat(body.format)) return Response.json({ code: "invalid_format" }, { status: 400 });
-    await requestArt(member.userId, id, body.format);
+    if(await requestArt(member.userId, id, body.format)) await recordActivity("request_created",member.userId,{id});
     return Response.json({ ok: true });
   },
 );

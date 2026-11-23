@@ -8,13 +8,15 @@ import { UUID } from "@/lib/uuid";
 
 // 회원 규격별 도안 요청 + 요청방(카드×규격 요청수) + 작가 업로드 시 해결 처리.
 
-export async function requestArt(userId: string, cardId: string, format: Format): Promise<void> {
+export async function requestArt(userId: string, cardId: string, format: Format): Promise<boolean> {
   if (!UUID.test(cardId)) throw new Error("not_found");
   if (!isFormat(format)) throw new Error("invalid_format");
   try {
     await db.insert(requests).values({ cardId, userId, format });
+    return true;
   } catch (e) {
-    if (!isUniqueViolation(e)) throw e; // 이미 요청했으면 무시
+    if (!isUniqueViolation(e)) throw e;
+    return false; // 이미 요청했으면 무시
   }
 }
 

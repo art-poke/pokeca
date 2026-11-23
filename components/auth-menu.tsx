@@ -27,7 +27,7 @@ export const AuthMenu = async () => {
 
   return (
     <Link
-      href="/artist/login"
+      data-track="start_login" data-place="header" href="/artist/login"
       className="inline-flex h-9 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-red-600"
     >
       로그인

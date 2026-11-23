@@ -1,3 +1,4 @@
+import { recordActivity } from "@/lib/analytics/write";
 import { after } from "next/server";
 import { artRequestState, requestArt } from "@/lib/art-requests";
 import { memberRoute } from "@/lib/artist-route";
@@ -23,7 +24,7 @@ export const POST = memberRoute(
     const body = await request.json().catch(() => ({}));
     if (!isFormat(body?.format)) return Response.json({ code: "invalid_format" }, { status: 400 });
     if (!(await cardExists(id))) return Response.json({ code: "not_found" }, { status: 404 });
-    await requestArt(member.userId, id, body.format);
+    if (await requestArt(member.userId, id, body.format)) await recordActivity("request_created", member.userId,{id});
     return Response.json(await artRequestState(id, member.userId));
   },
 );

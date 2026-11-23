@@ -1,3 +1,4 @@
+import { recordActivity } from "@/lib/analytics/write";
 import { currentAdmin } from "@/lib/admin";
 import { createPost, PostError } from "@/lib/community";
 import { memberRoute } from "@/lib/artist-route";
@@ -21,6 +22,7 @@ export const POST = memberRoute(async (request, _ctx, member) => {
       isAdmin,
       imageUploadId: b.imageUploadId ? String(b.imageUploadId) : null,
     });
+    await recordActivity("post_published",member.userId,{id});
     return Response.json({ id });
   } catch (e) {
     if (e instanceof PostError) {

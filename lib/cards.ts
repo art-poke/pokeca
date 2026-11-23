@@ -1,7 +1,9 @@
 import "server-only";
+import { writeEvent } from "./analytics/write";
+import { cleanQuery } from "./analytics/taxonomy";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { cards, events, searchMisses, sets } from "@/lib/db/schema";
+import { cards, searchMisses, sets } from "@/lib/db/schema";
 import { jamoSimilarity } from "@/lib/hangul";
 import { parseQuery, type ParsedQuery } from "@/lib/search";
 
@@ -114,15 +116,13 @@ export async function recordSearch(
   query: string,
   result: SearchResult,
   visitorId: string | null,
+  memberId: string | null = null,
 ): Promise<void> {
-  await db.insert(events).values({
-    type: "search",
-    visitorId,
-    cardId: result.hits.length === 1 ? result.hits[0].cardId : null,
-    payload: { query, kind: result.parsed.kind, hits: result.hits.length },
-  });
+  await writeEvent("search", memberId, {
+    query: cleanQuery(query), kind: result.parsed.kind, hits: result.hits.length,
+  }, undefined, { cardId: result.hits.length === 1 ? result.hits[0].cardId : undefined });
   if (result.hits.length === 0 && result.parsed.kind !== "empty") {
-    await db.insert(searchMisses).values({ query, parsed: result.parsed, visitorId });
+    await db.insert(searchMisses).values({ query: cleanQuery(query), parsed: parseQuery(cleanQuery(query)), visitorId });
   }
 }
 

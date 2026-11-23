@@ -149,7 +149,7 @@ const CommentForm = ({
         },
         onError: (error) => {
           if (isApiError(error) && error.status === 401) {
-            showLoginNudge("댓글을 쓰려면 로그인하세요", () =>
+            showLoginNudge("댓글을 쓰려면 로그인하세요", "submit_comment", () =>
               router.push("/artist/login"),
             );
             return;
@@ -181,7 +181,7 @@ const CommentForm = ({
         )}
         <button
           type="button"
-          onClick={submit}
+          data-track="submit_comment" onClick={submit}
           disabled={pending || !body.trim()}
           className="rounded-lg bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-red-700 disabled:opacity-60"
         >

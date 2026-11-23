@@ -1,5 +1,6 @@
 "use client";
 
+import { signal } from "@/lib/analytics/tracker";
 import { useEffect, useRef } from "react";
 import {
   CEILING_Y,
@@ -174,6 +175,8 @@ export const GameCanvas = ({ restartNonce, onState, onGameOver }: Props) => {
       fx.draw(ctx);
     };
 
+    const round = crypto.randomUUID();
+    let started = false;
     const loop = (ts: number) => {
       if (!lastTs) lastTs = ts;
       const dt = Math.min(ts - lastTs, MAX_FRAME_MS);
@@ -190,6 +193,7 @@ export const GameCanvas = ({ restartNonce, onState, onGameOver }: Props) => {
         const snap = game.getSnapshot();
         if (snap.isGameOver && !gameOverSent) {
           gameOverSent = true;
+          signal("game_finished",{round,game:"monsterball"});
           onGameOver(game.getStats(), snap.score);
         }
       }
@@ -199,6 +203,7 @@ export const GameCanvas = ({ restartNonce, onState, onGameOver }: Props) => {
     const onPointerMove = (e: PointerEvent) => game.setDropX(worldXFromClient(e.clientX));
     const onPointerDown = (e: PointerEvent) => {
       game.setDropX(worldXFromClient(e.clientX));
+      if (!started) { started = true; signal("game_started",{round,game:"monsterball"}); }
       game.drop(worldXFromClient(e.clientX));
     };
     const onVisibility = () => {

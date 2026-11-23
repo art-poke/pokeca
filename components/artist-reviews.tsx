@@ -62,7 +62,7 @@ export function ArtistReviews({
       router.refresh();
     } catch (e) {
       if (isApiError(e) && e.status === 401) {
-        showLoginNudge("후기는 로그인 후 남길 수 있어요", () => router.push("/artist/login"));
+        showLoginNudge("후기는 로그인 후 남길 수 있어요", "write_review", () => router.push("/artist/login"));
         return;
       }
       showErrorMessage(errorMessage(e instanceof Error ? e.message : "", "후기를 남기지 못했어요."));
@@ -133,7 +133,7 @@ export function ArtistReviews({
             />
             <button
               type="button"
-              onClick={submit}
+              data-track="write_review" onClick={submit}
               disabled={saving}
               className="inline-flex h-10 items-center rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-red-700 disabled:opacity-60"
             >

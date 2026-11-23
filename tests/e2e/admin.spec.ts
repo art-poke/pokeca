@@ -16,7 +16,7 @@ async function login(page: Page, user = ADMIN) {
   await page.getByLabel("비밀번호").fill(user.password);
   await page.getByRole("button", { name: "로그인" }).click();
   // 로그인 server action이 쿠키를 심고 이동할 때까지 기다린다.
-  if (user === ADMIN) await expect(page).toHaveURL(/\/admin\/artworks$/);
+  if (user === ADMIN) await expect(page).toHaveURL(/\/admin$/);
 }
 
 test("admin pages send signed-out and non-admin users to login", async ({ page }) => {
@@ -29,6 +29,8 @@ test("admin pages send signed-out and non-admin users to login", async ({ page }
 
 test("register an artwork with uploaded files and open its detail", async ({ page }) => {
   await login(page);
+  await expect(page.getByRole("heading", { name: "운영 대시보드" })).toBeVisible();
+  await page.getByRole("link", { name: "작품", exact: true }).click();
   await expect(page.getByRole("heading", { name: "작품", exact: true })).toBeVisible();
   await page.getByRole("link", { name: "작품 등록" }).click();
 
