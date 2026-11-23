@@ -5,7 +5,7 @@ import { and, asc, desc, eq, ilike, inArray, isNotNull, ne, or, sql } from "driz
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { isUniqueViolation } from "@/lib/db/errors";
-import { accounts, artists, artworkFiles, artworks, cards, users } from "@/lib/db/schema";
+import { accounts, admins, artists, artworkFiles, artworks, cards, users } from "@/lib/db/schema";
 import { ArtworkError, attachFile, setStatus, toPublic, type PublicArtwork, type Status } from "@/lib/artworks";
 import { expectedConfirm, normalizeConfirm } from "@/lib/admin";
 import { NICKNAME_MAX } from "@/lib/profile";
@@ -524,6 +524,9 @@ export const WITHDRAWN_DISPLAY_NAME = "탈퇴한 작가";
 // 세션 쿠키 삭제는 클라가 next-auth signOut으로 한다.
 export async function withdrawMyAccount(artist: Artist): Promise<void> {
   await db.transaction(async (tx) => {
+    // Serialize withdrawal with grants and suspensions from member management.
+    await tx.execute(sql`select pg_advisory_xact_lock(74201923)`);
+    await tx.delete(admins).where(eq(admins.userId, artist.userId));
     await tx
       .update(artists)
       .set({

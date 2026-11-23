@@ -10,7 +10,7 @@ vi.mock("next/server", async (original) => ({
 }));
 
 import { db } from "@/lib/db";
-import { artists, artworks, cards, engagements, sets, users } from "@/lib/db/schema";
+import { admins, artists, artworks, cards, engagements, sets, users } from "@/lib/db/schema";
 import { withdrawMyAccount, type Artist } from "@/lib/artists";
 import { artistRanking, artworkRanking } from "@/lib/ranking";
 import { listPublicArtworks } from "@/lib/artworks";
@@ -35,6 +35,7 @@ beforeAll(async () => {
     .insert(users)
     .values({ email: `${TAG}@example.com` })
     .returning({ id: users.id });
+  await db.insert(admins).values({ userId, email: `${TAG}@example.com` });
   await db.insert(artists).values({ userId, displayName: `${TAG} 작가`, provider: "google" });
 
   [{ id: artActive }, { id: artHidden }] = await db
@@ -69,6 +70,7 @@ describe("withdrawMyAccount — 작품 숨김", () => {
     // withdrawMyAccount는 artist.userId / artist.avatarPath만 읽는다.
     await withdrawMyAccount({ userId, avatarPath: null } as Artist);
 
+    expect(await db.select().from(admins).where(eq(admins.userId, userId))).toHaveLength(0);
     const rows = await db
       .select({ status: artworks.status })
       .from(artworks)

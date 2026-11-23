@@ -1,6 +1,7 @@
 import "server-only";
 import { sql } from "drizzle-orm";
 import { db } from "@/lib/db";
+import { searchEmailPattern, searchPhonePattern } from "./taxonomy";
 
 export type Filters = Record<string, string | string[] | undefined>;
 const day = 86400000;
@@ -148,7 +149,8 @@ export async function insights(start: Date, end: Date) {
         query: string;
         n: number;
         miss: number;
-      }>(sql`select payload->>'query' query,count(*)::int n,
+      }>(sql`select left(regexp_replace(regexp_replace(payload->>'query',
+        ${searchEmailPattern.source}, '[이메일]', 'gi'), ${searchPhonePattern.source}, '[전화번호]', 'g'), 100) query,count(*)::int n,
       count(*) filter(where payload->>'hits'='0')::int miss from events where ${window} and type='search' group by 1 order by n desc limit 20`),
       db.execute<{
         page: string;

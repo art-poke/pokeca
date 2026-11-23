@@ -29,7 +29,7 @@ export async function changeMember(form: FormData) {
       where user_id=${admin.userId} and manage_members and u.suspended_at is null`);
     if (!permission.rows.length) return "forbidden";
     const target =
-      await tx.execute(sql`select u.email,u.suspended_at,d.user_id admin,d.manage_members
+      await tx.execute(sql`select u.suspended_at,d.user_id admin,d.manage_members
       from users u left join artists a on a.user_id=u.id left join admins d on d.user_id=u.id
       where u.id=${id} and a.deleted_at is null and
         (a.provider in ('google','kakao') or exists(select 1 from accounts ac where ac."userId"=u.id and ac.provider in ('google','kakao')))
@@ -52,7 +52,7 @@ export async function changeMember(form: FormData) {
       return "ok";
     if (action === "grant")
       await tx.execute(
-        sql`insert into admins(user_id,email) values(${id},${row.email ?? "admin:" + id})`,
+        sql`insert into admins(user_id,email) values(${id},${"admin:" + id})`,
       );
     if (action === "revoke")
       await tx.execute(sql`delete from admins where user_id=${id}`);

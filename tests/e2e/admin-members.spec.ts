@@ -55,9 +55,12 @@ test("member actions update access for an existing session and record each chang
         )
         .toBe(action === "suspend");
       const role =
-        await sql`select manage_members from admins where user_id=${target.id}`;
+        await sql`select manage_members,email from admins where user_id=${target.id}`;
       expect(role.length).toBe(action === "grant" ? 1 : 0);
-      if (action === "grant") expect(role[0].manage_members).toBe(false);
+      if (action === "grant") {
+        expect(role[0].manage_members).toBe(false);
+        expect(role[0].email).toBe("admin:" + target.id);
+      }
       const session = await (
         await memberContext.request.get("/api/auth/session")
       ).json();

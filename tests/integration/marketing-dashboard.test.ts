@@ -56,3 +56,20 @@ it("counts an exposed browser once and attributes signup only to the matching OA
     await db.execute(sql`delete from users where id=${user}`);
   }
 });
+
+it("groups legacy search terms after masking contact details", async () => {
+  const visitor = randomUUID();
+  const start = new Date("2014-06-14T00:00:00Z");
+  const end = new Date(+start + 1000);
+  try {
+    for (const query of ["a@example.com 010-1234-5678", "b@example.org 01098765432"]) {
+      await db.execute(sql`insert into events(type,visitor_id,created_at,payload)
+        values('search',${visitor},${start},${JSON.stringify({ query, hits: 0 })})`);
+    }
+    expect((await insights(start, end)).searches).toEqual([
+      { query: "[이메일] [전화번호]", n: 2, miss: 2 },
+    ]);
+  } finally {
+    await db.execute(sql`delete from events where visitor_id=${visitor}`);
+  }
+});

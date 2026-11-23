@@ -80,10 +80,13 @@ export const browserEvents = new Set([
   "game_started",
   "game_finished",
 ]);
+export const searchEmailPattern = /[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi;
+export const searchPhonePattern = /(?:\+82[ -]?|0)\d{1,2}[ -]?\d{3,4}[ -]?\d{4}/g;
+
 export function cleanQuery(query: string) {
   return query
-    .replace(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi, "[이메일]")
-    .replace(/(?:\+82[ -]?|0)\d{1,2}[ -]?\d{3,4}[ -]?\d{4}/g, "[전화번호]")
+    .replace(searchEmailPattern, "[이메일]")
+    .replace(searchPhonePattern, "[전화번호]")
     .slice(0, 100);
 }
 
