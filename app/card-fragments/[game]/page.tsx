@@ -71,7 +71,7 @@ function GameRecords({ game, currentMonth, month, records, rankingId }: {
         <h2 className="font-bold">내 최고기록</h2>
         <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
           <div className="col-span-2 rounded-xl bg-muted p-3"><dt>최다 연속 정답</dt><dd className="mt-1 text-xl font-extrabold">{records.bestRun}개</dd></div>
-          <div className="rounded-xl bg-muted p-3"><dt>{game === "name" ? "한 달 최다 별" : "한 달 최다 정답"}</dt><dd className="mt-1 text-xl font-extrabold">{records.bestMonth}개</dd></div>
+          <div className="rounded-xl bg-muted p-3"><dt>{game === "name" ? "한 달 최다 별" : "월간 한 판 최고점"}</dt><dd className="mt-1 text-xl font-extrabold">{records.bestMonth}개</dd></div>
           <div className="rounded-xl bg-muted p-3"><dt>{game === "name" ? "연속 첫 답 정답" : "연속 정답"}</dt><dd className="mt-1 text-xl font-extrabold">{records.streak}일</dd></div>
         </dl>
       </section>
@@ -89,7 +89,7 @@ function GameRecords({ game, currentMonth, month, records, rankingId }: {
               <li key={index} className="flex items-center gap-3 py-3 text-sm">
                 <span className="shrink-0 font-bold">{row.rank}위</span>
                 <span className="min-w-0 flex-1 truncate" title={row.name}>{row.name}{row.mine ? " (나)" : ""}</span>
-                <span className="shrink-0 text-muted-foreground">{game === "name" ? `별 ${row.stars} · ` : ""}정답 {row.wins}</span>
+                <span className="shrink-0 text-muted-foreground">{game === "name" ? `별 ${row.stars} · 정답 ${row.wins}` : `최고 ${row.wins}개`}</span>
               </li>
             ))}
           </ol>}
