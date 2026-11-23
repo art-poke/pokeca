@@ -63,6 +63,8 @@ export const members = sql`select u.id,u.created_at,a.deleted_at from users u le
 const active = sql`(type in ('search','source_click','download','request','request_created','favorite_added','artwork_published',
   'artwork_recommended','game_started','game_finished','game_score_saved','story_read','story_liked','post_published','comment_created','review_created')
   or (type='cta_clicked' and payload->>'action'='select_ranked_item'))`;
+const searchTerm = sql`left(regexp_replace(regexp_replace(payload->>'query',
+  ${searchEmailPattern.source}, '[이메일]', 'gi'), ${searchPhonePattern.source}, '[전화번호]', 'g'), 100)`;
 export type Metric = {
   visitors: number;
   active: number;
@@ -71,6 +73,7 @@ export type Metric = {
   left_count: number;
   total: number;
   covered: boolean;
+  hasViews: boolean;
 };
 export async function metrics(start: Date, end: Date): Promise<Metric> {
   const r = await db.execute<Metric>(sql`with m as (${members})
@@ -80,7 +83,8 @@ export async function metrics(start: Date, end: Date): Promise<Metric> {
     (select count(*)::int from m where created_at>=${start} and created_at<${end}) joined,
     (select count(*)::int from m where deleted_at>=${start} and deleted_at<${end}) left_count,
     (select count(*)::int from m where created_at<${end} and (deleted_at is null or deleted_at>=${end})) total,
-    (select started_at<${end} from analytics_start limit 1) covered
+    (select started_at<${end} from analytics_start limit 1) covered,
+      count(*) filter(where type='page_view') > 0 as "hasViews"
     from events where created_at>=${start} and created_at<${end}`);
   return r.rows[0];
 }
@@ -99,6 +103,7 @@ export async function trends(p: ReturnType<typeof period>, provider = "") {
       lost: number;
       total: number;
       covered: boolean;
+      hasViews: boolean;
     }>(sql`
     with m as (${socialMembers(provider)}), buckets as (
       select greatest(b at time zone 'Asia/Seoul',${p.start}::timestamptz) lo,
@@ -112,7 +117,8 @@ export async function trends(p: ReturnType<typeof period>, provider = "") {
       (select count(*)::int from m where created_at>=lo and created_at<hi) joined,
       (select count(*)::int from m where deleted_at>=lo and deleted_at<hi) lost,
       (select count(*)::int from m where created_at<hi and (deleted_at is null or deleted_at>=hi)) total,
-      (select started_at<hi from analytics_start limit 1) covered
+      (select started_at<hi from analytics_start limit 1) covered,
+      count(*) filter(where type='page_view') > 0 as "hasViews"
     from buckets left join events on created_at>=lo and created_at<hi group by label,lo,hi order by lo desc`)
   ).rows;
 }
@@ -149,8 +155,7 @@ export async function insights(start: Date, end: Date) {
         query: string;
         n: number;
         miss: number;
-      }>(sql`select left(regexp_replace(regexp_replace(payload->>'query',
-        ${searchEmailPattern.source}, '[이메일]', 'gi'), ${searchPhonePattern.source}, '[전화번호]', 'g'), 100) query,count(*)::int n,
+      }>(sql`select ${searchTerm} query,count(*)::int n,
       count(*) filter(where payload->>'hits'='0')::int miss from events where ${window} and type='search' group by 1 order by n desc limit 20`),
       db.execute<{
         page: string;
@@ -298,4 +303,40 @@ export async function requestFormats(start: Date, end: Date) {
     count(*) filter(where created_at>=${start})::int created,count(*) filter(where resolved_at>=${start} and resolved_at<${end})::int resolved,
     count(*) filter(where resolved_at is null or resolved_at>=${end})::int pending from requests where created_at<${end} group by 1 order by created desc`)
   ).rows;
+}
+
+export async function observedPeople(
+  start: Date,
+  end: Date,
+  scope: { type: "page_view"; page: string } | { type: "search"; term: string },
+  listPage: number,
+) {
+  const filter =
+    scope.type === "search"
+      ? sql`and ${searchTerm}=${scope.term}`
+      : scope.page
+        ? sql`and payload->>'page'=${scope.page}`
+        : sql``;
+  // Group only by the account attached to this event. A browser can be shared.
+  const result = await db.execute<{
+    id: string | null;
+    display_name: string | null;
+    social_name: string | null;
+    provider: string | null;
+    n: number;
+    last_seen: Date;
+  }>(sql`with observed as (
+    select member_id, count(*)::int n, max(created_at) last_seen from events
+    where type=${scope.type} and created_at>=${start} and created_at<${end} ${filter}
+    group by member_id)
+    select u.id,a.display_name,u.name social_name,coalesce(a.provider,ac.provider) provider,
+      sum(o.n)::int n,max(o.last_seen) last_seen
+    from observed o left join artists a on a.user_id=o.member_id and a.deleted_at is null
+    left join users u on u.id=o.member_id and not exists
+      (select 1 from artists withdrawn where withdrawn.user_id=o.member_id and withdrawn.deleted_at is not null)
+    left join lateral (select provider from accounts where "userId"=u.id and provider in ('google','kakao')
+      order by provider limit 1) ac on true
+    group by u.id,a.display_name,u.name,coalesce(a.provider,ac.provider)
+    order by max(o.last_seen) desc,u.id nulls last limit 31 offset ${(listPage - 1) * 30}`);
+  return result.rows;
 }

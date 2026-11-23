@@ -45,8 +45,8 @@ export async function Overview({ q }: { q: Filters }) {
   ]);
   const rows = series.toReversed().map((r) => ({
     ...r,
-    visitors: r.covered ? r.visitors : null,
-    active: r.covered ? r.active : null,
+    visitors: r.covered || r.hasViews ? r.visitors : null,
+    active: r.covered || r.active > 0 ? r.active : null,
   }));
   const count = (x: number, covered: boolean) =>
     covered ? num(x) + "명" : "미수집";
@@ -81,14 +81,14 @@ export async function Overview({ q }: { q: Filters }) {
           icon={Eye}
           color="#6fd8b2"
           title="오늘 방문자"
-          value={today.covered ? today.visitors : null}
+          value={today.covered || today.hasViews ? today.visitors : null}
           description={
             "동시간 · 어제 " +
-            (yesterday.covered
+            (yesterday.covered || yesterday.hasViews
               ? signed(today.visitors - yesterday.visitors) + "명"
               : "미수집") +
             " / 전주 " +
-            (week.covered
+            (week.covered || week.hasViews
               ? signed(today.visitors - week.visitors) + "명"
               : "미수집")
           }
@@ -98,9 +98,9 @@ export async function Overview({ q }: { q: Filters }) {
           icon={Activity}
           color="#95a8ef"
           title="기간 활동 방문자"
-          value={current.covered ? current.active : null}
+          value={current.covered || current.active > 0 ? current.active : null}
           description={
-            previous.covered
+            previous.covered || previous.active > 0
               ? "이전 기간 대비 " +
                 signed(current.active - previous.active) +
                 "명"
@@ -146,7 +146,10 @@ export async function Overview({ q }: { q: Filters }) {
           />
           <div className={s.footStats}>
             <span>
-              기간 순방문 <b>{count(current.visitors, current.covered)}</b>
+              기간 순방문{" "}
+              <b>
+                {count(current.visitors, current.covered || current.hasViews)}
+              </b>
             </span>
             <span>
               재방문율{" "}
@@ -236,16 +239,23 @@ export async function Overview({ q }: { q: Filters }) {
         >
           <div className={s.statLines}>
             <p>
-              오늘<b>{count(today.visitors, today.covered)}</b>
+              오늘
+              <b>{count(today.visitors, today.covered || today.hasViews)}</b>
             </p>
             <p>
-              어제<b>{count(yesterday.visitors, yesterday.covered)}</b>
+              어제
+              <b>
+                {count(
+                  yesterday.visitors,
+                  yesterday.covered || yesterday.hasViews,
+                )}
+              </b>
             </p>
             <p>
               지난주 같은 요일
               <b>
-                {count(week.visitors, week.covered)}{" "}
-                {week.covered
+                {count(week.visitors, week.covered || week.hasViews)}{" "}
+                {week.covered || week.hasViews
                   ? "(" + signed(today.visitors - week.visitors) + "명)"
                   : ""}
               </b>

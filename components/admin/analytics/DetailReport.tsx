@@ -4,6 +4,7 @@ import {
   audience,
   insights,
   metrics,
+  observedPeople,
   pageTraffic,
   period,
   requestFormats,
@@ -13,7 +14,7 @@ import {
   dateLabel,
   type Filters,
 } from "@/lib/analytics/report";
-import { analyticsLabel as label } from "@/lib/analytics/taxonomy";
+import { analyticsLabel as label, cleanQuery } from "@/lib/analytics/taxonomy";
 import { MetricList, Cohorts, DataTable, Panel } from "./Panels";
 import { ChannelChart, TrendChart } from "./Charts";
 import { ReportControls, type Dimension } from "./ReportControls";
@@ -41,25 +42,110 @@ const dim = (key: string, title: string, values: string[]): Dimension => ({
 const providerDim = dim("provider", "로그인 방식", ["kakao", "google"]);
 const matches = (value: string, filter: string) => !filter || value === filter;
 type View = { dimensions: Dimension[]; content: React.ReactNode };
+function peoplePage(q: Filters) {
+  return Math.min(
+    100000,
+    Math.max(1, Number.parseInt(choice(q, "list"), 10) || 1),
+  );
+}
+function peopleUrl(
+  topic: "traffic" | "search",
+  q: Filters,
+  term: string,
+  list = 1,
+) {
+  const url = new URL(detailUrl(topic, q), "http://localhost");
+  for (const key of ["page", "result"]) {
+    if (choice(q, key)) url.searchParams.set(key, choice(q, key));
+  }
+  if (term) url.searchParams.set("term", term);
+  if (list > 1) url.searchParams.set("list", String(list));
+  return url.pathname + url.search + "#observed-people";
+}
+function PeoplePanel({
+  title,
+  people,
+  page,
+  link,
+  countLabel,
+}: {
+  title: string;
+  people: Awaited<ReturnType<typeof observedPeople>>;
+  page: number;
+  link: (page: number) => string;
+  countLabel: string;
+}) {
+  return (
+    <div id="observed-people">
+      <Panel title={title}>
+        <DataTable
+          headers={[
+            "회원",
+            "소셜 이름",
+            "로그인",
+            countLabel,
+            "최근 시각 (KST)",
+          ]}
+          rows={people.slice(0, 30).map((r) => [
+            r.id ? (
+              <Link className={s.reportLink} href={"/admin/users?id=" + r.id}>
+                {r.display_name || r.social_name || "회원 상세"}
+              </Link>
+            ) : (
+              "회원 연결 없음"
+            ),
+            r.id ? r.social_name || "미제공" : "—",
+            r.provider ? label(r.provider) : "—",
+            r.n,
+            new Date(r.last_seen).toLocaleString("ko-KR", {
+              timeZone: "Asia/Seoul",
+            }),
+          ])}
+        />
+        {(page > 1 || people.length > 30) && (
+          <nav className={s.footStats} aria-label="방문·검색 회원 목록">
+            {page > 1 && (
+              <Link className={s.reportLink} href={link(page - 1)}>
+                이전
+              </Link>
+            )}
+            {people.length > 30 && (
+              <Link className={s.reportLink} href={link(page + 1)}>
+                다음
+              </Link>
+            )}
+          </nav>
+        )}
+        <p className={s.note}>
+          비로그인 및 회원 식별 정보가 없는 과거 기록은 ‘회원 연결 없음’으로
+          합산합니다.
+        </p>
+      </Panel>
+    </div>
+  );
+}
+
 async function trafficReport(
   p: ReturnType<typeof period>,
   q: Filters,
 ): Promise<View> {
   const page = choice(q, "page");
-  const [traffic, data, buckets, visits] = await Promise.all([
+  const list = peoplePage(q);
+  const [traffic, data, buckets, visits, people] = await Promise.all([
     pageTraffic(p, page),
     insights(p.start, p.end),
     trends(p),
     audience(p.start, p.end),
+    observedPeople(p.start, p.end, { type: "page_view", page }, list),
   ]);
   const byDate = new Map(traffic.series.map((r) => [r.label, r]));
   const rows = buckets.toReversed().map((r) => ({
     label: r.label,
-    people: r.covered ? (byDate.get(r.label)?.people ?? 0) : null,
-    views: r.covered ? (byDate.get(r.label)?.views ?? 0) : null,
-    active: r.covered ? r.active : null,
+    people: byDate.get(r.label)?.people ?? (r.covered ? 0 : null),
+    views: byDate.get(r.label)?.views ?? (r.covered ? 0 : null),
+    active: r.covered || r.active > 0 ? r.active : null,
   }));
-  const covered = buckets.some((r) => r.covered);
+  const covered = traffic.total.views > 0 || buckets.some((r) => r.covered);
   return {
     dimensions: [
       dim(
@@ -91,6 +177,13 @@ async function trafficReport(
             ]}
           />
         </Panel>
+        <PeoplePanel
+          title={q.range === "today" ? "오늘 방문자" : "기간 방문자"}
+          people={people}
+          page={list}
+          link={(n) => peopleUrl("traffic", q, "", n)}
+          countLabel="페이지 조회"
+        />
         <Panel title={p.unit === "month" ? "월별 방문 내역" : "일별 방문 내역"}>
           <DataTable
             headers={["기간", "순방문자", page ? "페이지 조회" : "활동 방문자"]}
@@ -113,8 +206,9 @@ async function trafficReport(
         </Panel>
         {!page && (
           <p className={s.note}>
-            계측 시작 {dateLabel(new Date(visits.repeat.since))} · 재방문{" "}
-            {visits.repeat.returning}명 / 순방문 {visits.repeat.people}명
+            새 계측 시작 {dateLabel(new Date(visits.repeat.since))} · 이전
+            날짜는 관측된 기록만 표시 · 재방문 {visits.repeat.returning}명 /
+            순방문 {visits.repeat.people}명
           </p>
         )}
       </>
@@ -390,11 +484,15 @@ async function activityReport(
               ]}
               rows={[
                 [
-                  selectedPeriod.covered ? selectedPeriod.active : "—",
-                  selectedPeriod.covered ? selectedPeriod.logged : "—",
-                  daily.covered ? daily.logged : "—",
-                  weekly.covered ? weekly.logged : "—",
-                  monthly.covered ? monthly.logged : "—",
+                  selectedPeriod.covered || selectedPeriod.active > 0
+                    ? selectedPeriod.active
+                    : "—",
+                  selectedPeriod.covered || selectedPeriod.logged > 0
+                    ? selectedPeriod.logged
+                    : "—",
+                  daily.covered || daily.logged > 0 ? daily.logged : "—",
+                  weekly.covered || weekly.logged > 0 ? weekly.logged : "—",
+                  monthly.covered || monthly.logged > 0 ? monthly.logged : "—",
                 ],
               ]}
             />
@@ -415,9 +513,14 @@ async function searchReport(
   p: ReturnType<typeof period>,
   q: Filters,
 ): Promise<View> {
-  const data = await insights(p.start, p.end);
-  const { funnel } = await serviceMetrics(p.start, p.end),
-    miss = choice(q, "result") === "miss";
+  const term = cleanQuery(choice(q, "term"));
+  const list = peoplePage(q);
+  const [data, { funnel }, people] = await Promise.all([
+    insights(p.start, p.end),
+    serviceMetrics(p.start, p.end),
+    term ? observedPeople(p.start, p.end, { type: "search", term }, list) : [],
+  ]);
+  const miss = choice(q, "result") === "miss";
   return {
     dimensions: [
       {
@@ -441,6 +544,10 @@ async function searchReport(
                 { name: "다운로드", value: funnel.downloaded },
               ]}
             />
+            <p className={s.note}>
+              세션이 기록된 검색만 퍼널에 포함됩니다. 인기 검색어에는 이전 검색
+              기록도 포함됩니다.
+            </p>
           </Panel>
         )}
         <Panel title="인기 검색어" meta="검색량 상위 20개">
@@ -448,9 +555,33 @@ async function searchReport(
             headers={["검색어", "검색", "결과 없음", "결과 없음 비율"]}
             rows={data.searches
               .filter((r) => !miss || r.miss > 0)
-              .map((r) => [r.query, r.n, r.miss, pct(r.miss, r.n)])}
+              .map((r) => [
+                r.query ? (
+                  <Link
+                    className={s.reportLink}
+                    prefetch={false}
+                    href={peopleUrl("search", q, r.query)}
+                  >
+                    {r.query}
+                  </Link>
+                ) : (
+                  "검색어 미수집"
+                ),
+                r.n,
+                r.miss,
+                pct(r.miss, r.n),
+              ])}
           />
         </Panel>
+        {term && (
+          <PeoplePanel
+            title={term + " 검색자"}
+            people={people}
+            page={list}
+            link={(n) => peopleUrl("search", q, term, n)}
+            countLabel="검색 횟수"
+          />
+        )}
       </>
     ),
   };
