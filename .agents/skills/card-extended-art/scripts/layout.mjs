@@ -4,8 +4,9 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const [mode, format, cardFile, directory, inputFile, pokemonName] = process.argv.slice(2);
+const sleeve = JSON.parse(await readFile(new URL("../../../../lib/sleeve-piece-mm.json", import.meta.url), "utf8"));
 const profiles = {
-  sleeve: { width: 204, height: 276, grid: true },
+  sleeve: { width: sleeve.width * 3, height: sleeve.height * 3, grid: true },
   toploader: { width: 246, height: 315, grid: true },
   psa: { width: 80, height: 135, label: [6, 5, 68, 20], cardY: 37 },
   brg: { width: 80, height: 135, label: [7, 8.5, 66, 23], cardY: 39 },

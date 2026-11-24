@@ -103,7 +103,9 @@ export function DownloadAction({ artwork }: { artwork: PublicArtwork }) {
     const printSize = FORMAT_INFO[artwork.format].printSize;
     const how =
       artwork.printSizeVerified && printSize
-        ? `이 파일은 ${printSize}로 확인됐어요.`
+        ? artwork.format === "9pocket"
+          ? `${printSize}. 출력 전 파일의 한 칸 너비를 확인해 주세요.`
+          : `이 파일은 ${printSize}로 확인됐어요.`
         : artwork.sourceUrl
           ? "작가 원본 글의 인쇄 안내도 확인하세요."
           : `${FORMAT_INFO[artwork.format].label} 규격에 맞춰 인쇄하세요.`;
