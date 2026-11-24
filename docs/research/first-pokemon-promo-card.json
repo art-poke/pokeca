@@ -1,0 +1,107 @@
+{
+  "researchedOn": "2026-11-24",
+  "scope": "일본 포켓몬 카드 게임(TCG)의 일반 공개 배포용 프로모. 반다이 카드다스의 수집 카드와 사전 홍보·제작용 샘플은 각각 별도의 범위다.",
+  "release": {
+    "magazine": "쇼가쿠칸 월간 코로코로 코믹 1996년 11월호(223호)",
+    "magazineOnSale": "1996-10-15",
+    "firstRetailTcgOnSale": "1996-10-20",
+    "cards": ["피카츄 (도감 No.025)", "푸린 (도감 No.039)"],
+    "finish": "광택 코팅",
+    "distribution": "동일 호에 두 카드가 붙은 부록지를 끼워 배포. 독자가 카드 두 장을 떼어 쓰는 방식.",
+    "confirmedBy": "10월호 다음 호 예고 스캔에서 ‘11月号 10月15日発売’와 피카츄·푸린 선행 부록 표기를 직접 읽었다. 정규 상품 날짜는 포켓몬 카드 게임 공식 연표, 실제 부록 구성은 남아 있는 실물 사진과 헤리티지 경매 원문으로 대조했다."
+  },
+  "notes": [
+    "CGC의 카드 변형 가이드에서는 홍보 이미지와 배포 판본의 차이, 피카츄 하단의 Ken Sugimori 오기와 실제 작가 Keiji Kinebuchi, 같은 해 무광 재판을 확인했다. CGC의 일부 기사에는 10월호에 부록이 동봉되었다고 적혀 있다. 당시 10월호는 다음 호 예고를 실었고 11월호가 10월 15일 판매된 사실을 당시 인쇄물과 223호 실물 기록으로 판정했다.",
+    "두 카드 하단 No.025와 No.039는 포켓몬 도감 번호다.",
+    "시장 표본은 223호 광택 피카츄 단품의 판본과 등급이 명시된 판매처 원문을 우선했다. 작가 오기 없는 사전 홍보판, 미분리 잡지, 개인 거래는 별도 표기했다."
+  ],
+  "market": {
+    "checkedOn": "2026-11-24",
+    "usdToKrw": 1342,
+    "method": "원화 비교용 환율은 11월 24일 Wise 중간환율을 사용. 만 원 단위 반올림. 거래대금 결제 여부는 공개 페이지에서 개별 확인되지 않음. 판매처 표기 날짜를 유지. 최근 시장 참고는 검증된 10~11월 표본이며 전체 평균은 산출하지 않음.",
+    "sales": {
+      "psa4April": {"date":"2026-04-27","venue":"Fanatics Collect","grade":"PSA 4","usd":4680,"buyerPremium":"포함","href":"https://www.fanaticscollect.com/weekly/84067ff6-3518-11f1-a53d-0aec64948369"},
+      "psa7EarlySeptember": {"date":"2026-09-07","venue":"Fanatics Collect","grade":"PSA 7","usd":18600,"buyerPremium":"포함","href":"https://www.fanaticscollect.com/weekly/9a713f00-9e3c-11f1-8950-02ffc2f23927/1996-pokemon-japanese-promo-corocoro-comic-glossy-pikachu-25-psa-7-nrmt"},
+      "psa7LateSeptember": {"date":"2026-09-21","venue":"Fanatics Collect","grade":"PSA 7","usd":10200,"buyerPremium":"포함","href":"https://www.fanaticscollect.com/weekly/25df82cc-ad7e-11f1-b1c9-0a58a9feac02/1996-pokemon-japanese-promo-corocoro-comic-glossy-pikachu-25-psa-7-nrmt"},
+      "psa8October": {"date":"2026-10-26","venue":"Fanatics Collect","grade":"PSA 8","usd":50400,"buyerPremium":"포함","href":"https://www.fanaticscollect.com/weekly/8221deca-bbd1-11f1-9a16-02ffc9e0f4e3"},
+      "psa8November": {"date":"2026-11-02","venue":"Fanatics Collect","grade":"PSA 8","usd":40800,"buyerPremium":"포함","href":"https://www.fanaticscollect.com/weekly/3f2ae180-cbde-11f1-87e6-0a58a9feac02"},
+      "psa7November": {"date":"2026-11-07","venue":"eBay","grade":"PSA 7","usd":6700,"buyerPremium":"판매 완료 표시액 · 배송비 별도","href":"https://www.ebay.ca/itm/377604828943"},
+      "psa9ocNovember": {"date":"2026-11-09","venue":"Fanatics Collect","grade":"PSA 9 (OC)","usd":78000,"buyerPremium":"포함","href":"https://www.fanaticscollect.com/weekly/05831eda-c840-11f1-9f0b-0a58a9feac02"}
+    },
+    "privateSales": [
+      {"grade":"CGC Gem Mint 10","edition":"223호 공개 부록판 · 작가 오기","usd":1300000,"source":"cgcOriginal","image":"cgc-original"},
+      {"grade":"CGC 8.5","edition":"사전 홍보판 · 발밑에 담쟁이 잎","usd":3300000,"source":"cgcMarketing","image":"cgc-marketing"}
+    ],
+    "magazineSaleUsd": 96875
+  },
+  "logan": {
+    "magazinePeel": {"publishedOn":"2026-07-23","timestampSeconds":1338,"pikachu":"PSA 5","jigglypuff":"PSA 2"},
+    "preproductionPeel": {"airedOn":"2026-07-30","gradesOn":"2026-08-06","selfReportedSheetUsd":400000,"pikachu":"PSA 9","jigglypuff":"PSA 8"},
+    "laterStream": "2026-10-29",
+    "verification": "7월 잡지에서 떼는 장면은 Ego로 영상 본편의 22:18 프레임을 확인했다. 첫 등급은 제작사 쇼츠 및 본편, 두 번째 등급은 8월 공개 영상과 동시기 보도로 대조했다. 10월 추가 방송은 링크를 남겼으며 이후 등급을 단정하지 않는다. 11월 PSA 10 등록 주장에는 해당 개체의 실물과 인증번호를 확인하지 못했다. PSA 등록 원문은 Ego에서도 로그인 화면으로 연결되었다."
+  },
+  "sources": {
+    "loganMagazine": {"label":"로건 폴 · 223호 잡지 부록을 직접 떼는 장면 (22:18)","href":"https://www.youtube.com/watch?v=8A5KDZAzDMs&t=1338s"},
+    "loganFirstGrades": {"label":"Ripit · 잡지에서 떼어낸 피카츄와 푸린의 첫 감정 결과","href":"https://www.youtube.com/watch?v=xPVmMNG7xRk"},
+    "loganLive": {"label":"로건 폴 · 2026년 7월 30일 제작 샘플 분리 라이브","href":"https://www.youtube.com/watch?v=OyqGqePD6Ck"},
+    "loganGrades": {"label":"로건 폴 · 2026년 8월 6일 제작 샘플의 PSA 등급 공개","href":"https://www.youtube.com/watch?v=q9jk6_zBfAM"},
+    "loganOctober": {"label":"로건 폴 · 2026년 10월 29일 추가 도전 방송","href":"https://www.youtube.com/watch?v=zNnMJ7EjTwE"},
+    "population": {"label":"PSA · 일본판 프로모 등급별 등록 현황 (로그인 필요)","href":"https://www.psacard.com/pop/tcg-cards/1996/pokemon-japanese-promo/61006"},
+    "cgcOriginal": {"label":"CGC · 작가 오기 부록판 CGC Gem Mint 10 개인 거래 발표","href":"https://www.cgccards.uk/news/article/15566/another-cgc-ivy-pikachu-sells-one-million/"},
+    "cgcMarketing": {"label":"CGC · 사전 홍보판 CGC 8.5 개인 거래 발표와 실물 사진","href":"https://www.cgccards.uk/news/article/15534/"},
+    "fx": {"label":"Wise · 2026년 11월 24일 미국 달러·원화 환산 기준","href":"https://wise.com/us/currency-converter/usd-to-krw-rate/history/24-11-2026"},
+    "chronicle": { "label": "포켓몬 카드 게임 공식 연표 · 첫 확장팩과 스타터팩 발매일", "href": "https://www.pokemon-card.com/20th/chronicle/" },
+    "preview": { "label": "코로코로 코믹 1996년 10월호 · 다음 호의 발매일과 선행 부록 예고", "href": "https://archives.bulbagarden.net/media/upload/b/bc/Corocoro_october_96_page_176-177.png" },
+    "magazine": { "label": "Zoidsland · 1996년 11월호 실물 표지와 당시 지면", "href": "https://www.zoidsland.com/1rebyu-/koro96-11.html" },
+    "heritage": { "label": "헤리티지 옥션 · 두 카드가 부록지에 붙어 있는 223호 실물 기록", "href": "https://comics.ha.com/itm/memorabilia/trading-cards/monthly-corocoro-comic-no-11-1996-223-featuring-unpeeled-pokemon-promotional-card-insert-bgs-60-off-white-white/a/7459-36095.s" },
+    "cards": { "label": "Bulbapedia · 부록지 사진과 두 카드의 앞면", "href": "https://bulbapedia.bulbagarden.net/wiki/Draft:Pikachu_and_Jigglypuff_(CoroCoro_promos)" },
+    "hoshino": { "label": "Hoshino · 1996년 11월호와 피카츄·푸린 판본 사진", "href": "https://hoshino.com/product/ja-corocoro-comic-1996-11/corocoro-comic-november-1996-no-223-pikachu-jigglypuff" },
+    "variants": { "label": "CGC · 아이비 피카츄의 작가 표기와 재판 구분", "href": "https://www.cgccards.uk/news/article/15297/ivy-pikachu-variant-guide/" },
+    "carddass": { "label": "CGC · 1996년 반다이 포켓몬 카드다스와 카드 게임의 역사", "href": "https://www.cgccards.ae/en-AE/news-and-events/news/30-years-of-pokemon-the-history-behind-the-pokemon-tcg/fj3maovcv0tw7flg14kyer2p" }
+  },
+  "images": {
+    "logan-peel": {"width":1100,"height":443,"original":"https://www.youtube.com/watch?v=8A5KDZAzDMs&t=1338s","credit":"로건 폴 유튜브 · 22:18, 223호 잡지에서 카드를 떼는 장면","license":"자유 이용 라이선스 확인되지 않음. Ego Lite에서 영상의 해당 프레임을 캡처하고 플레이어 UI를 잘라 WebP로 변환."},
+    "psa4": {"width":580,"height":1000,"original":"https://www.fanaticscollect.com/weekly/84067ff6-3518-11f1-a53d-0aec64948369","credit":"PSA 4 · 4월 27일 경매 실물 · Fanatics Collect","license":"자유 이용 라이선스 확인되지 않음. 원본 앞면을 WebP로 변환."},
+    "psa7": {"width":594,"height":1000,"original":"https://www.fanaticscollect.com/weekly/25df82cc-ad7e-11f1-b1c9-0a58a9feac02/1996-pokemon-japanese-promo-corocoro-comic-glossy-pikachu-25-psa-7-nrmt","credit":"PSA 7 · 9월 21일 경매 실물 · Fanatics Collect","license":"자유 이용 라이선스 확인되지 않음. 원본 앞면을 WebP로 변환."},
+    "psa8": {"width":596,"height":1000,"original":"https://www.fanaticscollect.com/weekly/3f2ae180-cbde-11f1-87e6-0a58a9feac02","credit":"PSA 8 · 11월 2일 경매 실물 · Fanatics Collect","license":"자유 이용 라이선스 확인되지 않음. 원본 앞면을 WebP로 변환."},
+    "psa9oc": {"width":597,"height":1000,"original":"https://www.fanaticscollect.com/weekly/05831eda-c840-11f1-9f0b-0a58a9feac02","credit":"PSA 9 (OC) · 11월 9일 경매 실물 · Fanatics Collect","license":"자유 이용 라이선스 확인되지 않음. 원본 앞면을 WebP로 변환."},
+    "cgc-original": {"width":593,"height":1000,"original":"https://s3.amazonaws.com/ccg-corporate-production/news-images/Pikachu%2010_6179531009_OBV20260828173516472.png","credit":"1996년 잡지 부록판 · CGC Gem Mint 10","license":"자유 이용 라이선스 확인되지 않음. 원본 앞면을 WebP로 변환."},
+    "cgc-marketing": {"width":561,"height":946,"original":"https://s3.amazonaws.com/ccg-corporate-production/news-images/Pikachu%208.5_6155238001_OBV_lg20260826200631982.png","credit":"1996년 사전 홍보판 · CGC 8.5","license":"자유 이용 라이선스 확인되지 않음. 원본 앞면을 WebP로 변환."},
+    "magazine": {
+      "width": 757, "height": 1000,
+      "original": "https://www.zoidsland.com/1rebyu-/koro96-11-a82.jpg",
+      "credit": "쇼가쿠칸 코로코로 코믹 표지 · Zoidsland 실물 사진",
+      "license": "자유 이용 라이선스 확인되지 않음. 원본은 WebP로 변환."
+    },
+    "insert": {
+      "width": 778, "height": 831,
+      "original": "https://archives.bulbagarden.net/media/upload/4/44/Nov_1996_corocoro_insert.jpeg",
+      "credit": "쇼가쿠칸 코로코로 코믹 부록 · Bulbagarden Archives 실물 사진",
+      "license": "자유 이용 라이선스 확인되지 않음. Ego Lite에서 원본을 받아 WebP로 변환."
+    },
+    "preview": {
+      "width": 741, "height": 1031,
+      "original": "https://archives.bulbagarden.net/media/upload/b/bc/Corocoro_october_96_page_176-177.png",
+      "credit": "쇼가쿠칸 코로코로 코믹 1996년 10월호 예고 지면 · Bulbagarden Archives 스캔",
+      "license": "자유 이용 라이선스 확인되지 않음. Ego Lite에서 원본을 받아 WebP로 변환."
+    },
+    "pikachu": {
+      "width": 566, "height": 800,
+      "original": "https://hoshino.com/card-img/ja-PMCG-P/ja-PMCG-P-pikachu-p-promotional-cards-corocoro-c.0cab2e45a6.webp",
+      "credit": "피카츄 · Hoshino / © Pokémon",
+      "license": "자유 이용 라이선스 확인되지 않음. WebP로 최적화."
+    },
+    "jigglypuff": {
+      "width": 578, "height": 813,
+      "original": "https://archives.bulbagarden.net/media/upload/f/f3/JigglypuffCoroCoroPromo.jpg",
+      "credit": "푸린 · Bulbagarden Archives / © Pokémon",
+      "license": "자유 이용 라이선스 확인되지 않음. Ego Lite에서 원본을 받아 WebP로 변환."
+    }
+  },
+  "shareImage": {
+    "path": "/specs/stories/og-first-pokemon-promo-card.jpg",
+    "width": 1200,
+    "height": 630,
+    "credit": "위 피카츄와 푸린 앞면을 사용해 만든 공유 이미지."
+  }
+}

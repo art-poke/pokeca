@@ -15,6 +15,7 @@ import { currentMember } from "@/lib/artists";
 import { listComments } from "@/lib/comments";
 import { getStoryLikes } from "@/lib/story-likes";
 import { firstJumboStory } from "../first-pokemon-jumbo-card";
+import { firstPromoStory } from "../first-pokemon-promo-card";
 import { meleeKrw, meleePrice, meleeStory } from "../melee-pokemon-scramble";
 import { eReaderStory } from "../pokemon-e-reader";
 import { ponchoStory } from "../poncho-pikachu";
@@ -34,6 +35,7 @@ type StorySectionData = {
   body: readonly string[];
   image?: StoryImage;
   additionalImage?: StoryImage;
+  gallery?: readonly StoryImage[];
   afterImage?: readonly string[];
   contents?: readonly (StoryImage & { caption: string; fullWidth?: boolean })[];
   note?: string;
@@ -167,6 +169,11 @@ function StorySection({ section, afterFirstImageParagraph }: { section: StorySec
       {section.body.map((paragraph) => <p key={paragraph} className="text-base leading-[1.85]">{paragraph}</p>)}
       {section.image && <StoryFigure image={section.image} />}
       {section.additionalImage && <StoryFigure image={section.additionalImage} />}
+      {section.gallery && (
+        <div className="grid grid-cols-2 gap-4">
+          {section.gallery.map((image) => <StoryFigure key={image.src} image={image} />)}
+        </div>
+      )}
       {section.afterImage?.map((paragraph, index) => (
         <Fragment key={paragraph}>
           <p className="text-base leading-[1.85]">{paragraph}</p>
@@ -748,6 +755,74 @@ function FirstJumboStoryBody({ story }: { story: typeof firstJumboStory }) {
   );
 }
 
+function FirstPromoMarket({ market }: { market: typeof firstPromoStory.market }) {
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {market.photos.map((image) => <StoryFigure key={image.src} image={image} />)}
+      </div>
+      <p className="text-sm leading-relaxed text-muted-foreground">
+        {market.checkedOn} 확인. Fanatics Collect의 구매자 수수료는 포함했습니다. eBay는 판매 완료 표시에 나온 금액이며 배송비는 별도예요.
+        비교용으로 11월 24일 환율(1달러 {market.usdToKrw.toLocaleString("ko-KR")}원)을 적용해 만 원 단위로 반올림했습니다.
+      </p>
+      {[
+        { grade: "PSA 7", limit: 28_000_000 },
+        { grade: "PSA 8", limit: 80_000_000 },
+      ].map(({ grade, limit }) => {
+        const sales = market.sales.filter((sale) => sale.grade === grade);
+        return (
+          <figure key={grade} className="space-y-4 rounded-2xl border border-border p-3 sm:p-6">
+            <figcaption className="text-sm font-semibold">223호 광택 피카츄 · {grade} · {sales.length}건</figcaption>
+            <PriceColumns limit={limit} points={sales.map((sale) => ({
+              amount: sale.usd,
+              krw: sale.krw,
+              won: sale.won,
+              label: sale.date.slice(5).replace("-", "."),
+              venue: sale.venue,
+            }))} />
+            <ul className="divide-y divide-border border-t border-border text-sm">
+              {sales.map((sale) => (
+                <li key={sale.href} className="flex flex-wrap justify-between gap-x-3 gap-y-1 py-2">
+                  <a href={sale.href} className="underline underline-offset-4">{sale.date} · {sale.venue}</a>
+                  <span className="tabular-nums">{sale.won}</span>
+                </li>
+              ))}
+            </ul>
+          </figure>
+        );
+      })}
+      <ul className="divide-y divide-border border-y border-border text-sm">
+        {market.sales.filter((sale) => sale.grade === "PSA 4" || sale.grade === "PSA 9 (OC)").map((sale) => (
+          <li key={sale.href} className="flex flex-wrap justify-between gap-x-3 gap-y-1 py-2">
+            <a href={sale.href} className="underline underline-offset-4">{sale.grade} · {sale.date} · {sale.venue}</a>
+            <span className="tabular-nums">{sale.won}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function FirstPromoStoryBody({ story }: { story: typeof firstPromoStory }) {
+  return (
+    <>
+      <StorySection section={story.magazine} afterFirstImageParagraph={<StoryFigure image={story.insert} />} />
+      <StorySection section={story.dates} />
+      <StorySection section={story.faces} />
+      <StorySection section={story.logan} />
+      <ul className="space-y-2 text-sm">
+        {story.videos.map((video) => (
+          <li key={video.href}><a href={video.href} className="underline underline-offset-4">{video.label}</a></li>
+        ))}
+      </ul>
+      <StorySection section={story.marketIntro} />
+      <FirstPromoMarket market={story.market} />
+      <StorySection section={story.expensive} />
+      <StorySection section={story.closing} />
+    </>
+  );
+}
+
 export default async function StoryPage({ params }: StoryPageProps) {
   const { slug } = await params;
   const story = stories.find((item) => item.slug === slug);
@@ -781,6 +856,7 @@ export default async function StoryPage({ params }: StoryPageProps) {
       {story.slug === ponchoStory.slug && <PonchoStoryBody story={story} />}
       {story.slug === eReaderStory.slug && <EReaderStoryBody story={story} />}
       {story.slug === firstJumboStory.slug && <FirstJumboStoryBody story={story} />}
+      {story.slug === firstPromoStory.slug && <FirstPromoStoryBody story={story} />}
       {"blackLabel" in story && <VanGoghStoryBody story={story} />}
       <details className="border-t border-border pt-4 text-sm text-muted-foreground">
         <summary className="w-fit cursor-pointer">자료 및 사진 출처</summary>

@@ -1,6 +1,7 @@
 import research from "@/docs/research/pikachu-with-grey-felt-hat.json";
 
 import { firstJumboStory } from "./first-pokemon-jumbo-card";
+import { firstPromoStory } from "./first-pokemon-promo-card";
 import { meleeStory } from "./melee-pokemon-scramble";
 import { eReaderStory } from "./pokemon-e-reader";
 import { ponchoStory } from "./poncho-pikachu";
@@ -215,4 +216,4 @@ const vanGoghStory = {
 } as const;
 
 // Append new articles in publication order. Research dates can be identical.
-export const stories = [vanGoghStory, meleeStory, ponchoStory, eReaderStory, firstJumboStory] as const;
+export const stories = [vanGoghStory, meleeStory, ponchoStory, eReaderStory, firstJumboStory, firstPromoStory] as const;
