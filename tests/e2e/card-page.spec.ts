@@ -87,7 +87,7 @@ test("a tile opens the artwork with its source link and download", async ({ page
 
 const printCases = [
   { format: "9pocket", sourceUrl: null, verified: false, guidance: "9포켓 슬리브 규격에 맞춰 인쇄하세요." },
-  { format: "9pocket", verified: true, guidance: "9포켓 슬리브용 조각 8장, 각 68×92 mm로 확인됐어요" },
+  { format: "9pocket", verified: true, guidance: "9포켓 슬리브용 조각 8장, 각 66×92 mm. 출력 전 파일의 한 칸 너비를 확인해 주세요." },
   { format: "psa", verified: true, guidance: "PSA 보관 케이스 안쪽 80×135 mm로 확인됐어요" },
   { format: "brg", verified: true, guidance: "BRG 보관 케이스 안쪽 80×135 mm로 확인됐어요" },
   { format: "psa", verified: false, guidance: "작가 원본 글의 인쇄 안내도 확인하세요." },

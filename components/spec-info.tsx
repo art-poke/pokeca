@@ -3,6 +3,7 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { Ruler, X, ZoomIn } from "lucide-react";
 import { useState } from "react";
+import { SLEEVE_PIECE_MM as sleeve } from "@/lib/formats";
 import { cn } from "@/lib/utils";
 
 // 도안 규격 및 정보: 9포켓·PSA·BRG별 실측 치수와 참고 사진을 보여 주는 안내 모달.
@@ -21,10 +22,10 @@ const SPECS: Spec[] = [
     key: "9pocket",
     label: "9포켓 슬리브",
     images: [{ src: "/specs/9pocket.png", alt: "9포켓 바인더 3×3 조립 예시" }],
-    size: "조각 8장 · 각 68 × 92 mm (슬리브용 포켓)",
+    size: `조각 8장 · 각 ${sleeve.width} × ${sleeve.height} mm (슬리브용 포켓)`,
     points: [
       "3×3 바인더 속지(슬리브용)에 들어가요. 가운데 칸엔 실제 카드, 둘레 8칸에 도안 조각을 끼워요.",
-      "조각 하나하나가 슬리브 포켓 크기(68×92 mm)라, 모으면 가운데 카드를 감싸는 한 장의 그림이 돼요.",
+      `3×3 조립본은 ${sleeve.width * 3} × ${sleeve.height * 3} mm예요. 실제 크기(100%)로 출력한 뒤 재단선을 따라 잘라 주세요.`,
       "업로드는 ‘낱개 8칸’(원하는 자리에 배치) 또는 ‘조립본 한 장’(8칸 모인 파일) 중 선택.",
     ],
   },
