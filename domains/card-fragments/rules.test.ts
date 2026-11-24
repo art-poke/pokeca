@@ -123,7 +123,8 @@ describe("오늘의 카드조각", () => {
     }
   });
 
-  it.each(["name", "odd"] as const)("배경을 보여주는 %s 문제는 여유 있게 자르고 카드 제목 영역을 피한다", (game) => {
+  it("이름 문제에서 배경 단서는 여유 있게 자르고 카드 제목 영역을 피한다", () => {
+    const game = "name";
     const source = { id: "fixture", width: 600, height: 840, area: { left: .1, top: .15, right: .9, bottom: .65 }, focus: { x: .5, y: .4 } };
     const variants = Array.from({ length: 80 }, (_, seed) => {
       const runId = `test-run-${seed}`;
@@ -141,6 +142,20 @@ describe("오늘의 카드조각", () => {
     expect(wide.length).toBeGreaterThan(10);
     expect(new Set(wide.map((crop) => `${crop.left}/${crop.top}`)).size).toBe(4);
     expect(variants.some((crop) => crop.width < 200)).toBe(true);
+  });
+
+  it("다른 포켓몬 찾기는 얼굴 위치와 관계없이 같은 창을 쓰고 매 라운드 조각을 조금씩 줄인다", () => {
+    const source = { id: "fixture", width: 600, height: 840, area: { left: .1, top: .15, right: .9, bottom: .65 }, focus: { x: .5, y: .4 } };
+    const take = (round: number, run = "fixture") => runtimeCrop(source, "odd", round, run, 0, "close").crop;
+    for (let round = 2; round <= 18; round++) {
+      expect(take(round).width).toBeLessThan(take(round - 1).width);
+      expect(take(round).height).toBeLessThan(take(round - 1).height);
+    }
+    expect(take(30)).toEqual(expect.objectContaining({ width: take(18).width, height: take(18).height }));
+    expect(runtimeCrop({ ...source, focus: { x: .2, y: .3 } }, "odd", 4, "fixture", 2, "close").crop).toEqual(take(4));
+    const samples = Array.from({ length: 64 }, (_, i) => take(10, `sample-${i}`));
+    expect(Math.min(...samples.map((crop) => crop.top))).toBeLessThan(165);
+    expect(Math.max(...samples.map((crop) => crop.top))).toBeGreaterThan(255);
   });
 
   it("랭킹에서 지난달을 볼 수 있고 미래나 잘못된 월은 이번 달로 돌아간다", () => {

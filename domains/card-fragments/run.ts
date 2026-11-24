@@ -33,9 +33,8 @@ async function getRound(tx: Transaction, game: Game, userId: string) {
 }
 
 async function pickRound(tx: Transaction, game: Game, day: string, runId: string, round: number, recent: string[]) {
-  const favorCameo = game === "odd" && (recent.length < 32
-    ? recent.length % 4 === 2
-    : (Number.parseInt(runId.slice(0, 8), 16) + round) % 4 === 0);
+  // Keep the introduction readable. Later cameo rounds use the run ID to vary the cadence.
+  const favorCameo = game === "odd" && round >= 8 && (Number.parseInt(runId.slice(0, 8), 16) + round) % 3 === 0;
   const result = await tx.execute<Puzzle & { source_day: string; source_stage: number; signature: string }>(sql`
     with recent as (
       select signature, position::int
@@ -51,9 +50,13 @@ async function pickRound(tx: Transaction, game: Game, day: string, runId: string
       where p.game = ${game} and p.stage <= ${BANK_ROUNDS} and p.answer_kind = 'pokemon'
       order by coalesce(recent.position, 0),
         (p.has_cameo = ${favorCameo}) desc,
+        p.has_runtime_crop desc,
+        case when ${favorCameo} then exists (
+          select 1 from regexp_split_to_table(p.cards->p.answer_slot->>'cameo', ',') as guest(name)
+          where split_part(btrim(guest.name), ' ', 1) = p.cards->((p.answer_slot + 1) % 3)->>'name'
+        ) else p.similar_odd_pair end desc,
         coalesce((select sum(position - greatest(0, ${recent.length} - 8)) from recent_cards
           where card = any(string_to_array(p.rotation_signature, '/'))), 0),
-        p.has_runtime_crop desc,
         md5(concat(${runId}::text, '/', ${round}::int, '/', p.rotation_signature)), p.day, p.stage
       limit 1
     )
