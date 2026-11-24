@@ -101,6 +101,18 @@ describe("card fragment runs", () => {
     }
   });
 
+  it("includes multiple Pikachu versus Pichu combinations with distinct card art", async () => {
+    const { rows } = await db.execute<{ count: number }>(sql`
+      select count(distinct rotation_signature)::int as count
+      from card_fragment_puzzles
+      where game = 'odd' and similar_odd_pair and has_runtime_crop
+        and cards->0->>'name' = '피카츄' and cards->1->>'name' = '피카츄'
+        and cards->answer_slot->>'name' = '피츄'
+        and cards->0->'cropSource'->>'id' <> cards->1->'cropSource'->>'id'
+    `);
+    expect(rows[0].count).toBeGreaterThanOrEqual(3);
+  });
+
   it("rotates odd-card combinations across restarts and reveals the matching card at the scored slot", async () => {
     const shown = new Set<string>();
     const shownSpecies = new Set<string>();
@@ -120,7 +132,51 @@ describe("card fragment runs", () => {
     }
     expect(shown.size).toBe(10);
     expect(shownSpecies.size).toBeGreaterThan(10);
-    expect(cameos).toBeGreaterThan(0);
+    expect(cameos).toBe(0);
+  }, 15_000);
+
+  it("shrinks clues through a full run and introduces matching cameos only in later rounds", async () => {
+    const player = randomUUID();
+    await db.execute(sql`insert into users (id, name) values (${player}, 'Difficulty fixture')`);
+    try {
+      let puzzle = (await startRun("odd", day, player))!;
+      let cameoRounds = 0;
+      for (let round = 1; round <= 15; round++) {
+        const { rows: [source] } = await db.execute<{
+          answer_slot: number;
+          similar_odd_pair: boolean;
+          rotation_signature: string;
+        }>(sql`
+          select p.answer_slot, p.similar_odd_pair, p.rotation_signature
+          from card_fragment_active_runs r join card_fragment_puzzles p
+            on (p.day, p.game, p.stage) = (r.source_day, r.game, r.source_stage)
+          where r.run_id = ${puzzle.runId}
+        `);
+        if (round <= 7) expect(source.similar_odd_pair).toBe(true);
+        expect(puzzle.stage).toBe(round);
+        const permutation = (Number.parseInt(puzzle.runId.slice(-6), 16) + round) % 6;
+        const displaySlot = [[0, 1, 2], [2, 0, 1], [1, 2, 0], [0, 2, 1], [2, 1, 0], [1, 0, 2]][permutation][source.answer_slot];
+        await continueRun("odd", player, puzzle.runId, round, 0, "start");
+        const reveal = (await continueRun("odd", player, puzzle.runId, round, 0, { kind: "odd", value: displaySlot }))!.reveal!;
+        const guest = reveal.cards[reveal.slot].cameo;
+        if (reveal.cards.some((card) => card.cameo)) {
+          expect(round).toBeGreaterThanOrEqual(8);
+          expect(guest?.split(",").map((name) => name.trim().split(" ")[0])).toContain(reveal.cards[(reveal.slot + 1) % 3].name);
+          cameoRounds++;
+        }
+        if ([1, 8, 15].includes(round)) {
+          const original = await sharp((await runImage("odd", player, puzzle.runId, round, 0, "reveal"))!).metadata();
+          const fragment = await sharp((await runImage("odd", player, puzzle.runId, round, 0, "close"))!).metadata();
+          const placement = puzzle.fragments[0].placement!;
+          expect(fragment.width).toBeCloseTo(original.width * (1 - placement.left - placement.right));
+          expect(fragment.height).toBeCloseTo(original.height * (1 - placement.top - placement.bottom));
+        }
+        puzzle = (await continueRun("odd", player, puzzle.runId, round, 1, "next"))!;
+      }
+      expect(cameoRounds).toBeGreaterThanOrEqual(2);
+    } finally {
+      await db.execute(sql`delete from users where id = ${player}`);
+    }
   }, 15_000);
 
   it("expires the round and retains a zero-score result", async () => {
